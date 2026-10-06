@@ -93,15 +93,11 @@ export class Desktop {
     this.taskbar.render();
 
     if (!DEV_UNLOCK_ALL) {
-      // Junior финал
       if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
         setTimeout(() => this._showJuniorFinale(), 800);
-      }
-      // Senior финал (самый важный — приоритет выше)
-      else if (this.seniorDone && !rewards.isUnlocked('senior_finale_shown')) {
+      } else if (this.seniorDone && !rewards.isUnlocked('senior_finale_shown')) {
         setTimeout(() => this._showSeniorFinale(), 800);
       }
-      // Первое интро
       setTimeout(() => {
         const solved = progress.getSolved();
         if (solved.length === 0) {
@@ -715,15 +711,28 @@ export class Desktop {
   }
 
   openCheats() {
-    const ach = new Achievements({ mode: 'cheats' });
+    const ach = new Achievements({
+      mode: 'cheats',
+      onAction: (action) => this._handleCheatAction(action),
+    });
     this.windows.create({
       id: 'cheats',
       title: '🗝 Чит-коды',
       content: ach.render(),
       onMount: (body) => ach.mount(body),
       width: 520,
-      height: 600,
+      height: 720,
     });
+  }
+
+  _handleCheatAction(action) {
+    if (action === 'show_senior_finale') {
+      this._showSeniorFinale();
+    } else if (action === 'show_junior_finale') {
+      this._showJuniorFinale();
+    } else if (action === 'show_middle_map') {
+      this.openGroupMap('middle');
+    }
   }
 
   openSettings() {
