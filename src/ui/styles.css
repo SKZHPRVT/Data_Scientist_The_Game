@@ -789,3 +789,25 @@ body.keyboard-open .taskbar {
   cursor: pointer;
 }
 .task-btn-next:hover { background: #00dd33; }
+
+/* ===== ЗАМОК В EXPLORER ===== */
+.start-item.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--fg-dim);
+}
+
+.start-item.locked:hover {
+  background: rgba(255, 51, 51, 0.08);
+}
+
+/* ===== ЗАМОК В EXPLORER ===== */
+.start-item.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--fg-dim);
+}
+
+.start-item.locked:hover {
+  background: rgba(255, 51, 51, 0.08);
+}

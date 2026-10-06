@@ -8,6 +8,7 @@ import { Achievements } from '../achievements/Achievements.js';
 import { Progress } from '../settings/Progress.js';
 import { TaskView } from '../task/TaskView.js';
 import { storage } from '../../core/storage.js';
+import { progress } from '../../core/progress.js';
 
 export class Desktop {
   constructor(root, tg) {
@@ -41,9 +42,8 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    // === game.py только при первом запуске ===
     setTimeout(() => {
-      const solved = JSON.parse(localStorage.getItem('tasks_solved') || '[]');
+      const solved = progress.getSolved();
       if (solved.length === 0) {
         window.__skipNextOpenSound = true;
         this.runGamePy();
@@ -127,9 +127,32 @@ export class Desktop {
     else if (file.endsWith('.json')) this.openTaskByPath(file);
   }
 
-  openTaskByPath(path) {
+  async openTaskByPath(path) {
     try {
-      const raw = window.__fs.readFile(path);
+      let raw = null;
+
+      try {
+        raw = window.__fs.readFile(path);
+      } catch (e) {}
+
+      // Проверяем, не stub ли это
+      let isStub = false;
+      if (raw) {
+        try {
+          const test = JSON.parse(raw);
+          if (test._stub) isStub = true;
+        } catch (e) { isStub = true; }
+      }
+
+      // Если stub или не нашли — грузим через fetch
+      if (!raw || isStub) {
+        const url = import.meta.env.BASE_URL + 'tasks' + path;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        raw = await res.text();
+        try { window.__fs.mount(path, raw); } catch (e) {}
+      }
+
       const task = JSON.parse(raw);
       task._path = path;
       this.openTask(task);
@@ -139,8 +162,6 @@ export class Desktop {
   }
 
   openTask(task) {
-    // Закрываем предыдущую задачу в той же папке
-    const dir = task._path.substring(0, task._path.lastIndexOf('/'));
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
@@ -169,11 +190,9 @@ export class Desktop {
       const idx = items.findIndex((i) => i.name === current);
 
       if (idx >= 0 && idx < items.length - 1) {
-        // Следующая задача
         const next = dir + '/' + items[idx + 1].name;
         setTimeout(() => this.openTaskByPath(next), 200);
       } else {
-        // Все задачи в папке решены — поздравление
         this._showFolderComplete(dir);
       }
     } catch (e) {
@@ -195,16 +214,18 @@ export class Desktop {
           <p>• head — первые строки</p>
           <p>• info — типы и пропуски</p>
           <p>• columns — список колонок</p>
+          <p>• value_counts — частота</p>
+          <p>• groupby — группировка</p>
           <p style="margin-top: 16px;">Дальше: <code>cleaning/</code> — чистка данных.</p>
           <p style="margin-top: 16px;">
             <button class="task-btn task-btn-next" id="next-folder" style="width: 100%;">
-              → Открыть cleaning/
+              → Открыть родительскую папку
             </button>
           </p>
         </div>
       `,
       width: 480,
-      height: 380,
+      height: 420,
       onMount: (body) => {
         body.querySelector('#next-folder')?.addEventListener('click', () => {
           const parent = dir.substring(0, dir.lastIndexOf('/'));
@@ -255,12 +276,12 @@ export class Desktop {
   }
 
   openProgress() {
-    const progress = new Progress();
+    const progressView = new Progress();
     this.windows.create({
       id: 'progress',
       title: '📊 Прогресс',
-      content: progress.render(),
-      onMount: (body) => progress.mount(body),
+      content: progressView.render(),
+      onMount: (body) => progressView.mount(body),
       width: 480,
       height: 480,
     });
