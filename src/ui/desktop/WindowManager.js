@@ -7,7 +7,6 @@ export class WindowManager {
     this._safeCache = null;
   }
 
-  // === РЕАЛЬНЫЕ ПИКСЕЛИ SAFE-AREA ===
   _getSafeArea() {
     if (this._safeCache) return this._safeCache;
 
@@ -32,7 +31,6 @@ export class WindowManager {
     };
     test.remove();
 
-    // Доп. отступ для кнопок Telegram (закрыть/свернуть/меню) в шапке Mini App
     result.top = Math.max(result.top, 0) + 52;
 
     this._safeCache = result;
@@ -50,19 +48,28 @@ export class WindowManager {
     const taskbarH = 44;
     const safe = this._getSafeArea();
 
-    const finalW = width;
-    const finalH = Math.min(height, vh - taskbarH - safe.top - safe.bottom - 20);
+    // === ЖЁСТКО ОГРАНИЧИВАЕМ РАЗМЕРЫ ПОД ЭКРАН ===
+    const padding = 8;
+    const availableW = vw - safe.left - safe.right - padding * 2;
+    const availableH = vh - safe.top - safe.bottom - taskbarH - padding * 2;
+
+    const finalW = Math.min(width, availableW);
+    const finalH = Math.min(height, availableH);
 
     this.offset = (this.offset + 1) % 5;
-    const defaultLeft = Math.min(40 + this.offset * 30, vw - finalW - 8);
-    const defaultTop = safe.top + this.offset * 20;
+    // Центрируем по горизонтали с небольшим сдвигом
+    const defaultLeft = Math.max(
+      safe.left + padding,
+      Math.min(safe.left + padding + this.offset * 20, vw - finalW - safe.right - padding)
+    );
+    const defaultTop = Math.max(safe.top + this.offset * 20, safe.top + 8);
 
     const win = document.createElement('div');
     win.className = 'window';
     win.style.width = finalW + 'px';
     win.style.height = finalH + 'px';
-    win.style.left = Math.max(8, defaultLeft) + 'px';
-    win.style.top = Math.max(safe.top, defaultTop) + 'px';
+    win.style.left = defaultLeft + 'px';
+    win.style.top = defaultTop + 'px';
     win.style.zIndex = ++this.zIndex;
 
     win.innerHTML = `
@@ -94,13 +101,12 @@ export class WindowManager {
 
     const onResize = () => {
       this._safeCache = null;
-      this._clampWindow(win, this._getSafeArea(), taskbarH);
+      this._refitWindow(win);
     };
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
     win._onResize = onResize;
 
-    // === ЗВУК ПРИ ОТКРЫТИИ (если не пропущен) ===
     if (window.__audio && !window.__skipNextOpenSound) {
       window.__audio.open();
     }
@@ -111,19 +117,44 @@ export class WindowManager {
     return win;
   }
 
+  // === ПОДГОНЯЕМ РАЗМЕРЫ ОКНА ПОД ТЕКУЩИЙ ЭКРАН ===
+  _refitWindow(win) {
+    if (!win || !win.parentNode) return;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const taskbarH = 44;
+    const safe = this._getSafeArea();
+    const padding = 8;
+
+    const availableW = vw - safe.left - safe.right - padding * 2;
+    const availableH = vh - safe.top - safe.bottom - taskbarH - padding * 2;
+
+    // Сжимаем, если окно больше доступного
+    const currentW = win.offsetWidth;
+    const currentH = win.offsetHeight;
+
+    if (currentW > availableW) win.style.width = availableW + 'px';
+    if (currentH > availableH) win.style.height = availableH + 'px';
+
+    // Подтягиваем позицию
+    this._clampWindow(win, safe, taskbarH);
+  }
+
   _clampWindow(win, safe, taskbarH) {
     if (!win || !win.parentNode) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const rect = win.getBoundingClientRect();
+    const padding = 8;
 
-    const minTop = safe.top;
+    const minTop = safe.top + padding;
     const maxTop = vh - taskbarH - safe.bottom - 40;
-    const minLeft = -rect.width + 80;
-    const maxLeft = vw - 80;
+    const minLeft = safe.left + padding;
+    const maxLeft = vw - rect.width - safe.right - padding;
 
     const newTop = Math.max(minTop, Math.min(rect.top, maxTop));
-    const newLeft = Math.max(minLeft, Math.min(rect.left, maxLeft));
+    const newLeft = Math.max(minLeft, Math.min(rect.left, Math.max(minLeft, maxLeft)));
 
     win.style.top = newTop + 'px';
     win.style.left = newLeft + 'px';
@@ -181,12 +212,20 @@ export class WindowManager {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const w = win.offsetWidth;
+      const h = win.offsetHeight;
+      const padding = 8;
 
       let newLeft = cx - offsetX;
       let newTop = cy - offsetY;
 
-      newTop = Math.max(safe.top + 4, Math.min(newTop, vh - taskbarH - safe.bottom - 40));
-      newLeft = Math.max(-w + 80, Math.min(newLeft, vw - 80));
+      // Не даём уехать за пределы экрана
+      const minLeft = safe.left + padding;
+      const maxLeft = vw - w - safe.right - padding;
+      const minTop = safe.top + padding;
+      const maxTop = vh - h - taskbarH - safe.bottom - padding;
+
+      newLeft = Math.max(minLeft, Math.min(newLeft, Math.max(minLeft, maxLeft)));
+      newTop = Math.max(minTop, Math.min(newTop, Math.max(minTop, maxTop)));
 
       win.style.left = newLeft + 'px';
       win.style.top = newTop + 'px';
