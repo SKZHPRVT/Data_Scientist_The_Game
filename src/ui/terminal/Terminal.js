@@ -79,7 +79,8 @@ export class Terminal {
 
   _saveRect() {
     if (!this._win) return;
-    if (this._savedRect) return; // уже сохранено
+    // Сохраняем ТОЛЬКО если ещё не сохранено — иначе потеряем исходный размер
+    if (this._savedRect) return;
     const rect = this._win.getBoundingClientRect();
     this._savedRect = {
       top: rect.top,
@@ -87,10 +88,16 @@ export class Terminal {
       left: this._win.style.left,
       width: this._win.style.width,
     };
+    // Помечаем, что клавиатура когда-то открывалась
+    this._keyboardWasOpen = true;
   }
 
   _stretchUp(offset) {
     if (!this._win) return;
+    // Сначала обязательно сохраняем текущее (исходное) состояние
+    if (!this._savedRect) {
+      this._saveRect();
+    }
     const vh = window.innerHeight;
     const keyboardTop = vh - offset;
     const safeTop = 52;
@@ -106,13 +113,13 @@ export class Terminal {
   _restore() {
     if (!this._win || !this._savedRect) return;
 
-    // Восстанавливаем только высоту и top — left/width не трогаем,
-    // потому что пользователь мог перетащить окно
+    // Восстанавливаем ТОЛЬКО top и height — left/width не трогаем
     this._win.style.top = this._savedRect.top + 'px';
     this._win.style.height = this._savedRect.height + 'px';
 
-    // Сбрасываем сразу — чтобы _checkViewport больше не вызывал _restore
+    // Сбрасываем — до следующего открытия клавиатуры
     this._savedRect = null;
+    this._keyboardWasOpen = false;
   }
 
   // Проверяем: клавиатура открыта или нет
@@ -126,17 +133,14 @@ export class Terminal {
     const vvHeight = vv.height;
     const diff = fullHeight - vvHeight;
 
-    // Клавиатура считается закрытой, если разница меньше 100px
+    // Клавиатура считается открытой, если разница больше 150px
     const keyboardOpen = diff > 150;
 
     if (keyboardOpen) {
-      // Клавиатура открыта — растягиваем (если ещё не растянули)
-      if (!this._savedRect) {
-        this._saveRect();
-      }
+      // Растягиваем — _stretchUp сам сохранит исходное состояние если надо
       this._stretchUp(diff);
     } else {
-      // Клавиатура закрыта — восстанавливаем (если растянуто)
+      // Клавиатура закрыта — восстанавливаем ТОЛЬКО если реально растянуто
       if (this._savedRect) {
         this._restore();
         this._scrollToBottomSoon();

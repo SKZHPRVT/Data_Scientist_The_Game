@@ -91,7 +91,7 @@ export class Achievements {
             const title = lang === 'en' ? (a.titleEn || a.title) : a.title;
             const desc = lang === 'en' ? (a.descEn || a.desc) : a.desc;
             return `
-              <div class="ach-item ${unlocked ? 'unlocked' : 'locked'} ${a.platinum ? 'platinum' : ''}">
+              <div class="ach-item ${unlocked ? 'unlocked' : 'locked'} ${a.platinum ? 'platinum' : ''}" data-ach-idx="${a.id}">
                 <div class="ach-icon">${unlocked ? a.icon : '🔒'}</div>
                 <div class="ach-body">
                   <div class="ach-title">${title}</div>
@@ -135,7 +135,65 @@ export class Achievements {
     `;
   }
 
+  _showAchievementModal(ach) {
+    const lang = localStorage.getItem('lang') === 'en' ? 'en' : 'ru';
+    const title = lang === 'en' ? (ach.titleEn || ach.title) : ach.title;
+    const desc = lang === 'en' ? (ach.descEn || ach.desc) : ach.desc;
+    const unlocked = this.isUnlocked(ach.id);
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); padding: 20px;
+      opacity: 0; transition: opacity 0.25s;
+    `;
+    modal.innerHTML = `
+      <div style="background: #0a0a0a; border: 2px solid ${ach.platinum ? 'var(--warn)' : 'var(--accent)'};
+                  border-radius: 12px; padding: 24px; max-width: 400px; width: 100%;
+                  box-shadow: 0 0 40px ${ach.platinum ? 'rgba(255,170,0,0.4)' : 'rgba(0,255,65,0.3)'};
+                  text-align: center;">
+        <pre style="font-size: 10px; line-height: 1.2; color: ${ach.platinum ? 'var(--warn)' : 'var(--accent)'}; margin-bottom: 12px; white-space: pre;">${
+          ach.platinum ? '  ╔══════════════════╗\n  ║  ★ PLATINUM ★   ║\n  ╚══════════════════╝' : '  ┌──────────────────┐\n  │   UNLOCKED       │\n  └──────────────────┘'
+        }</pre>
+        <div style="font-size: 64px; line-height: 1; margin-bottom: 12px;">${unlocked ? ach.icon : '🔒'}</div>
+        <div style="font-size: 18px; font-weight: 700; color: ${ach.platinum ? 'var(--warn)' : 'var(--accent)'}; margin-bottom: 12px;">
+          ${unlocked ? title : '???'}
+        </div>
+        <div style="font-size: 12px; color: var(--fg); line-height: 1.7; margin-bottom: 16px;">
+          ${unlocked ? desc : 'Заблокировано. Продолжай играть.'}
+        </div>
+        ${unlocked ? '<div style="font-size: 10px; color: var(--fg-dim);">✅ Разблокировано</div>' : ''}
+        <button id="ach-modal-close" class="task-btn" style="margin-top: 16px; padding: 10px 24px;">Закрыть</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    requestAnimationFrame(() => { modal.style.opacity = '1'; });
+
+    const close = () => {
+      modal.style.opacity = '0';
+      setTimeout(() => modal.remove(), 300);
+    };
+    modal.querySelector('#ach-modal-close').onclick = close;
+    modal.onclick = (e) => { if (e.target === modal) close(); };
+
+    if (window.__audio && window.__audio.click) {
+      try { window.__audio.click('open'); } catch (e) {}
+    }
+  }
+
   mount(body) {
+    // Обработчики клика на ачивки
+    body.querySelectorAll('.ach-item').forEach((el) => {
+      el.style.cursor = 'pointer';
+      el.onclick = () => {
+        const idx = el.dataset.achIdx;
+        const ach = ACHIEVEMENTS.find((a) => a.id === idx);
+        if (ach) this._showAchievementModal(ach);
+      };
+    });
+
     const btn = body.querySelector('#code-btn');
     const input = body.querySelector('#code-input');
     const result = body.querySelector('#code-result');
