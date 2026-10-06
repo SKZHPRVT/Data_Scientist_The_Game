@@ -249,6 +249,44 @@ export class Terminal {
     const args = parts.slice(1);
 
     try {
+      if (name === 'solved') {
+        const solved = JSON.parse(localStorage.getItem('tasks_solved_v9') || '[]');
+        const models = solved.filter((id) => id.startsWith('models/'));
+        this._print('Всего решено: ' + solved.length, 'terminal-success');
+        this._print('Из них моделей: ' + models.length, 'terminal-success');
+        models.forEach((id) => this._print('  ' + id));
+        return;
+      }
+      if (name === 'stars') {
+        const keys = Object.keys(localStorage).filter((k) => k.startsWith('task_models'));
+        this._print('Звёзд моделей: ' + keys.length, 'terminal-success');
+        keys.forEach((k) => this._print('  ' + k + ' = ' + localStorage.getItem(k)));
+        return;
+      }
+      if (name === 'unlocked') {
+        const arr = JSON.parse(localStorage.getItem('unlocked_models') || '[]');
+        this._print('Unlocked models: ' + arr.length, 'terminal-success');
+        arr.forEach((m) => this._print('  ' + m));
+        return;
+      }
+      if (name === 'keys') {
+        const all = Object.keys(localStorage);
+        this._print('Всего ключей в localStorage: ' + all.length, 'terminal-success');
+        all.filter((k) => k.includes('models')).forEach((k) => this._print('  ' + k));
+        return;
+      }
+      if (name === 'models') {
+        const lab = window.__models;
+        if (!lab) { this._print('[ERROR] Лаборатория не загружена', 'terminal-error'); return; }
+        const p2 = lab.getProgress();
+        this._print('МОДЕЛИ: ' + p2.unlocked + ' / ' + p2.total, 'terminal-success');
+        this._print('');
+        lab.listAll().forEach((fam) => {
+          this._print(fam.icon + ' ' + fam.family, 'terminal-warn');
+          fam.models.forEach((m) => this._print('  ' + (m.unlocked ? '[+]' : '[ ]') + ' ' + m.name));
+        });
+        return;
+      }
       if (name === 'help') {
         this._print('═══════════════════════════════', 'terminal-success');
         this._print('  ФАЙЛОВАЯ СИСТЕМА', 'terminal-success');
