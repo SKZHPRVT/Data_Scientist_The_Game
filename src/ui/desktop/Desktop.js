@@ -93,6 +93,7 @@ export class Desktop {
     this.startMenu.render();
   }
 
+  // =================== GROUP MAP ===================
   async openGroupMap(worldId) {
     const oldId = 'groupmap-' + worldId;
     if (this.windows.windows.has(oldId)) {
@@ -112,6 +113,11 @@ export class Desktop {
       height: 660,
     });
 
+    // Сохраняем ссылку на map, чтобы потом обновлять
+    win._questMap = map;
+    win._mapType = 'group';
+    win._worldId = worldId;
+
     try {
       await map.load();
       const bodyEl = win.querySelector('.window-body');
@@ -129,6 +135,22 @@ export class Desktop {
     }
   }
 
+  // Перерисовать уже открытую карту мира, если она есть
+  async refreshGroupMap(worldId) {
+    const win = this.windows.windows.get('groupmap-' + worldId);
+    if (!win || !win._questMap) return;
+    try {
+      await win._questMap.load();
+      const bodyEl = win.querySelector('.window-body');
+      bodyEl.innerHTML = win._questMap.render();
+      win._questMap.mount(bodyEl);
+      console.log('[refreshGroupMap]', worldId, 'refreshed');
+    } catch (e) {
+      console.error('[refreshGroupMap] fail', e);
+    }
+  }
+
+  // =================== QUEST MAP ===================
   async openQuestMap(chapterId) {
     const oldId = 'questmap-' + chapterId;
     if (this.windows.windows.has(oldId)) {
@@ -148,6 +170,10 @@ export class Desktop {
       height: 660,
     });
 
+    win._questMap = map;
+    win._mapType = 'chapter';
+    win._chapterId = chapterId;
+
     try {
       await map.load();
       const bodyEl = win.querySelector('.window-body');
@@ -165,6 +191,22 @@ export class Desktop {
     }
   }
 
+  // Перерисовать уже открытую карту главы, если она есть
+  async refreshQuestMap(chapterId) {
+    const win = this.windows.windows.get('questmap-' + chapterId);
+    if (!win || !win._questMap) return;
+    try {
+      await win._questMap.load();
+      const bodyEl = win.querySelector('.window-body');
+      bodyEl.innerHTML = win._questMap.render();
+      win._questMap.mount(bodyEl);
+      console.log('[refreshQuestMap]', chapterId, 'refreshed');
+    } catch (e) {
+      console.error('[refreshQuestMap] fail', e);
+    }
+  }
+
+  // =================== TERMINAL / EXPLORER ===================
   openTerminal() {
     const term = new Terminal();
     this.windows.create({
@@ -199,20 +241,12 @@ export class Desktop {
 
   async openTaskByPath(path) {
     try {
-      // ВАЖНО: нормализуем path — начинается с /
       let cleanPath = path.startsWith('/') ? path : '/' + path;
-
       const url = import.meta.env.BASE_URL + 'tasks' + cleanPath;
-      console.log('[openTaskByPath]', { input: path, clean: cleanPath, url });
-
       const res = await fetch(url);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const task = await res.json();
-
-      // КРИТИЧНО: всегда ставим _path — это id для прогресса
       task._path = cleanPath;
-      console.log('[openTaskByPath] task._path set to:', task._path);
-
       this.openTask(task);
     } catch (e) {
       console.error('[openTaskByPath] fail', path, e);
@@ -236,7 +270,8 @@ export class Desktop {
     });
 
     const view = new TaskView(task, {
-      onSolved: () => this._openNextTask(task._path),
+      // ВАЖНО: при решении обновляем карты, а не только переходим
+      onSolved: () => this._onTaskSolved(task._path),
     });
     this.windows.create({
       id: 'task-' + task.id,
@@ -248,21 +283,27 @@ export class Desktop {
     });
   }
 
-  async _openNextTask(currentPath) {
+  // ВЫЗЫВАЕТСЯ ПРИ КЛИКЕ "Следующий квест →"
+  async _onTaskSolved(currentPath) {
     // currentPath = /junior/basics/task1.json
     const parts = currentPath.split('/').filter(Boolean);
     const worldId = parts[0];
     const chapterId = parts.slice(0, -1).join('/');
     const currentFile = parts[parts.length - 1];
 
-    console.log('[_openNextTask]', { worldId, chapterId, currentFile });
+    console.log('[_onTaskSolved]', { worldId, chapterId, currentFile });
 
-    // Закрываем текущую задачу
+    // 1. ОБНОВЛЯЕМ КАРТУ ГЛАВЫ (если открыта)
+    await this.refreshQuestMap(chapterId);
+    // 2. ОБНОВЛЯЕМ КАРТУ МИРА (если открыта)
+    await this.refreshGroupMap(worldId);
+
+    // 3. ЗАКРЫВАЕМ ЗАДАЧУ
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
 
-    // Получаем список задач
+    // 4. ПРОВЕРЯЕМ, ЗАКРЫТА ЛИ ГЛАВА
     let tasks = [];
     let chapterComplete = false;
     try {
@@ -275,13 +316,8 @@ export class Desktop {
       const solvedList = progress.getSolved();
       const solved = ids.filter((id) => solvedList.includes(id));
       chapterComplete = ids.length > 0 && solved.length >= ids.length;
-
-      console.log('[_openNextTask] tasks:', tasks);
-      console.log('[_openNextTask] ids:', ids);
-      console.log('[_openNextTask] solved:', solved);
-      console.log('[_openNextTask] chapterComplete:', chapterComplete);
     } catch (e) {
-      console.error('[_openNextTask] fail', e);
+      console.error('[_onTaskSolved] fail', e);
     }
 
     const currentIdx = tasks.indexOf(currentFile);
@@ -289,22 +325,24 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
+    // 5. ОТКРЫВАЕМ СЛЕДУЮЩЕЕ
     if (chapterComplete) {
-      // Глава пройдена — открываем карту мира
-      this.windows.windows.forEach((_, id) => {
-        if (id.startsWith('questmap-') || id.startsWith('groupmap-')) {
-          this.windows.close(id);
-        }
-      });
-      setTimeout(() => this.openGroupMap(worldId), 400);
+      // Глава закрыта — показываем карту мира (уже обновлена выше)
+      console.log('[_onTaskSolved] chapter complete → group map');
+      // Карта мира обновлена, просто фокусируем её
+      const groupWin = this.windows.windows.get('groupmap-' + worldId);
+      if (groupWin) {
+        groupWin.style.zIndex = ++this.windows.zIndex;
+      } else {
+        setTimeout(() => this.openGroupMap(worldId), 300);
+      }
     } else if (nextFile) {
-      // Следующая задача — открываем НАПРЯМУЮ, карта остаётся позади
+      // Открываем следующую задачу
       const nextPath = '/' + chapterId + '/' + nextFile;
-      console.log('[_openNextTask] opening next:', nextPath);
+      console.log('[_onTaskSolved] next task:', nextPath);
       setTimeout(() => this.openTaskByPath(nextPath), 250);
     } else {
-      // Fallback
-      setTimeout(() => this.openQuestMap(chapterId), 400);
+      setTimeout(() => this.openQuestMap(chapterId), 300);
     }
   }
 
