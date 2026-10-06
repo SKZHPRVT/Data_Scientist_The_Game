@@ -941,3 +941,99 @@ body.keyboard-open .taskbar {
   color: var(--warn);
   flex-shrink: 0;
 }
+
+/* ===== ВАРИАНТЫ ОТВЕТА В КВЕСТЕ ===== */
+.task-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.task-option {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(0, 255, 65, 0.04);
+  border: 1px solid var(--fg-dim);
+  border-radius: 8px;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  word-break: break-word;
+}
+
+.task-option:hover {
+  background: rgba(0, 255, 65, 0.1);
+  border-color: var(--accent);
+  transform: translateX(4px);
+}
+
+.task-option:active {
+  background: rgba(0, 255, 65, 0.2);
+}
+
+.task-option:disabled {
+  cursor: not-allowed;
+}
+
+.task-option-code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Правильный вариант */
+.task-option.correct {
+  background: rgba(0, 255, 65, 0.2) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 16px rgba(0, 255, 65, 0.4);
+  transform: scale(1.02);
+}
+
+/* Неправильный — тот, что выбрал игрок */
+.task-option.wrong {
+  background: rgba(255, 51, 51, 0.15) !important;
+  border-color: var(--error) !important;
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Обновлённые стили результата */
+.task-result-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.task-result-code {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin: 6px 0;
+  word-break: break-word;
+}
+
+.task-result-expl {
+  font-size: 12px;
+  line-height: 1.5;
+  padding-top: 6px;
+  border-top: 1px solid rgba(0, 255, 65, 0.2);
+  margin-top: 6px;
+}
+
+.task-result-success .task-result-expl {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 4px;
+}

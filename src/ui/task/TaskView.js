@@ -1,6 +1,3 @@
-import { evaluate } from '../../core/interpreter.js';
-import { COMMANDS } from '../../core/commands.js';
-import { VirtualDF } from '../../core/virtualdf.js';
 import { progress } from '../../core/progress.js';
 
 export class TaskView {
@@ -8,17 +5,13 @@ export class TaskView {
     this.task = task;
     this.onSolved = onSolved;
     this.el = null;
-    this.attempts = 0;
     this.startTime = Date.now();
+    this.answered = false;
+    this.wrongTries = 0;
   }
 
   render() {
     const t = this.task;
-    const availableCommands = t.commands
-      ? t.commands.map((id) => COMMANDS[id]).filter(Boolean)
-      : Object.entries(COMMANDS)
-          .filter(([_, c]) => c.world === 'junior')
-          .map(([id, c]) => ({ ...c, id }));
 
     return `
       <div class="task-view">
@@ -37,32 +30,24 @@ export class TaskView {
             </div>
           ` : ''}
 
-          <div class="task-commands">
-            <div class="task-commands-label">Доступные команды (тапни, чтобы вставить):</div>
-            <div class="task-commands-list">
-              ${availableCommands.map((c) => {
-                const short = (c.signature || '').match(/[a-z_]+\(/i)?.[0]?.replace('(', '') || c.signature;
-                return `<button class="task-cmd" data-cmd="${short}">${c.signature || c.id}</button>`;
-              }).join('')}
-            </div>
-          </div>
-
-          <div class="task-input-wrapper">
-            <span class="task-input-prompt">$ </span>
-            <input type="text" class="task-input" id="task-input"
-              placeholder="Напиши решение или тапни команду..." autocomplete="off"
-              autocorrect="off" autocapitalize="off" spellcheck="false">
-          </div>
-
-          <div class="task-actions">
-            <button class="task-btn task-btn-hint" id="task-hint">💡 Подсказка</button>
-            <button class="task-btn task-btn-check" id="task-check">✓ Проверить</button>
+          <div class="task-options" id="task-options">
+            ${t.options.map((opt) => `
+              <button class="task-option" data-id="${opt.id}">
+                <div class="task-option-code">${this._esc(opt.code)}</div>
+              </button>
+            `).join('')}
           </div>
 
           <div class="task-result" id="task-result"></div>
         </div>
       </div>
     `;
+  }
+
+  _esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
   }
 
   _previewDataset() {
@@ -78,120 +63,61 @@ export class TaskView {
 
   mount(body) {
     this.el = body.querySelector('.task-view');
-    const input = body.querySelector('#task-input');
     const result = body.querySelector('#task-result');
 
-    setTimeout(() => input?.focus(), 200);
-
-    input.addEventListener('keydown', (e) => {
-      if (window.__audio) {
-        if (e.key === 'Enter') window.__audio.key('enter');
-        else if (e.key === 'Backspace') window.__audio.key('backspace');
-        else if (e.key === ' ') window.__audio.key('space');
-        else if (e.key.length === 1) window.__audio.key('normal');
-      }
-      if (e.key === 'Enter') { e.preventDefault(); this._check(result); }
+    body.querySelectorAll('.task-option').forEach((btn) => {
+      btn.onclick = () => this._onPick(btn, result);
     });
-
-    body.querySelectorAll('.task-cmd').forEach((btn) => {
-      btn.onclick = () => {
-        const cmd = btn.dataset.cmd;
-        const val = input.value;
-        if (!val || val.endsWith('(')) input.value = val + cmd;
-        else if (val.endsWith(')')) input.value = val + '.' + cmd;
-        else input.value = val + cmd;
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-        if (window.__audio) window.__audio.click('normal');
-      };
-    });
-
-    body.querySelector('#task-hint').onclick = () => {
-      const hint = this.task.hint || this.task.explanation || 'Внимательно прочитай вопрос.';
-      result.innerHTML = `<div class="task-result-hint">💡 ${hint}</div>`;
-      if (window.__audio) window.__audio.notify();
-    };
-
-    body.querySelector('#task-check').onclick = () => this._check(result);
   }
 
-  _check(resultEl) {
-    const input = this.el.querySelector('#task-input');
-    const code = input.value.trim();
+  _onPick(btn, resultEl) {
+    if (this.answered) return;
 
-    if (!code) {
-      resultEl.innerHTML = '<div class="task-result-error">Введи решение.</div>';
-      if (window.__audio) window.__audio.error();
-      return;
+    const optId = btn.dataset.id;
+    const opt = this.task.options.find((o) => o.id === optId);
+    if (!opt) return;
+
+    if (window.__audio) {
+      window.__audio.click('normal');
     }
 
-    this.attempts++;
+    if (opt.correct) {
+      this.answered = true;
+      this._onCorrect(btn, opt, resultEl);
+    } else {
+      this.wrongTries++;
+      this._onWrong(btn, opt, resultEl);
+    }
+  }
+
+  _onCorrect(btn, opt, resultEl) {
     const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
 
-    try {
-      const userResult = evaluate(code, { df: window.__df });
-      const task = this.task;
-      let ok = false;
-      let expected = null;
+    // Звёзды: 3 если с первой попытки и быстро
+    let stars = 3;
+    if (this.wrongTries > 0) stars = Math.max(1, 3 - this.wrongTries);
+    if (elapsed > 60) stars = Math.max(1, stars - 1);
 
-      if (Array.isArray(task.expectedShape)) {
-        expected = task.expectedShape;
-        ok = Array.isArray(userResult) && userResult[0] === expected[0] && userResult[1] === expected[1];
-      } else if (task.expected !== undefined) {
-        expected = task.expected;
-        ok = this._compare(userResult, expected);
-      } else if (task.validation) {
-        try {
-          const validator = eval(task.validation);
-          ok = validator(userResult);
-          expected = task.expectedShape || task.expected || 'как в задаче';
-        } catch (e) { ok = false; }
-      } else {
-        ok = true;
-      }
-
-      if (ok) this._onSuccess(resultEl, userResult, elapsed);
-      else this._onFail(resultEl, userResult, expected, code);
-    } catch (e) {
-      resultEl.innerHTML = `
-        <div class="task-result-error">
-          <div>❌ Ошибка выполнения</div>
-          <div class="task-result-detail">${e.message}</div>
-          <div class="task-result-hint">Проверь синтаксис. Например: <code>read_csv('sales.csv').shape</code></div>
-        </div>
-      `;
-      if (window.__audio) window.__audio.error();
-    }
-  }
-
-  _compare(user, expected) {
-    if (typeof expected === 'number' && typeof user === 'number') {
-      return Math.abs(user - expected) < 1e-6;
-    }
-    if (Array.isArray(expected) && Array.isArray(user)) {
-      return JSON.stringify(user) === JSON.stringify(expected);
-    }
-    if (expected instanceof VirtualDF && user instanceof VirtualDF) {
-      return user.equals(expected);
-    }
-    return user === expected;
-  }
-
-  _onSuccess(resultEl, userResult, elapsed) {
-    const stars = elapsed < 20 ? 3 : elapsed < 40 ? 2 : 1;
     const starsStr = '⭐'.repeat(stars);
-    const right = this.task.explanationRight || this.task.explanation || 'Верно.';
+
+    // Подсветка
+    btn.classList.add('correct');
+
+    // Блокируем все остальные
+    this.el.querySelectorAll('.task-option').forEach((b) => {
+      b.style.pointerEvents = 'none';
+      if (b !== btn) b.style.opacity = '0.4';
+    });
 
     progress.markSolved(this.task.id);
     progress.setStars(this.task.id, stars);
 
     resultEl.innerHTML = `
       <div class="task-result-success">
-        <div>✅ Верно!</div>
-        <div class="task-result-detail">Результат: ${this._fmt(userResult)}</div>
+        <div class="task-result-title">✅ Верно!</div>
         <div class="task-result-stars">${starsStr} · ${elapsed} сек</div>
-        <div class="task-result-expl"><strong>Почему правильно:</strong> ${right}</div>
-        <button class="task-btn task-btn-next" id="task-next">Следующая задача →</button>
+        <div class="task-result-expl">${opt.explain}</div>
+        <button class="task-btn task-btn-next" id="task-next">Следующий квест →</button>
       </div>
     `;
 
@@ -200,40 +126,27 @@ export class TaskView {
     resultEl.querySelector('#task-next').onclick = () => {
       if (this.onSolved) this.onSolved(this.task.id, stars);
     };
+
+    // Авто-скролл вниз
+    setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
   }
 
-  _onFail(resultEl, userResult, expected, code) {
-    const wrongMap = this.task.explanationWrong || {};
-    let why = '';
-    for (const [key, text] of Object.entries(wrongMap)) {
-      if (code.includes(key)) { why = text; break; }
-    }
-    if (!why) {
-      why = this.task.explanationWrongDefault || 'Результат не совпал с ожидаемым.';
-    }
+  _onWrong(btn, opt, resultEl) {
+    // Подсветка неверного варианта
+    btn.classList.add('wrong');
+    btn.disabled = true;
+
+    if (window.__audio) window.__audio.error();
 
     resultEl.innerHTML = `
       <div class="task-result-error">
-        <div>❌ Не то</div>
-        <div class="task-result-detail">
-          Твой результат: ${this._fmt(userResult)}<br>
-          ${expected !== null ? `Ожидалось: ${this._fmt(expected)}` : ''}
-        </div>
-        <div class="task-result-expl"><strong>Почему неправильно:</strong> ${why}</div>
-        <div class="task-result-hint">Попытка ${this.attempts}. Попробуй ещё раз или нажми «Подсказка».</div>
+        <div class="task-result-title">❌ Не то</div>
+        <div class="task-result-code">${this._esc(opt.code)}</div>
+        <div class="task-result-expl">${opt.explain}</div>
+        <div class="task-result-hint">Попробуй другой вариант.</div>
       </div>
     `;
-    if (window.__audio) window.__audio.error();
-  }
 
-  _fmt(v) {
-    if (v === null || v === undefined) return '—';
-    if (v instanceof VirtualDF) {
-      const j = v.toJSON();
-      return `DataFrame(${j.rows.length} × ${j.columns.length})`;
-    }
-    if (Array.isArray(v)) return JSON.stringify(v);
-    if (typeof v === 'object') return JSON.stringify(v);
-    return String(v);
+    setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
   }
 }

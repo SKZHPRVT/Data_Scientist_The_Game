@@ -1,1 +1,14 @@
-{"id":"task3_columns","world":"junior","level":1,"title":"Названия колонок","dataset":"sales.csv","question":"Получи список названий колонок.","checkMode":"exact","validation":"r => Array.isArray(r) && r.length === 3 && r.includes('city')","commands":["read_csv","columns"],"hint":".columns — свойство, без скобок","explanationRight":".columns возвращает список всех колонок: ['city','month','revenue'].","explanationWrong":{"head":"head показывает строки, не колонки.","info":"info() содержит колонки, но это не список."},"explanationWrongDefault":"columns — свойство DataFrame, без скобок."}
+{
+  "id": "task3_columns",
+  "world": "junior",
+  "level": 1,
+  "title": "Названия колонок",
+  "dataset": "sales.csv",
+  "question": "Что вернёт список названий колонок: ['city', 'month', 'revenue']?",
+  "options": [
+    { "id": "A", "code": "df.columns", "correct": true, "explain": ".columns — свойство DataFrame, возвращает список названий колонок." },
+    { "id": "B", "code": "df.columns()", "correct": false, "explain": "columns — это свойство, а не метод. Скобки не нужны." },
+    { "id": "C", "code": "df.head()", "correct": false, "explain": "head() показывает первые строки, а не названия колонок." },
+    { "id": "D", "code": "df.keys()", "correct": false, "explain": "keys() существует, но редко используется. Для колонок — .columns." }
+  ]
+}
