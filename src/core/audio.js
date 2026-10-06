@@ -5,6 +5,7 @@ export class AudioEngine {
     this.ctx = null;
     this.enabled = storage.get('sound', 'on') !== 'off';
     this.volume = +storage.get('volume', 0.3) || 0.3;
+    this._noiseBuffer = null;
   }
 
   _ensureContext() {
@@ -13,10 +14,18 @@ export class AudioEngine {
       if (!AC) return null;
       this.ctx = new AC();
     }
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
     return this.ctx;
+  }
+
+  _getNoiseBuffer(ctx) {
+    if (this._noiseBuffer) return this._noiseBuffer;
+    const len = ctx.sampleRate * 0.1;
+    const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    this._noiseBuffer = buffer;
+    return buffer;
   }
 
   setEnabled(on) {
@@ -29,45 +38,59 @@ export class AudioEngine {
     storage.set('volume', this.volume);
   }
 
+  // === МЕХАНИЧЕСКАЯ КЛАВИША ===
+  // Двойной импульс: down + up, шум через highpass
   key(pitch = 'normal') {
     if (!this.enabled) return;
     const ctx = this._ensureContext();
     if (!ctx) return;
 
     const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
 
-    const freq = {
-      normal: 800 + Math.random() * 200,
-      space: 600,
-      enter: 400,
-      backspace: 900,
-      error: 200,
-      success: 1200,
-    }[pitch] || 800;
+    // Разная «громкость» и «частота» для разных клавиш
+    const cfg = {
+      normal:    { vol: 0.35, hp: 2000, dur: 0.03 },
+      space:     { vol: 0.45, hp: 1500, dur: 0.04 },
+      enter:     { vol: 0.55, hp: 1200, dur: 0.05 },
+      backspace: { vol: 0.40, hp: 2200, dur: 0.03 },
+    }[pitch] || { vol: 0.35, hp: 2000, dur: 0.03 };
 
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(freq, now);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + 0.03);
-
-    filter.type = 'bandpass';
-    filter.frequency.value = freq * 1.5;
-    filter.Q.value = 8;
-
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(this.volume * 0.15, now + 0.002);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start(now);
-    osc.stop(now + 0.05);
+    // Импульс 1: удар
+    this._click(ctx, now, cfg, 1.0);
+    // Импульс 2: отскок (тише, чуть позже)
+    this._click(ctx, now + 0.012, cfg, 0.4);
   }
 
+  _click(ctx, time, cfg, scale) {
+    const src = ctx.createBufferSource();
+    src.buffer = this._getNoiseBuffer(ctx);
+
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = cfg.hp;
+    hp.Q.value = 0.7;
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 8000;
+
+    const gain = ctx.createGain();
+    const vol = this.volume * cfg.vol * scale;
+
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(vol, time + 0.001);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + cfg.dur);
+
+    src.connect(hp);
+    hp.connect(lp);
+    lp.connect(gain);
+    gain.connect(ctx.destination);
+
+    src.start(time);
+    src.stop(time + cfg.dur + 0.01);
+  }
+
+  // === СИСТЕМНЫЕ ===
   open() {
     if (!this.enabled) return;
     const ctx = this._ensureContext();
