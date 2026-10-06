@@ -8,6 +8,17 @@ export class TaskView {
     this.startTime = Date.now();
     this.answered = false;
     this.wrongTries = 0;
+
+    // file-id — имя файла без .json (task1, task2...)
+    // используется для прогресса, чтобы совпадало с index.json
+    this.fileId = this._getFileId();
+  }
+
+  _getFileId() {
+    if (this.task._path) {
+      return this.task._path.split('/').pop().replace('.json', '');
+    }
+    return this.task.id;
   }
 
   render() {
@@ -65,14 +76,9 @@ export class TaskView {
     const result = body.querySelector('#task-result');
 
     body.querySelectorAll('.task-option').forEach((btn) => {
-      // Запрещаем long-press и context menu
       btn.addEventListener('contextmenu', (e) => e.preventDefault());
-      btn.addEventListener('touchstart', (e) => {
-        // Не даём выделять текст
-        e.stopPropagation();
-      }, { passive: true });
+      btn.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
 
-      // Только click — срабатывает после тапа
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -112,9 +118,12 @@ export class TaskView {
       if (b !== btn) b.style.opacity = '0.4';
     });
 
-    progress.markSolved(this.task.id);
-    progress.setStars(this.task.id, stars);
-    console.log('[TaskView] solved:', this.task.id, 'stars:', stars, 'solved list:', progress.getSolved());
+    // === СОХРАНЯЕМ ПО fileId (task1), НЕ по task.id (task1_read_csv) ===
+    progress.markSolved(this.fileId);
+    progress.setStars(this.fileId, stars);
+
+    console.log('[TaskView] saved fileId:', this.fileId, 'stars:', stars);
+    console.log('[TaskView] solved list:', progress.getSolved());
 
     resultEl.innerHTML = `
       <div class="task-result-success">
@@ -131,8 +140,8 @@ export class TaskView {
     resultEl.querySelector('#task-next').addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('[TaskView] next clicked');
-      if (this.onSolved) this.onSolved(this.task.id, stars);
+      console.log('[TaskView] next clicked, fileId:', this.fileId);
+      if (this.onSolved) this.onSolved(this.fileId, stars);
     });
   }
 
