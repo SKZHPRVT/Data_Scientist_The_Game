@@ -14,6 +14,7 @@ import { JuniorFinale } from '../rewards/JuniorFinale.js';
 import { storage } from '../../core/storage.js';
 import { progress, rewards, isJuniorComplete } from '../../core/progress.js';
 import { CHAPTER_REWARDS } from '../../core/rewards.js';
+import { DEV_UNLOCK_ALL } from '../../core/dev.js';
 
 const CHEAT_HINTS = {
   basics: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER',
@@ -23,6 +24,18 @@ const CHEAT_HINTS = {
   datetime: 'Даты и время... до 3 ночи... Код: COFFEE',
   strings: 'Тексты и пропуски. Слово из 3 букв. Код: NAN',
   bosses: 'Идеальный на трейне — но не на тесте. Код: OVERFIT',
+  // MIDDLE hints (задел на будущее)
+  pipelines: 'Весь путь в одном объекте. Код: PIPELINE',
+  features: 'Создай признаки — выиграй соревнование. Код: FEATURES',
+  models: 'Обучи, сохрани, переиспользуй. Код: MODEL',
+  eval: 'F1 — твой друг при дисбалансе. Код: F1',
+  experiments: 'A/B — не гадай, а проверяй. Код: ABTEST',
+  // SENIOR hints (задел на будущее)
+  incidents: 'Прод упал в 3 ночи — собери логи. Код: INCIDENT',
+  research: 'Читай статьи, а не только туториалы. Код: RESEARCH',
+  mentoring: 'Объясни джуну то, что сам знаешь. Код: MENTOR',
+  architecture: 'Сначала схема — потом код. Код: ARCHITECT',
+  final: 'Divide et Impera. Код: DIVIDE-ET-IMPERA',
 };
 
 export class Desktop {
@@ -48,7 +61,7 @@ export class Desktop {
   }
 
   async render() {
-    this.juniorDone = await isJuniorComplete();
+    this.juniorDone = DEV_UNLOCK_ALL ? true : await isJuniorComplete();
 
     this.root.innerHTML = `
       <div class="desktop" id="desktop">
@@ -70,17 +83,19 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
-      setTimeout(() => this._showJuniorFinale(), 800);
-    }
-
-    setTimeout(() => {
-      const solved = progress.getSolved();
-      if (solved.length === 0) {
-        window.__skipNextOpenSound = true;
-        this.runGamePy();
+    // В DEV режиме не показываем финал и интро автоматически
+    if (!DEV_UNLOCK_ALL) {
+      if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
+        setTimeout(() => this._showJuniorFinale(), 800);
       }
-    }, 400);
+      setTimeout(() => {
+        const solved = progress.getSolved();
+        if (solved.length === 0) {
+          window.__skipNextOpenSound = true;
+          this.runGamePy();
+        }
+      }, 400);
+    }
   }
 
   renderIcons() {
@@ -127,10 +142,17 @@ export class Desktop {
   }
 
   async openWorldGate(worldId) {
+    // DEV: любой мир открывается сразу
+    if (DEV_UNLOCK_ALL) {
+      this.openGroupMap(worldId);
+      return;
+    }
+
     if (worldId === 'middle' && this.juniorDone) {
       this.openGroupMap('middle');
       return;
     }
+
     const text = this._getGateText(worldId);
     this.windows.create({
       id: 'worldgate-' + worldId,
@@ -157,9 +179,6 @@ export class Desktop {
           { type: 'info', text: 'MIDDLE — мир инженера.' },
           { type: 'info', text: 'Тут строят пайплайны, обучают модели,' },
           { type: 'info', text: 'считают метрики и дебажат прод.' },
-          { type: 'info', text: '' },
-          { type: 'warn', text: '⚠ Раздел в разработке.' },
-          { type: 'info', text: 'Следи за обновлениями.' },
         ];
       }
       return [
@@ -170,9 +189,6 @@ export class Desktop {
         { type: 'info', text: 'MIDDLE — мир инженера.' },
         { type: 'info', text: 'Здесь начинают строить настоящие пайплайны:' },
         { type: 'info', text: 'clean → features → train → eval → deploy.' },
-        { type: 'info', text: '' },
-        { type: 'info', text: 'Но сначала нужно доказать,' },
-        { type: 'info', text: 'что ты умеешь работать с данными.' },
         { type: 'info', text: '' },
         { type: 'warn', text: '🔑 Требуется: пройти JUNIOR полностью.' },
       ];
@@ -188,10 +204,8 @@ export class Desktop {
           { type: 'info', text: 'SENIOR — мир архитектора.' },
           { type: 'info', text: 'Тут падает прод. Горят дедлайны.' },
           { type: 'info', text: 'Модель даёт 99% на трейне — но не на тесте.' },
-          { type: 'info', text: 'Бизнес не понимает, что ты делаешь.' },
           { type: 'info', text: '' },
           { type: 'info', text: 'Это не про код. Это про решения.' },
-          { type: 'info', text: '' },
           { type: 'warn', text: '🔑 Требуется: пройти MIDDLE полностью.' },
         ];
       }
@@ -201,8 +215,6 @@ export class Desktop {
         { type: 'err', text: 'ACCESS_DENIED: junior_and_middle_not_complete' },
         { type: 'info', text: '' },
         { type: 'info', text: 'SENIOR — мир архитектора.' },
-        { type: 'info', text: 'Сюда приходят те, кто видел, как падает прод в 3 ночи.' },
-        { type: 'info', text: '' },
         { type: 'info', text: 'Тебе ещё рано.' },
         { type: 'warn', text: '🔑 Требуется: пройти JUNIOR и MIDDLE.' },
       ];
@@ -211,15 +223,9 @@ export class Desktop {
     return [{ type: 'info', text: 'Доступ запрещён.' }];
   }
 
-  // Универсальный скрипт печати — принимает элемент, не ищет по id
   _runGateScript(el, lines, onDone) {
-    if (!el) {
-      console.warn('[_runGateScript] el is null');
-      return;
-    }
-
+    if (!el) return;
     let i = 0;
-
     const typeLine = () => {
       if (i >= lines.length) {
         const cursor = document.createElement('div');
@@ -230,37 +236,29 @@ export class Desktop {
         if (onDone) onDone();
         return;
       }
-
       const line = lines[i];
       const div = document.createElement('div');
       let cls = '';
       let prefix = '';
-
       if (line.type === 'cmd') { cls = ''; prefix = '$ '; }
       else if (line.type === 'ok') { cls = 'terminal-success'; }
       else if (line.type === 'err') { cls = 'terminal-error'; }
       else if (line.type === 'warn') { cls = 'terminal-warn'; }
-
       div.className = 'terminal-line ' + cls;
       div.textContent = prefix + line.text;
       el.appendChild(div);
       el.scrollTop = el.scrollHeight;
-
       i++;
-
       if (window.__audio && line.text && line.text.length > 0) {
         try { window.__audio.key('normal'); } catch (e) {}
       }
-
       let delay = 150;
       if (line.type === 'err') delay = 300;
       if (line.type === 'cmd') delay = 400;
       if (line.type === 'warn') delay = 250;
       if (line.text === '') delay = 40;
-
       setTimeout(typeLine, delay);
     };
-
     setTimeout(typeLine, 300);
   }
 
@@ -500,7 +498,7 @@ export class Desktop {
         setTimeout(() => this.openGroupMap(worldId), 300);
       }
 
-      if (worldId === 'junior') {
+      if (worldId === 'junior' && !DEV_UNLOCK_ALL) {
         const done = await isJuniorComplete();
         if (done) {
           this.juniorDone = true;
@@ -546,11 +544,7 @@ export class Desktop {
         <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
           <p style="font-size: 16px; color: var(--accent); font-weight: 700;">🧪 Песочница</p>
           <p style="margin-top: 16px;">Здесь можно экспериментировать с pandas без заданий и таймера.</p>
-          <p style="margin-top: 12px; color: var(--fg-dim);">Функционал в разработке. Скоро:</p>
-          <p>• Свободный ввод pandas-команд</p>
-          <p>• Свой CSV-датасет</p>
-          <p>• Сохранение скриптов</p>
-          <p>• Графики (plotly)</p>
+          <p style="margin-top: 12px; color: var(--fg-dim);">Функционал в разработке.</p>
         </div>
       `,
       width: 480,
@@ -583,18 +577,12 @@ export class Desktop {
       { type: 'info', text: '' },
       { type: 'info', text: 'Ты — джун. Тебе дали доступ к сырым данным.' },
       { type: 'info', text: 'Никто не будет объяснять что делать.' },
-      { type: 'info', text: 'Никто не будет проверять твои гипотезы.' },
       { type: 'info', text: 'Только ты и датасет. Как в реальной работе.' },
       { type: 'info', text: '' },
       { type: 'warn', text: '─── ЧТО ЭТО ЗА ИГРА ───' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Это симулятор карьеры Data Scientist.' },
       { type: 'info', text: 'Три мира: JUNIOR → MIDDLE → SENIOR.' },
-      { type: 'info', text: '' },
-      { type: 'info', text: 'В каждом мире — папки с темами.' },
-      { type: 'info', text: 'В каждой папке — квесты про pandas.' },
-      { type: 'info', text: 'Каждый квест — 4 варианта ответа.' },
-      { type: 'info', text: 'Выбираешь правильный — идёшь дальше.' },
       { type: 'info', text: '' },
       { type: 'warn', text: '─── КАК ИГРАТЬ ───' },
       { type: 'info', text: '' },
@@ -604,38 +592,25 @@ export class Desktop {
       { type: 'info', text: '2 ошибки — 2 звезды.' },
       { type: 'info', text: '3+ ошибки — 1 звезда.' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Собери 4 звезды во всех квестах папки —' },
-      { type: 'info', text: 'получишь награду: обои и ачивку.' },
-      { type: 'info', text: '' },
       { type: 'ok', text: '🔒 ПОСЛЕДОВАТЕЛЬНОСТЬ' },
       { type: 'info', text: 'Квесты открываются по очереди.' },
-      { type: 'info', text: 'Папки тоже — сначала basics, потом cleaning.' },
-      { type: 'info', text: 'Нельзя прыгнуть в middle, не пройдя junior.' },
+      { type: 'info', text: 'Папки тоже.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
       { type: 'info', text: 'В каждой папке спрятан чит-код.' },
-      { type: 'info', text: 'Найдёшь — открой Пуск → Чит-коды.' },
       { type: 'info', text: 'Введи слово — получишь ачивку.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '⌨️ ТЕРМИНАЛ' },
-      { type: 'info', text: 'Хочешь писать код по-настоящему —' },
-      { type: 'info', text: 'зайди в Терминал. Там можно ls, cd, cat.' },
-      { type: 'info', text: 'Для остальных — весь геймплей в квестах.' },
+      { type: 'info', text: 'Хочешь писать код — зайди в Терминал.' },
       { type: 'info', text: '' },
       { type: 'warn', text: '─── ЧТО ДАЛЬШЕ ───' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Пройдёшь junior — откроется MIDDLE:' },
-      { type: 'info', text: 'пайплайны, фичи, модели, метрики.' },
-      { type: 'info', text: '' },
-      { type: 'info', text: 'Пройдёшь middle — откроется SENIOR:' },
-      { type: 'info', text: 'инциденты в проде, архитектура, менторство.' },
-      { type: 'info', text: '' },
-      { type: 'info', text: 'Финал — стать Магистром Сигнала.' },
+      { type: 'info', text: 'Пройдёшь junior — откроется MIDDLE.' },
+      { type: 'info', text: 'Пройдёшь middle — откроется SENIOR.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '─── НАЧНЁМ ───' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Открой карту JUNIOR.' },
-      { type: 'info', text: 'Начни с папки basics.' },
       { type: 'info', text: 'Первый квест — прочитать CSV.' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Удачи. Она тебе понадобится.' },
@@ -648,10 +623,7 @@ export class Desktop {
       content: `<div class="terminal"></div>`,
       onMount: (body) => {
         const el = body.querySelector('.terminal');
-        if (!el) {
-          console.error('[gamepy] terminal element not found');
-          return;
-        }
+        if (!el) return;
         this._runGateScript(el, lines, () => {
           const btn = document.createElement('div');
           btn.className = 'terminal-line';

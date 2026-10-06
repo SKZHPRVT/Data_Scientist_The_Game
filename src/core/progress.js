@@ -1,3 +1,5 @@
+import { DEV_UNLOCK_ALL } from './dev.js';
+
 const KEY = 'tasks_solved_v9';
 const STAR_KEY = (id) => `task_${id}_stars_v9`;
 const MAX_STARS = 4;
@@ -53,6 +55,7 @@ export const progress = {
   },
 
   isUnlocked(taskId, allTaskIds) {
+    if (DEV_UNLOCK_ALL) return true;
     const idx = allTaskIds.indexOf(taskId);
     if (idx === -1) return false;
     if (idx === 0) return true;
@@ -75,7 +78,6 @@ export const progress = {
   },
 };
 
-// === ПРИЗЫ ===
 const REWARD_KEY = 'rewards_v1';
 
 export const rewards = {
@@ -99,28 +101,40 @@ export const rewards = {
   },
 };
 
-// === ПРОВЕРКА ЗАВЕРШЕНИЯ JUNIOR ===
 export async function isJuniorComplete() {
+  if (DEV_UNLOCK_ALL) return true;
   try {
     const base = import.meta.env.BASE_URL + 'tasks/junior/';
     const res = await fetch(base + 'index.json');
     const worldIdx = await res.json();
-
-    // Собираем все задачи junior
     for (const ch of worldIdx.chapters || []) {
       try {
         const chRes = await fetch(base + ch.id + '/index.json');
         if (!chRes.ok) continue;
         const chData = await chRes.json();
-        const ids = (chData.tasks || []).map((x) =>
-          progress.makeId('junior/' + ch.id + '/' + x)
-        );
-        // Если хоть одна не решена — false
-        if (!ids.every((id) => progress.isSolved(id))) return false;
+        const ids = (chData.tasks || []).map((x) => progress.makeId('junior/' + ch.id + '/' + x));
+        if (ids.length > 0 && !ids.every((id) => progress.isSolved(id))) return false;
       } catch (e) {}
     }
     return true;
-  } catch (e) {
-    return false;
-  }
+  } catch (e) { return false; }
+}
+
+export async function isMiddleComplete() {
+  if (DEV_UNLOCK_ALL) return true;
+  try {
+    const base = import.meta.env.BASE_URL + 'tasks/middle/';
+    const res = await fetch(base + 'index.json');
+    const worldIdx = await res.json();
+    for (const ch of worldIdx.chapters || []) {
+      try {
+        const chRes = await fetch(base + ch.id + '/index.json');
+        if (!chRes.ok) continue;
+        const chData = await chRes.json();
+        const ids = (chData.tasks || []).map((x) => progress.makeId('middle/' + ch.id + '/' + x));
+        if (ids.length > 0 && !ids.every((id) => progress.isSolved(id))) return false;
+      } catch (e) {}
+    }
+    return true;
+  } catch (e) { return false; }
 }

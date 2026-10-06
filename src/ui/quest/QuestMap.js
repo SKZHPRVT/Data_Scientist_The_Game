@@ -1,5 +1,4 @@
 import { progress } from '../../core/progress.js';
-import { t } from '../../i18n/index.js';
 
 export class QuestMap {
   constructor(chapterId, { onOpenTask } = {}) {
@@ -16,7 +15,7 @@ export class QuestMap {
   }
 
   render() {
-    if (!this.data) return `<div style="color: var(--fg-dim); font-family: var(--font-mono);">${t('progress_loading')}</div>`;
+    if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
 
     const tasks = this.data.tasks || [];
     const taskIds = tasks.map((x) => progress.makeId(this.chapterId + '/' + x));
@@ -47,16 +46,16 @@ export class QuestMap {
 
             let status = '🔒';
             let cls = 'locked';
-            let sub = t('quest_locked');
+            let sub = 'Сначала пройди предыдущий';
 
             if (solved) {
               status = stars === 4 ? '🌟' : '✅';
               cls = stars === 4 ? 'solved perfect' : 'solved';
-              sub = t('quest_solved');
+              sub = 'Пройдено';
             } else if (unlocked) {
               status = '▶️';
               cls = 'active';
-              sub = t('quest_active');
+              sub = 'Нажми, чтобы начать';
             }
 
             const starsStr = solved ? '⭐'.repeat(stars) + '☆'.repeat(4 - stars) : '';
@@ -65,7 +64,7 @@ export class QuestMap {
               <div class="quest-item ${cls}" data-file="${fileName}">
                 <div class="quest-item-status">${status}</div>
                 <div class="quest-item-body">
-                  <div class="quest-item-title">${t('quest_number')} ${i + 1}</div>
+                  <div class="quest-item-title">Квест ${i + 1}</div>
                   <div class="quest-item-sub">${sub}</div>
                 </div>
                 ${solved ? `<div class="quest-item-stars">${starsStr}</div>` : ''}

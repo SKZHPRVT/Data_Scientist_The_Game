@@ -1,4 +1,5 @@
 import { progress } from '../../core/progress.js';
+import { DEV_UNLOCK_ALL } from '../../core/dev.js';
 
 export class GroupMap {
   constructor(worldId, { onOpenChapter } = {}) {
@@ -29,7 +30,7 @@ export class GroupMap {
         const solved = ids.filter((id) => progress.isSolved(id)).length;
         const stars = progress.sumStars(ids);
         const maxStars = progress.maxStars(ids);
-        const soon = ids.length === 0; // пустая папка = скоро
+        const soon = ids.length === 0;
         this.chapterStats[ch.id] = { solved, total: ids.length, stars, maxStars, ids, soon };
       } catch (e) {
         this.chapterStats[ch.id] = { solved: 0, total: 0, stars: 0, maxStars: 0, ids: [], soon: true };
@@ -38,6 +39,7 @@ export class GroupMap {
   }
 
   _isChapterUnlocked(ch) {
+    if (DEV_UNLOCK_ALL) return true;
     if (ch.unlockAfter === null || ch.unlockAfter === undefined) {
       const idx = this.data.chapters.findIndex((c) => c.id === ch.id);
       return idx === 0;
