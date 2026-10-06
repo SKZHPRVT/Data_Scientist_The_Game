@@ -70,12 +70,10 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    // Финальный экран Junior
     if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
       setTimeout(() => this._showJuniorFinale(), 800);
     }
 
-    // Если ничего не решено — показываем интро
     setTimeout(() => {
       const solved = progress.getSolved();
       if (solved.length === 0) {
@@ -128,7 +126,6 @@ export class Desktop {
     this.startMenu.render();
   }
 
-  // =================== WORLD GATE ===================
   async openWorldGate(worldId) {
     if (worldId === 'middle' && this.juniorDone) {
       this.openGroupMap('middle');
@@ -138,8 +135,11 @@ export class Desktop {
     this.windows.create({
       id: 'worldgate-' + worldId,
       title: '⚡ ' + worldId.toUpperCase() + '.gate',
-      content: `<div class="terminal" id="gate-term-${worldId}"></div>`,
-      onMount: (body) => this._runGateScript(body, worldId, text),
+      content: `<div class="terminal"></div>`,
+      onMount: (body) => {
+        const termEl = body.querySelector('.terminal');
+        this._runGateScript(termEl, text);
+      },
       width: 540,
       height: 440,
     });
@@ -211,9 +211,12 @@ export class Desktop {
     return [{ type: 'info', text: 'Доступ запрещён.' }];
   }
 
-  _runGateScript(body, worldId, lines, onDone) {
-    const el = body.querySelector(`#gate-term-${worldId}`);
-    if (!el) return;
+  // Универсальный скрипт печати — принимает элемент, не ищет по id
+  _runGateScript(el, lines, onDone) {
+    if (!el) {
+      console.warn('[_runGateScript] el is null');
+      return;
+    }
 
     let i = 0;
 
@@ -245,23 +248,22 @@ export class Desktop {
 
       i++;
 
-      if (window.__audio && line.text.length > 0) {
-        window.__audio.key('normal');
+      if (window.__audio && line.text && line.text.length > 0) {
+        try { window.__audio.key('normal'); } catch (e) {}
       }
 
-      let delay = 200;
-      if (line.type === 'err') delay = 350;
-      if (line.type === 'cmd') delay = 500;
-      if (line.type === 'warn') delay = 300;
-      if (line.text === '') delay = 60;
+      let delay = 150;
+      if (line.type === 'err') delay = 300;
+      if (line.type === 'cmd') delay = 400;
+      if (line.type === 'warn') delay = 250;
+      if (line.text === '') delay = 40;
 
       setTimeout(typeLine, delay);
     };
 
-    setTimeout(typeLine, 400);
+    setTimeout(typeLine, 300);
   }
 
-  // =================== GROUP MAP ===================
   async openGroupMap(worldId) {
     const oldId = 'groupmap-' + worldId;
     if (this.windows.windows.has(oldId)) {
@@ -569,93 +571,88 @@ export class Desktop {
   }
 
   runGamePy() {
+    const lines = [
+      { type: 'cmd', text: 'python game.py' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Привет.' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Если ты это читаешь — значит ты в DS-отделе.' },
+      { type: 'info', text: 'Добро пожаловать.' },
+      { type: 'info', text: '' },
+      { type: 'warn', text: '─── КТО ТЫ ───' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Ты — джун. Тебе дали доступ к сырым данным.' },
+      { type: 'info', text: 'Никто не будет объяснять что делать.' },
+      { type: 'info', text: 'Никто не будет проверять твои гипотезы.' },
+      { type: 'info', text: 'Только ты и датасет. Как в реальной работе.' },
+      { type: 'info', text: '' },
+      { type: 'warn', text: '─── ЧТО ЭТО ЗА ИГРА ───' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Это симулятор карьеры Data Scientist.' },
+      { type: 'info', text: 'Три мира: JUNIOR → MIDDLE → SENIOR.' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'В каждом мире — папки с темами.' },
+      { type: 'info', text: 'В каждой папке — квесты про pandas.' },
+      { type: 'info', text: 'Каждый квест — 4 варианта ответа.' },
+      { type: 'info', text: 'Выбираешь правильный — идёшь дальше.' },
+      { type: 'info', text: '' },
+      { type: 'warn', text: '─── КАК ИГРАТЬ ───' },
+      { type: 'info', text: '' },
+      { type: 'ok', text: '⭐ ЗВЁЗДЫ' },
+      { type: 'info', text: 'Без ошибок — 4 звезды.' },
+      { type: 'info', text: '1 ошибка — 3 звезды.' },
+      { type: 'info', text: '2 ошибки — 2 звезды.' },
+      { type: 'info', text: '3+ ошибки — 1 звезда.' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Собери 4 звезды во всех квестах папки —' },
+      { type: 'info', text: 'получишь награду: обои и ачивку.' },
+      { type: 'info', text: '' },
+      { type: 'ok', text: '🔒 ПОСЛЕДОВАТЕЛЬНОСТЬ' },
+      { type: 'info', text: 'Квесты открываются по очереди.' },
+      { type: 'info', text: 'Папки тоже — сначала basics, потом cleaning.' },
+      { type: 'info', text: 'Нельзя прыгнуть в middle, не пройдя junior.' },
+      { type: 'info', text: '' },
+      { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
+      { type: 'info', text: 'В каждой папке спрятан чит-код.' },
+      { type: 'info', text: 'Найдёшь — открой Пуск → Чит-коды.' },
+      { type: 'info', text: 'Введи слово — получишь ачивку.' },
+      { type: 'info', text: '' },
+      { type: 'ok', text: '⌨️ ТЕРМИНАЛ' },
+      { type: 'info', text: 'Хочешь писать код по-настоящему —' },
+      { type: 'info', text: 'зайди в Терминал. Там можно ls, cd, cat.' },
+      { type: 'info', text: 'Для остальных — весь геймплей в квестах.' },
+      { type: 'info', text: '' },
+      { type: 'warn', text: '─── ЧТО ДАЛЬШЕ ───' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Пройдёшь junior — откроется MIDDLE:' },
+      { type: 'info', text: 'пайплайны, фичи, модели, метрики.' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Пройдёшь middle — откроется SENIOR:' },
+      { type: 'info', text: 'инциденты в проде, архитектура, менторство.' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Финал — стать Магистром Сигнала.' },
+      { type: 'info', text: '' },
+      { type: 'ok', text: '─── НАЧНЁМ ───' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Открой карту JUNIOR.' },
+      { type: 'info', text: 'Начни с папки basics.' },
+      { type: 'info', text: 'Первый квест — прочитать CSV.' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Удачи. Она тебе понадобится.' },
+      { type: 'info', text: '' },
+    ];
+
     this.windows.create({
       id: 'gamepy',
       title: '🐍 game.py',
-      content: `<div class="terminal" id="gamepy-term"></div>`,
+      content: `<div class="terminal"></div>`,
       onMount: (body) => {
-        const lines = [
-          { type: 'cmd', text: 'python game.py' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Привет.' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Если ты это читаешь — значит ты в DS-отделе.' },
-          { type: 'info', text: 'Добро пожаловать.' },
-          { type: 'info', text: '' },
-
-          { type: 'warn', text: '─── КТО ТЫ ───' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Ты — джун. Тебе дали доступ к сырым данным.' },
-          { type: 'info', text: 'Никто не будет объяснять что делать.' },
-          { type: 'info', text: 'Никто не будет проверять твои гипотезы.' },
-          { type: 'info', text: 'Только ты и датасет. Как в реальной работе.' },
-          { type: 'info', text: '' },
-
-          { type: 'warn', text: '─── ЧТО ЭТО ЗА ИГРА ───' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Это симулятор карьеры Data Scientist.' },
-          { type: 'info', text: 'Три мира: JUNIOR → MIDDLE → SENIOR.' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'В каждом мире — папки с темами.' },
-          { type: 'info', text: 'В каждой папке — квесты про pandas.' },
-          { type: 'info', text: 'Каждый квест — 4 варианта ответа.' },
-          { type: 'info', text: 'Выбираешь правильный — идёшь дальше.' },
-          { type: 'info', text: '' },
-
-          { type: 'warn', text: '─── КАК ИГРАТЬ ───' },
-          { type: 'info', text: '' },
-          { type: 'ok', text: '⭐ ЗВЁЗДЫ' },
-          { type: 'info', text: 'Без ошибок — 4 звезды.' },
-          { type: 'info', text: '1 ошибка — 3 звезды.' },
-          { type: 'info', text: '2 ошибки — 2 звезды.' },
-          { type: 'info', text: '3+ ошибки — 1 звезда.' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Собери 4 звезды во всех квестах папки —' },
-          { type: 'info', text: 'получишь награду: обои и ачивку.' },
-          { type: 'info', text: '' },
-
-          { type: 'ok', text: '🔒 ПОСЛЕДОВАТЕЛЬНОСТЬ' },
-          { type: 'info', text: 'Квесты открываются по очереди.' },
-          { type: 'info', text: 'Папки тоже — сначала basics, потом cleaning.' },
-          { type: 'info', text: 'Нельзя прыгнуть в middle, не пройдя junior.' },
-          { type: 'info', text: '' },
-
-          { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
-          { type: 'info', text: 'В каждой папке спрятан чит-код.' },
-          { type: 'info', text: 'Найдёшь — открой Пуск → Чит-коды.' },
-          { type: 'info', text: 'Введи слово — получишь ачивку.' },
-          { type: 'info', text: '' },
-
-          { type: 'ok', text: '⌨️ ТЕРМИНАЛ' },
-          { type: 'info', text: 'Хочешь писать код по-настоящему —' },
-          { type: 'info', text: 'зайди в Терминал. Там можно ls, cd, cat.' },
-          { type: 'info', text: 'Для остальных — весь геймплей в квестах.' },
-          { type: 'info', text: '' },
-
-          { type: 'warn', text: '─── ЧТО ДАЛЬШЕ ───' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Пройдёшь junior — откроется MIDDLE:' },
-          { type: 'info', text: 'пайплайны, фичи, модели, метрики.' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Пройдёшь middle — откроется SENIOR:' },
-          { type: 'info', text: 'инциденты в проде, архитектура, менторство.' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Финал — стать Магистром Сигнала.' },
-          { type: 'info', text: '' },
-
-          { type: 'ok', text: '─── НАЧНЁМ ───' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Открой карту JUNIOR.' },
-          { type: 'info', text: 'Начни с папки basics.' },
-          { type: 'info', text: 'Первый квест — прочитать CSV.' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Удачи. Она тебе понадобится.' },
-          { type: 'info', text: '' },
-        ];
-
-        this._runGateScript(body, 'gamepy', lines, () => {
-          const el = body.querySelector('#gamepy-term');
-          if (!el) return;
+        const el = body.querySelector('.terminal');
+        if (!el) {
+          console.error('[gamepy] terminal element not found');
+          return;
+        }
+        this._runGateScript(el, lines, () => {
           const btn = document.createElement('div');
           btn.className = 'terminal-line';
           btn.style.marginTop = '16px';
