@@ -1,0 +1,12 @@
+{
+  "id": "datetime_1_to_datetime",
+  "world": "junior", "level": 4,
+  "title": "Строку в дату",
+  "question": "Колонка 'date' — строки. Как превратить в datetime?",
+  "options": [
+    { "id": "A", "code": "pd.to_datetime(df['date'])", "correct": true, "explain": "pd.to_datetime парсит строки в даты." },
+    { "id": "B", "code": "df['date'].astype('date')", "correct": false, "explain": "astype('date') не работает — нет такого типа в pandas." },
+    { "id": "C", "code": "df.date.parse()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "str(df['date'])", "correct": false, "explain": "Это превратит всю колонку в одну строку." }
+  ]
+}

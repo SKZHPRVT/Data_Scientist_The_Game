@@ -1,0 +1,12 @@
+{
+  "id": "cleaning_2_fillna",
+  "world": "junior", "level": 2,
+  "title": "Заполни пропуски",
+  "question": "Что заполнит все пропуски нулями?",
+  "options": [
+    { "id": "A", "code": "df.fillna(0)", "correct": true, "explain": "fillna(0) заменяет все NaN на 0." },
+    { "id": "B", "code": "df.dropna()", "correct": false, "explain": "dropna удаляет, не заполняет." },
+    { "id": "C", "code": "df.replace(NaN, 0)", "correct": false, "explain": "replace не работает так с NaN." },
+    { "id": "D", "code": "df.zero()", "correct": false, "explain": "Такого метода нет." }
+  ]
+}

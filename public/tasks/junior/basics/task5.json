@@ -1,14 +1,13 @@
 {
-  "id": "task5_value_counts",
-  "world": "junior",
-  "level": 2,
+  "id": "basics_5_value_counts",
+  "world": "junior", "level": 2,
   "title": "Города в датасете",
   "dataset": "sales.csv",
   "question": "Что посчитает, сколько раз встречается каждый город в колонке city?",
   "options": [
-    { "id": "A", "code": "df['city'].value_counts()", "correct": true, "explain": "value_counts() считает частоту каждой уникальной категории в колонке." },
-    { "id": "B", "code": "df['city'].count()", "correct": false, "explain": "count() возвращает общее число непустых значений, а не частоты по категориям." },
-    { "id": "C", "code": "df['city'].unique()", "correct": false, "explain": "unique() даёт список уникальных значений, но не их частоты." },
-    { "id": "D", "code": "df['city'].sum()", "correct": false, "explain": "sum() складывает значения, но city — это текст, складывать нечего." }
+    { "id": "A", "code": "df['city'].value_counts()", "correct": true, "explain": "value_counts() считает частоту каждой категории." },
+    { "id": "B", "code": "df['city'].count()", "correct": false, "explain": "count() возвращает общее число, а не частоты." },
+    { "id": "C", "code": "df['city'].unique()", "correct": false, "explain": "unique() даёт список без частот." },
+    { "id": "D", "code": "df['city'].sum()", "correct": false, "explain": "sum() складывает числа, а city — текст." }
   ]
 }

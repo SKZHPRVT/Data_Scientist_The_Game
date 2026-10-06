@@ -27,7 +27,6 @@ export const progress = {
     if (stars > best) localStorage.setItem(`task_${taskId}_stars`, stars);
   },
 
-  // Первая задача всегда открыта, остальные — если предыдущая решена
   isUnlocked(taskId, allTaskIds) {
     const idx = allTaskIds.indexOf(taskId);
     if (idx === -1) return false;

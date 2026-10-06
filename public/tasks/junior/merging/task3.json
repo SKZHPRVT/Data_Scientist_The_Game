@@ -1,0 +1,12 @@
+{
+  "id": "merging_3_concat",
+  "world": "junior", "level": 4,
+  "title": "Склей строки",
+  "question": "Как поставить df2 под df1 (по строкам)?",
+  "options": [
+    { "id": "A", "code": "pd.concat([df1, df2])", "correct": true, "explain": "pd.concat склеивает таблицы по строкам (axis=0 по умолчанию)." },
+    { "id": "B", "code": "pd.merge(df1, df2)", "correct": false, "explain": "merge соединяет по ключу, не склеивает." },
+    { "id": "C", "code": "df1.append(df2)", "correct": false, "explain": "append устарел, сейчас используют pd.concat." },
+    { "id": "D", "code": "df1 + df2", "correct": false, "explain": "Сложение DataFrame не склеивает строки." }
+  ]
+}

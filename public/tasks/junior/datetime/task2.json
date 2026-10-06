@@ -1,0 +1,12 @@
+{
+  "id": "datetime_2_dt_year",
+  "world": "junior", "level": 4,
+  "title": "Год из даты",
+  "question": "Колонка 'date' уже datetime. Как получить год?",
+  "options": [
+    { "id": "A", "code": "df['date'].dt.year", "correct": true, "explain": ".dt — аксессор для работы с датами в Series." },
+    { "id": "B", "code": "df['date'].year", "correct": false, "explain": "Без .dt не сработает на Series." },
+    { "id": "C", "code": "df['date'].get_year()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "df['date'].date()", "correct": false, "explain": "date() возвращает только дату без времени." }
+  ]
+}

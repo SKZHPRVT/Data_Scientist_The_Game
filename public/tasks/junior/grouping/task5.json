@@ -1,0 +1,12 @@
+{
+  "id": "grouping_5_reset_index",
+  "world": "junior", "level": 3,
+  "title": "Вернуть колонку из индекса",
+  "question": "После groupby city стал индексом. Как вернуть его в колонки?",
+  "options": [
+    { "id": "A", "code": "df.groupby('city').sum().reset_index()", "correct": true, "explain": "reset_index() возвращает индекс обратно в колонки." },
+    { "id": "B", "code": "df.groupby('city').sum().to_columns()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "C", "code": "df.groupby('city').sum().unstack()", "correct": false, "explain": "unstack работает с MultiIndex, не для этого." },
+    { "id": "D", "code": "df.reset('city')", "correct": false, "explain": "reset() без _index не то, и не принимает колонку." }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "side_2_lambda",
+  "world": "junior", "level": 3,
+  "title": "Короткая функция",
+  "question": "Как умножить каждый элемент колонки 'x' на 2 без отдельной функции?",
+  "options": [
+    { "id": "A", "code": "df['x'].apply(lambda v: v * 2)", "correct": true, "explain": "lambda — короткая анонимная функция, работает в apply." },
+    { "id": "B", "code": "df['x'] * 2", "correct": false, "explain": "Это векторная операция — тоже верно, но в задаче спрашивают про apply." },
+    { "id": "C", "code": "lambda df['x']: *2", "correct": false, "explain": "Неверный синтаксис lambda." },
+    { "id": "D", "code": "df['x'].map_lambda(2)", "correct": false, "explain": "Такого метода нет." }
+  ]
+}

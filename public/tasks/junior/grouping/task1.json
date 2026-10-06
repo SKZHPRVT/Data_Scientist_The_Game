@@ -1,0 +1,13 @@
+{
+  "id": "grouping_1_mean",
+  "world": "junior", "level": 3,
+  "title": "Среднее по группам",
+  "dataset": "sales.csv",
+  "question": "Что вернёт среднюю выручку по каждому городу?",
+  "options": [
+    { "id": "A", "code": "df.groupby('city')['revenue'].mean()", "correct": true, "explain": "groupby по city, затем mean() по revenue — среднее в каждой группе." },
+    { "id": "B", "code": "df.mean()", "correct": false, "explain": "Это среднее по всем данным, без группировки." },
+    { "id": "C", "code": "df['revenue'].mean('city')", "correct": false, "explain": "mean() не принимает колонку для группировки." },
+    { "id": "D", "code": "df.average('city')", "correct": false, "explain": "Такого метода нет." }
+  ]
+}

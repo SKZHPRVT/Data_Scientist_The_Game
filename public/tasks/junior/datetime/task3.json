@@ -1,0 +1,12 @@
+{
+  "id": "datetime_3_groupby_month",
+  "world": "junior", "level": 4,
+  "title": "Группировка по месяцу",
+  "question": "Есть колонка date (datetime). Как сгруппировать по месяцу?",
+  "options": [
+    { "id": "A", "code": "df.groupby(df['date'].dt.month).sum()", "correct": true, "explain": ".dt.month даёт месяц, по нему можно группировать." },
+    { "id": "B", "code": "df.groupby('date.month')", "correct": false, "explain": "Так pandas не понимает — нужно через .dt." },
+    { "id": "C", "code": "df.month_group()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "df['date'].month_group()", "correct": false, "explain": "Такого метода нет." }
+  ]
+}

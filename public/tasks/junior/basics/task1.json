@@ -1,14 +1,13 @@
 {
-  "id": "task1_read_csv",
-  "world": "junior",
-  "level": 1,
+  "id": "basics_1_read_csv",
+  "world": "junior", "level": 1,
   "title": "Размер датасета",
   "dataset": "sales.csv",
   "question": "Что сделать, чтобы узнать размер датасета (9 строк, 3 колонки)?",
   "options": [
-    { "id": "A", "code": "df.head()", "correct": false, "explain": "head() показывает первые 5 строк, но не их количество. Размер — это shape." },
-    { "id": "B", "code": "pd.read_csv('sales.csv').shape", "correct": true, "explain": "read_csv загружает CSV в DataFrame, .shape возвращает [строки, колонки] → [9, 3]." },
-    { "id": "C", "code": "df.info()", "correct": false, "explain": "info() даёт сводку (типы, пропуски), но не точный размер. Нужен .shape." },
-    { "id": "D", "code": "df.columns", "correct": false, "explain": "columns даёт только названия колонок, но не количество строк." }
+    { "id": "A", "code": "df.head()", "correct": false, "explain": "head() показывает первые 5 строк, но не их количество." },
+    { "id": "B", "code": "pd.read_csv('sales.csv').shape", "correct": true, "explain": "read_csv загружает CSV в DataFrame, .shape возвращает [строки, колонки]." },
+    { "id": "C", "code": "df.info()", "correct": false, "explain": "info() даёт сводку, но не точный размер." },
+    { "id": "D", "code": "df.columns", "correct": false, "explain": "columns даёт только названия колонок, без строк." }
   ]
 }

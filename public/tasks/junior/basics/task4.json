@@ -1,14 +1,13 @@
 {
-  "id": "task4_info",
-  "world": "junior",
-  "level": 1,
+  "id": "basics_4_info",
+  "world": "junior", "level": 1,
   "title": "Сводка о датасете",
   "dataset": "sales.csv",
   "question": "Что даёт краткую сводку: строки, типы колонок, пропуски?",
   "options": [
-    { "id": "A", "code": "df.info()", "correct": true, "explain": "info() даёт быстрый обзор: сколько строк, типы колонок, где пропуски." },
-    { "id": "B", "code": "df.summary()", "correct": false, "explain": "У pandas нет summary(). Есть describe(), но это статистика, не сводка." },
-    { "id": "C", "code": "df.shape", "correct": false, "explain": "shape возвращает только размер, без типов и пропусков." },
-    { "id": "D", "code": "df.head(10)", "correct": false, "explain": "head показывает строки, но не сводку о типах и пропусках." }
+    { "id": "A", "code": "df.info()", "correct": true, "explain": "info() даёт быстрый обзор: строки, типы, пропуски." },
+    { "id": "B", "code": "df.summary()", "correct": false, "explain": "У pandas нет summary()." },
+    { "id": "C", "code": "df.shape", "correct": false, "explain": "shape — только размер, без типов." },
+    { "id": "D", "code": "df.head(10)", "correct": false, "explain": "head показывает строки, не сводку." }
   ]
 }

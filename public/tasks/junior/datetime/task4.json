@@ -1,0 +1,12 @@
+{
+  "id": "datetime_4_resample",
+  "world": "junior", "level": 4,
+  "title": "Раз в неделю",
+  "question": "Как свернуть временной ряд в недельные суммы?",
+  "options": [
+    { "id": "A", "code": "df.resample('W').sum()", "correct": true, "explain": "resample сворачивает временной ряд по указанной частоте. 'W' — неделя." },
+    { "id": "B", "code": "df.weekly().sum()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "C", "code": "df.groupby('week').sum()", "correct": false, "explain": "Так можно, но нужна колонка 'week'." },
+    { "id": "D", "code": "df['date'].week()", "correct": false, "explain": "Такого метода нет." }
+  ]
+}

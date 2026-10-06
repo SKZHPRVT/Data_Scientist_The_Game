@@ -8,6 +8,7 @@ import { Achievements } from '../achievements/Achievements.js';
 import { Progress } from '../settings/Progress.js';
 import { TaskView } from '../task/TaskView.js';
 import { QuestMap } from '../quest/QuestMap.js';
+import { GroupMap } from '../quest/GroupMap.js';
 import { storage } from '../../core/storage.js';
 import { progress } from '../../core/progress.js';
 
@@ -55,7 +56,7 @@ export class Desktop {
   renderIcons() {
     const icons = document.getElementById('icons');
     const items = [
-      { icon: '🎯', label: 'JUNIOR', action: () => this.openQuestMap('junior/basics') },
+      { icon: '🎯', label: 'JUNIOR', action: () => this.openGroupMap('junior') },
       { icon: '📁', label: 'SANDBOX', action: () => this.openExplorer('/sandbox') },
       { icon: '📄', label: 'README.txt', action: () => this.openReadme() },
       { icon: '🐍', label: 'game.py', action: () => this.runGamePy() },
@@ -92,12 +93,42 @@ export class Desktop {
     this.startMenu.render();
   }
 
-  async openQuestMap(chapterId) {
-    // Закрываем старую карту, чтобы пересоздать с обновлённым прогрессом
-    const oldId = 'questmap-' + chapterId;
-    if (this.windows.windows.has(oldId)) {
-      this.windows.close(oldId);
+  async openGroupMap(worldId) {
+    const oldId = 'groupmap-' + worldId;
+    if (this.windows.windows.has(oldId)) this.windows.close(oldId);
+
+    const map = new GroupMap(worldId, {
+      onOpenChapter: (chapterId) => this.openQuestMap(chapterId),
+    });
+
+    const win = this.windows.create({
+      id: oldId,
+      title: '🎯 ' + worldId.toUpperCase(),
+      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
+      width: 520,
+      height: 660,
+    });
+
+    try {
+      await map.load();
+      const bodyEl = win.querySelector('.window-body');
+      bodyEl.innerHTML = map.render();
+      map.mount(bodyEl);
+    } catch (e) {
+      console.error('[GroupMap]', e);
+      const bodyEl = win.querySelector('.window-body');
+      bodyEl.innerHTML = `
+        <div style="color: var(--error); font-family: var(--font-mono); font-size: 12px;">
+          <div>❌ Не могу загрузить мир</div>
+          <pre style="margin-top: 8px; white-space: pre-wrap;">${e.message}</pre>
+        </div>
+      `;
     }
+  }
+
+  async openQuestMap(chapterId) {
+    const oldId = 'questmap-' + chapterId;
+    if (this.windows.windows.has(oldId)) this.windows.close(oldId);
 
     const map = new QuestMap(chapterId, {
       onOpenTask: (path) => this.openTaskByPath(path),
@@ -108,7 +139,7 @@ export class Desktop {
       title: '🗺 ' + chapterId.split('/').pop(),
       content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
       width: 520,
-      height: 640,
+      height: 660,
     });
 
     try {
@@ -123,10 +154,6 @@ export class Desktop {
         <div style="color: var(--error); font-family: var(--font-mono); font-size: 12px;">
           <div>❌ Не могу загрузить квесты</div>
           <pre style="margin-top: 8px; white-space: pre-wrap;">${e.message}</pre>
-          <button onclick="localStorage.clear(); location.reload();" 
-                  style="margin-top: 12px; padding: 8px 12px; background: var(--error); color: #fff; border: none; cursor: pointer; font-family: inherit; border-radius: 4px;">
-            Сбросить и перезагрузить
-          </button>
         </div>
       `;
     }
@@ -167,7 +194,6 @@ export class Desktop {
   async openTaskByPath(path) {
     try {
       const url = import.meta.env.BASE_URL + 'tasks' + path;
-      console.log('[openTask]', url);
       const res = await fetch(url);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const task = await res.json();
@@ -189,7 +215,6 @@ export class Desktop {
   }
 
   openTask(task) {
-    // Закрываем старые задачи и карту
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-') || id.startsWith('questmap-')) {
         this.windows.close(id);
@@ -209,17 +234,34 @@ export class Desktop {
     });
   }
 
-  _openNextTask(currentPath) {
+  async _openNextTask(currentPath) {
+    // currentPath = /junior/basics/task1.json
     const parts = currentPath.split('/').filter(Boolean);
+    const worldId = parts[0];
     const chapterId = parts.slice(0, -1).join('/');
 
-    // Закрываем окна задач
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
 
-    // Открываем карту заново — она пересоздастся с обновлённым прогрессом
-    setTimeout(() => this.openQuestMap(chapterId), 400);
+    // Проверяем, закрыта ли глава
+    try {
+      const idxUrl = import.meta.env.BASE_URL + 'tasks/' + chapterId + '/index.json';
+      const res = await fetch(idxUrl);
+      const idx = await res.json();
+      const ids = (idx.tasks || []).map((t) => t.replace('.json', ''));
+      const solved = ids.filter((id) => progress.isSolved(id));
+
+      if (ids.length > 0 && solved.length >= ids.length) {
+        // Глава закрыта — открываем карту мира
+        setTimeout(() => this.openGroupMap(worldId), 400);
+      } else {
+        // Ещё есть квесты — открываем карту главы
+        setTimeout(() => this.openQuestMap(chapterId), 400);
+      }
+    } catch (e) {
+      setTimeout(() => this.openQuestMap(chapterId), 400);
+    }
   }
 
   openReadme() {
@@ -245,10 +287,10 @@ export class Desktop {
           <p style="margin-top: 12px;">Ты — джун в DS-отделе. Тебе дали доступ к сырым данным.</p>
           <p style="margin-top: 12px;">Цель: пройти junior, получить ключ в middle.</p>
           <p style="margin-top: 12px;">Условия:</p>
-          <p>• Закрой basics, cleaning, grouping</p>
-          <p>• Победи 3 боссов</p>
-          <p>• Набери 80 звёзд из 120</p>
-          <p style="margin-top: 16px;">Начни с квестов в junior/basics/.</p>
+          <p>• Закрой все папки junior</p>
+          <p>• Победи 1 босса</p>
+          <p>• Набери звёзды</p>
+          <p style="margin-top: 16px;">Начни с карты JUNIOR.</p>
           <p style="margin-top: 16px;"><button class="taskbar-btn active" id="start-btn">[ НАЧАТЬ → ]</button></p>
         </div>
       `,
@@ -256,7 +298,7 @@ export class Desktop {
       height: 420,
       onMount: (body) => {
         body.querySelector('#start-btn')?.addEventListener('click', () => {
-          this.openQuestMap('junior/basics');
+          this.openGroupMap('junior');
         });
       },
     });

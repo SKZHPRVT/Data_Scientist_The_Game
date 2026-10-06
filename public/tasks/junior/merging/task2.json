@@ -1,0 +1,12 @@
+{
+  "id": "merging_2_how_left",
+  "world": "junior", "level": 4,
+  "title": "Только совпадения из первой",
+  "question": "Оставить все строки из df1, даже если нет пары в df2 — как?",
+  "options": [
+    { "id": "A", "code": "pd.merge(df1, df2, on='id', how='left')", "correct": true, "explain": "how='left' оставляет все строки левой таблицы, дополняя правой." },
+    { "id": "B", "code": "pd.merge(df1, df2, on='id', how='inner')", "correct": false, "explain": "inner оставляет только совпадения в обеих таблицах." },
+    { "id": "C", "code": "pd.merge(df1, df2, on='id', how='outer')", "correct": false, "explain": "outer оставляет всё из обеих таблиц." },
+    { "id": "D", "code": "pd.merge(df1, df2, on='id', how='right')", "correct": false, "explain": "right оставляет всё из правой (df2)." }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "side_1_apply",
+  "world": "junior", "level": 3,
+  "title": "Своя функция",
+  "question": "Что применит свою функцию f к каждой ячейке колонки?",
+  "options": [
+    { "id": "A", "code": "df['x'].apply(f)", "correct": true, "explain": "apply() прогоняет каждое значение через функцию." },
+    { "id": "B", "code": "df['x'].map_apply(f)", "correct": false, "explain": "Такого метода нет." },
+    { "id": "C", "code": "f(df['x'])", "correct": false, "explain": "Применит f ко всей Series, не к каждому элементу." },
+    { "id": "D", "code": "df['x'].run(f)", "correct": false, "explain": "Такого метода нет." }
+  ]
+}

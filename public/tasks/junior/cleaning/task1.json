@@ -1,0 +1,12 @@
+{
+  "id": "cleaning_1_dropna",
+  "world": "junior", "level": 2,
+  "title": "Убери пропуски",
+  "question": "В датасете есть пустые значения. Что удалит строки с ними?",
+  "options": [
+    { "id": "A", "code": "df.dropna()", "correct": true, "explain": "dropna() удаляет все строки с NaN." },
+    { "id": "B", "code": "df.fillna(0)", "correct": false, "explain": "fillna заполняет, не удаляет." },
+    { "id": "C", "code": "df.drop()", "correct": false, "explain": "drop() удаляет по имени, не по NaN." },
+    { "id": "D", "code": "df.clean()", "correct": false, "explain": "Такого метода нет." }
+  ]
+}

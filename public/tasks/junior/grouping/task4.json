@@ -1,0 +1,12 @@
+{
+  "id": "grouping_4_multiple_keys",
+  "world": "junior", "level": 3,
+  "title": "Группировка по двум колонкам",
+  "question": "Что сгруппирует по city И month одновременно?",
+  "options": [
+    { "id": "A", "code": "df.groupby(['city', 'month']).sum()", "correct": true, "explain": "groupby принимает список колонок для группировки по нескольким." },
+    { "id": "B", "code": "df.groupby('city', 'month').sum()", "correct": false, "explain": "Так нельзя — нужен список в квадратных скобках." },
+    { "id": "C", "code": "df.group('city, month')", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "df.city.month.sum()", "correct": false, "explain": "Это цепочка методов, не группировка." }
+  ]
+}

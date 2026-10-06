@@ -1,0 +1,13 @@
+{
+  "id": "grouping_3_agg",
+  "world": "junior", "level": 3,
+  "title": "Несколько агрегаций",
+  "dataset": "sales.csv",
+  "question": "Что посчитает одновременно min, max и mean по revenue для каждого города?",
+  "options": [
+    { "id": "A", "code": "df.groupby('city')['revenue'].agg(['min','max','mean'])", "correct": true, "explain": "agg() принимает список функций и применяет все." },
+    { "id": "B", "code": "df.groupby('city').agg(['min','max','mean'])", "correct": false, "explain": "Сработает, но не только по revenue — применит ко всем числовым колонкам." },
+    { "id": "C", "code": "df.groupby('city').stats()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "df['revenue'].agg('city')", "correct": false, "explain": "agg не принимает колонку для группировки." }
+  ]
+}

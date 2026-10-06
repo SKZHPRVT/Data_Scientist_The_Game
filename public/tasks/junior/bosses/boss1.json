@@ -1,0 +1,13 @@
+{
+  "id": "boss1_analysis",
+  "world": "junior", "level": 5,
+  "title": "👹 БОСС: Полный анализ",
+  "dataset": "sales.csv",
+  "question": "Бизнес спрашивает: 'Какой город принёс больше всего денег и в каком месяце был пик?' Что сделаешь первым?",
+  "options": [
+    { "id": "A", "code": "df.groupby('city')['revenue'].sum().sort_values(ascending=False)", "correct": true, "explain": "Сначала — сумма по городам, отсортированная. Это прямой ответ на вопрос." },
+    { "id": "B", "code": "df.head()", "correct": false, "explain": "Посмотреть первые строки — не ответ бизнесу." },
+    { "id": "C", "code": "df.info()", "correct": false, "explain": "Сводка полезна, но не отвечает на вопрос." },
+    { "id": "D", "code": "df['revenue'].mean()", "correct": false, "explain": "Среднее по всем — не по городам." }
+  ]
+}

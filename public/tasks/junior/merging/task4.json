@@ -1,0 +1,12 @@
+{
+  "id": "merging_4_different_keys",
+  "world": "junior", "level": 4,
+  "title": "Ключи с разными именами",
+  "question": "В df1 ключ 'user_id', в df2 — 'id'. Как объединить?",
+  "options": [
+    { "id": "A", "code": "pd.merge(df1, df2, left_on='user_id', right_on='id')", "correct": true, "explain": "left_on/right_on указывают разные имена колонок." },
+    { "id": "B", "code": "pd.merge(df1, df2, on='user_id')", "correct": false, "explain": "on требует одинаковых имён в обеих таблицах." },
+    { "id": "C", "code": "df1.merge_columns(df2, 'user_id', 'id')", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "pd.merge(df1, df2)", "correct": false, "explain": "Без указания ключа merge попробует найти общие колонки — тут их нет." }
+  ]
+}

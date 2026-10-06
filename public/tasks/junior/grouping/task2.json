@@ -1,0 +1,13 @@
+{
+  "id": "grouping_2_count",
+  "world": "junior", "level": 3,
+  "title": "Количество в группах",
+  "dataset": "sales.csv",
+  "question": "Что посчитает, сколько записей в каждом городе?",
+  "options": [
+    { "id": "A", "code": "df.groupby('city').size()", "correct": true, "explain": "size() возвращает количество строк в каждой группе." },
+    { "id": "B", "code": "df.groupby('city').sum()", "correct": false, "explain": "sum() складывает числа, а не считает строки." },
+    { "id": "C", "code": "df['city'].size", "correct": false, "explain": "Это размер всей Series, не по группам." },
+    { "id": "D", "code": "df.count('city')", "correct": false, "explain": "count() не принимает колонку для группировки." }
+  ]
+}

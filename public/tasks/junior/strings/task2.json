@@ -1,0 +1,12 @@
+{
+  "id": "strings_2_contains",
+  "world": "junior", "level": 4,
+  "title": "Поиск подстроки",
+  "question": "Как найти строки, где в city встречается 'мос'?",
+  "options": [
+    { "id": "A", "code": "df[df['city'].str.contains('мос')]", "correct": true, "explain": ".str.contains возвращает True/False, по нему фильтруем." },
+    { "id": "B", "code": "df[df['city'].contains('мос')]", "correct": false, "explain": "Без .str не сработает." },
+    { "id": "C", "code": "df['city'] == 'мос'", "correct": false, "explain": "Сравнит всё значение, не подстроку." },
+    { "id": "D", "code": "df.find('мос')", "correct": false, "explain": "find не работает так с DataFrame." }
+  ]
+}

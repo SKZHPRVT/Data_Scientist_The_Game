@@ -1,0 +1,12 @@
+{
+  "id": "strings_3_replace",
+  "world": "junior", "level": 4,
+  "title": "Замена подстроки",
+  "question": "Как заменить 'ё' на 'е' в колонке city?",
+  "options": [
+    { "id": "A", "code": "df['city'].str.replace('ё', 'е')", "correct": true, "explain": ".str.replace заменяет подстроку во всех значениях." },
+    { "id": "B", "code": "df['city'].replace('ё', 'е')", "correct": false, "explain": "replace без .str заменяет точное значение, не подстроку." },
+    { "id": "C", "code": "df['city'].swap('ё', 'е')", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "df.replace_all('ё', 'е')", "correct": false, "explain": "Такого метода нет." }
+  ]
+}

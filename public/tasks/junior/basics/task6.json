@@ -1,14 +1,13 @@
 {
-  "id": "task6_groupby",
-  "world": "junior",
-  "level": 2,
+  "id": "basics_6_groupby",
+  "world": "junior", "level": 2,
   "title": "Выручка по городам",
   "dataset": "sales.csv",
-  "question": "Что сгруппирует данные по city и посчитает сумму revenue?",
+  "question": "Что сгруппирует по city и посчитает сумму revenue?",
   "options": [
-    { "id": "A", "code": "df.groupby('city').sum()", "correct": true, "explain": "groupby разбивает данные по значению колонки, sum() складывает числовые поля внутри каждой группы." },
-    { "id": "B", "code": "df.groupby('city').count()", "correct": false, "explain": "count() считает количество, а не сумму. Нужен sum()." },
-    { "id": "C", "code": "df.sort_values('city').sum()", "correct": false, "explain": "sort_values сортирует, но не группирует. Сумма получится общая, не по городам." },
-    { "id": "D", "code": "df['city'].sum()", "correct": false, "explain": "Это пытается сложить текст — не сработает. Нужен groupby по city." }
+    { "id": "A", "code": "df.groupby('city').sum()", "correct": true, "explain": "groupby разбивает по колонке, sum() складывает числовые поля." },
+    { "id": "B", "code": "df.groupby('city').count()", "correct": false, "explain": "count() считает количество, не сумму." },
+    { "id": "C", "code": "df.sort_values('city').sum()", "correct": false, "explain": "sort_values сортирует, не группирует." },
+    { "id": "D", "code": "df['city'].sum()", "correct": false, "explain": "Пытается сложить текст — не сработает." }
   ]
 }

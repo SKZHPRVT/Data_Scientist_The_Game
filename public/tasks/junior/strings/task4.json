@@ -1,0 +1,12 @@
+{
+  "id": "strings_4_split",
+  "world": "junior", "level": 4,
+  "title": "Разбить строку",
+  "question": "В колонке 'name' — 'Иван Петров'. Как получить только имя (до пробела)?",
+  "options": [
+    { "id": "A", "code": "df['name'].str.split(' ').str[0]", "correct": true, "explain": "split делит по пробелу, .str[0] берёт первый элемент." },
+    { "id": "B", "code": "df['name'].split(' ')[0]", "correct": false, "explain": "Без .str не сработает на Series." },
+    { "id": "C", "code": "df['name'].first()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "df['name'][0]", "correct": false, "explain": "Вернёт первую строку целиком, не первый токен." }
+  ]
+}

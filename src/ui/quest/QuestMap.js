@@ -9,17 +9,13 @@ export class QuestMap {
 
   async load() {
     const url = import.meta.env.BASE_URL + 'tasks/' + this.chapterId + '/index.json';
-    console.log('[QuestMap] loading', url);
     const res = await fetch(url);
     if (!res.ok) throw new Error('HTTP ' + res.status + ' для ' + url);
     this.data = await res.json();
-    console.log('[QuestMap] loaded', this.data);
   }
 
   render() {
-    if (!this.data) {
-      return `<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>`;
-    }
+    if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
 
     const tasks = this.data.tasks || [];
     const taskIds = tasks.map((t) => t.replace('.json', ''));
@@ -51,7 +47,7 @@ export class QuestMap {
             let cls = 'locked';
             let sub = 'Сначала пройди предыдущий';
 
-            if (solved) { status = '✅'; cls = 'solved'; sub = ''; }
+            if (solved) { status = '✅'; cls = 'solved'; sub = 'Пройдено'; }
             else if (unlocked) { status = '▶️'; cls = 'active'; sub = 'Нажми, чтобы начать'; }
 
             return `

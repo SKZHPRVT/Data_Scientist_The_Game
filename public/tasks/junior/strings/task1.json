@@ -1,0 +1,12 @@
+{
+  "id": "strings_1_lower",
+  "world": "junior", "level": 4,
+  "title": "Всё в нижний регистр",
+  "question": "Колонка 'city' — строки. Как привести всё к нижнему регистру?",
+  "options": [
+    { "id": "A", "code": "df['city'].str.lower()", "correct": true, "explain": ".str — аксессор для работы со строками в Series." },
+    { "id": "B", "code": "df['city'].lower()", "correct": false, "explain": "Без .str не сработает на Series." },
+    { "id": "C", "code": "df['city'].to_lower()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "lower(df['city'])", "correct": false, "explain": "Python-функция lower не работает с Series." }
+  ]
+}

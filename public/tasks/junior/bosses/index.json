@@ -1,0 +1,7 @@
+{
+  "id": "bosses",
+  "title": "Боссы",
+  "icon": "👹",
+  "description": "Большие задачи на всё сразу",
+  "tasks": ["boss1.json"]
+}

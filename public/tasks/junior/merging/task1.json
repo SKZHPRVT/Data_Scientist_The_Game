@@ -1,0 +1,12 @@
+{
+  "id": "merging_1_merge",
+  "world": "junior", "level": 4,
+  "title": "Объедини таблицы",
+  "question": "Есть df1 и df2 с общей колонкой 'id'. Как их объединить?",
+  "options": [
+    { "id": "A", "code": "pd.merge(df1, df2, on='id')", "correct": true, "explain": "merge() соединяет две таблицы по общей колонке." },
+    { "id": "B", "code": "df1 + df2", "correct": false, "explain": "Сложение DataFrame не объединяет по ключу." },
+    { "id": "C", "code": "df1.join(df2)", "correct": false, "explain": "join() объединяет по индексу, не по колонке." },
+    { "id": "D", "code": "df1.concat(df2)", "correct": false, "explain": "Такой метод не существует (есть pd.concat)." }
+  ]
+}

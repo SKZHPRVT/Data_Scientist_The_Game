@@ -8,10 +8,8 @@ export class TaskView {
     this.startTime = Date.now();
     this.answered = false;
     this.wrongTries = 0;
-
-    // file-id — имя файла без .json (task1, task2...)
-    // используется для прогресса, чтобы совпадало с index.json
     this.fileId = this._getFileId();
+    this.shuffledOptions = this._shuffleOptions(task.options || []);
   }
 
   _getFileId() {
@@ -19,6 +17,27 @@ export class TaskView {
       return this.task._path.split('/').pop().replace('.json', '');
     }
     return this.task.id;
+  }
+
+  _shuffleOptions(options) {
+    const seed = this._hashCode(this.fileId);
+    const arr = [...options];
+    let s = seed;
+    for (let i = arr.length - 1; i > 0; i--) {
+      s = (s * 9301 + 49297) % 233280;
+      const j = Math.floor((s / 233280) * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  _hashCode(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+      h = ((h << 5) - h) + str.charCodeAt(i);
+      h |= 0;
+    }
+    return Math.abs(h);
   }
 
   render() {
@@ -41,7 +60,7 @@ export class TaskView {
           ` : ''}
 
           <div class="task-options">
-            ${(t.options || []).map((opt) => `
+            ${this.shuffledOptions.map((opt) => `
               <button class="task-option" data-id="${opt.id}" type="button">
                 <div class="task-option-code">${this._esc(opt.code)}</div>
               </button>
@@ -78,7 +97,6 @@ export class TaskView {
     body.querySelectorAll('.task-option').forEach((btn) => {
       btn.addEventListener('contextmenu', (e) => e.preventDefault());
       btn.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
-
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -118,12 +136,8 @@ export class TaskView {
       if (b !== btn) b.style.opacity = '0.4';
     });
 
-    // === СОХРАНЯЕМ ПО fileId (task1), НЕ по task.id (task1_read_csv) ===
     progress.markSolved(this.fileId);
     progress.setStars(this.fileId, stars);
-
-    console.log('[TaskView] saved fileId:', this.fileId, 'stars:', stars);
-    console.log('[TaskView] solved list:', progress.getSolved());
 
     resultEl.innerHTML = `
       <div class="task-result-success">
@@ -140,7 +154,6 @@ export class TaskView {
     resultEl.querySelector('#task-next').addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('[TaskView] next clicked, fileId:', this.fileId);
       if (this.onSolved) this.onSolved(this.fileId, stars);
     });
   }

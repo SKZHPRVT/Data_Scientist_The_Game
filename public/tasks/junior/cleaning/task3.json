@@ -1,0 +1,12 @@
+{
+  "id": "cleaning_3_duplicates",
+  "world": "junior", "level": 2,
+  "title": "Убери дубликаты",
+  "question": "Как удалить повторяющиеся строки?",
+  "options": [
+    { "id": "A", "code": "df.drop_duplicates()", "correct": true, "explain": "drop_duplicates() удаляет идентичные строки." },
+    { "id": "B", "code": "df.unique()", "correct": false, "explain": "unique() работает с Series, не с DataFrame." },
+    { "id": "C", "code": "df.clean()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "D", "code": "df.drop()", "correct": false, "explain": "drop() удаляет по индексу, не по содержимому." }
+  ]
+}

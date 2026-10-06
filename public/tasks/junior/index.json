@@ -1,0 +1,16 @@
+{
+  "id": "junior",
+  "title": "JUNIOR",
+  "icon": "🎯",
+  "description": "Мир новичка. Учимся основам pandas",
+  "chapters": [
+    { "id": "basics", "title": "Основы pandas", "icon": "📚", "description": "Читаем данные, смотрим на них", "unlockAfter": null },
+    { "id": "cleaning", "title": "Чистка данных", "icon": "🧹", "description": "Пропуски, дубли, типы", "unlockAfter": "basics" },
+    { "id": "grouping", "title": "Группировка", "icon": "🗂", "description": "groupby и агрегации", "unlockAfter": "cleaning" },
+    { "id": "merging", "title": "Соединение таблиц", "icon": "🔗", "description": "merge и join", "unlockAfter": "grouping" },
+    { "id": "datetime", "title": "Даты и время", "icon": "📅", "description": "Работа с датами", "unlockAfter": "merging" },
+    { "id": "strings", "title": "Тексты", "icon": "📝", "description": "Строковые методы", "unlockAfter": "datetime" },
+    { "id": "side_quests", "title": "Побочные квесты", "icon": "🎲", "description": "Необязательно, но интересно", "unlockAfter": null, "optional": true },
+    { "id": "bosses", "title": "Боссы", "icon": "👹", "description": "Большие задачи на всё сразу", "unlockAfter": "strings" }
+  ]
+}

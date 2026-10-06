@@ -1,0 +1,12 @@
+{
+  "id": "side_3_pivot",
+  "world": "junior", "level": 3,
+  "title": "Сводная таблица",
+  "question": "Есть city, month, revenue. Как получить city × month как таблицу с суммами?",
+  "options": [
+    { "id": "A", "code": "df.pivot_table(index='city', columns='month', values='revenue', aggfunc='sum')", "correct": true, "explain": "pivot_table строит сводную: index — строки, columns — столбцы, aggfunc — что считать." },
+    { "id": "B", "code": "df.pivot('city', 'month')", "correct": false, "explain": "pivot без aggfunc не умеет суммировать дубликаты." },
+    { "id": "C", "code": "df.groupby('city', 'month')", "correct": false, "explain": "Нужен список колонок в скобках — ['city','month']." },
+    { "id": "D", "code": "df.table('city', 'month')", "correct": false, "explain": "Такого метода нет." }
+  ]
+}

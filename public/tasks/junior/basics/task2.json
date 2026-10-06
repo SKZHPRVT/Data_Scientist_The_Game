@@ -1,14 +1,13 @@
 {
-  "id": "task2_head",
-  "world": "junior",
-  "level": 1,
+  "id": "basics_2_head",
+  "world": "junior", "level": 1,
   "title": "Первые строки",
   "dataset": "sales.csv",
   "question": "Что вернёт первые 3 строки датасета?",
   "options": [
     { "id": "A", "code": "df.head(3)", "correct": true, "explain": "head(3) возвращает первые 3 строки. По умолчанию head() — 5." },
-    { "id": "B", "code": "df.first(3)", "correct": false, "explain": "У pandas нет метода first(). Это выдуманная команда." },
-    { "id": "C", "code": "df[:3].columns", "correct": false, "explain": "df[:3] даёт первые 3 строки, но .columns вернёт колонки, а не строки." },
-    { "id": "D", "code": "df.top(3)", "correct": false, "explain": "У DataFrame нет метода top(). Это не pandas." }
+    { "id": "B", "code": "df.first(3)", "correct": false, "explain": "У pandas нет метода first()." },
+    { "id": "C", "code": "df[:3].columns", "correct": false, "explain": "df[:3] даёт строки, но .columns вернёт колонки." },
+    { "id": "D", "code": "df.top(3)", "correct": false, "explain": "У DataFrame нет метода top()." }
   ]
 }

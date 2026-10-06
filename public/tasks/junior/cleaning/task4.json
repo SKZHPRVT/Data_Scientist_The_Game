@@ -1,0 +1,13 @@
+{
+  "id": "cleaning_4_astype",
+  "world": "junior", "level": 2,
+  "title": "Преобразование типа",
+  "dataset": "revenue как строка",
+  "question": "Что превратит колонку revenue из строки в число (int)?",
+  "options": [
+    { "id": "A", "code": "df['revenue'].astype(int)", "correct": true, "explain": "astype(int) приводит тип Series к целому числу." },
+    { "id": "B", "code": "df['revenue'].to_int()", "correct": false, "explain": "Такого метода нет." },
+    { "id": "C", "code": "int(df['revenue'])", "correct": false, "explain": "int() не преобразует всю Series." },
+    { "id": "D", "code": "df.convert('revenue')", "correct": false, "explain": "Такого метода нет." }
+  ]
+}
