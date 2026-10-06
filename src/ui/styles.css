@@ -4,7 +4,7 @@
   --bg: #0a0a0a;
   --fg: #00ff41;
   --fg-dim: #008833;
-  --panel: rgba(10, 10, 10, 0.92);
+  --panel: rgba(10, 10, 10, 0.94);
   --border: #1a1a1a;
   --accent: #00ff41;
   --error: #ff3333;
@@ -55,6 +55,7 @@ html, body, #app {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  z-index: 1;
 }
 
 .desktop-icon {
@@ -146,8 +147,6 @@ body.keyboard-open .taskbar {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   min-width: 260px;
-  max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 16px);
-  max-height: calc(100vh - 44px - var(--safe-bottom) - var(--safe-top) - var(--keyboard-offset) - 16px);
 }
 
 .window-title {
@@ -162,6 +161,7 @@ body.keyboard-open .taskbar {
   cursor: move;
   user-select: none;
   flex-shrink: 0;
+  touch-action: none;
 }
 
 .window-title .controls {
@@ -228,14 +228,27 @@ body.keyboard-open .taskbar {
   bottom: calc(48px + var(--safe-bottom));
   left: calc(8px + var(--safe-left));
   width: 260px;
+  max-height: calc(100vh - 48px - var(--safe-top) - var(--safe-bottom) - 16px);
   background: var(--panel);
   border: 1px solid var(--fg-dim);
   border-radius: 6px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
   padding: 8px 0;
   z-index: 1001;
-  max-height: 70vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* В ландшафте — 2 колонки */
+.start-menu.landscape {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 4px;
+  padding: 8px;
+}
+
+.start-menu.landscape .start-divider {
+  grid-column: 1 / -1;
 }
 
 .start-item {
@@ -246,9 +259,12 @@ body.keyboard-open .taskbar {
   align-items: center;
   gap: 8px;
   color: var(--fg);
+  border-radius: 4px;
 }
 
 .start-item:hover { background: rgba(0, 255, 65, 0.1); }
+.start-item:active { background: rgba(0, 255, 65, 0.2); }
+
 .start-divider { height: 1px; background: var(--border); margin: 6px 0; }
 
 /* ===== ЗАГРУЗКА ===== */
