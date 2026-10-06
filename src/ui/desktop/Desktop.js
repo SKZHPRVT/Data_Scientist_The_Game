@@ -6,6 +6,7 @@ import { Explorer } from '../explorer/Explorer.js';
 import { Settings } from '../settings/Settings.js';
 import { Achievements } from '../achievements/Achievements.js';
 import { Progress } from '../settings/Progress.js';
+import { ModelsLab } from '../../models/ModelsLab.js';
 import { TaskView } from '../task/TaskView.js';
 import { QuestMap } from '../quest/QuestMap.js';
 import { GroupMap } from '../quest/GroupMap.js';
@@ -156,6 +157,7 @@ export class Desktop {
       { icon: '🚀', label: 'MIDDLE', action: () => this.openWorldGate('middle') },
       { icon: '👑', label: 'SENIOR', action: () => this.openWorldGate('senior') },
       { icon: '📁', label: 'SANDBOX', action: () => this.openSandbox() },
+      { icon: '📦', label: 'MODELS', action: () => this.openModelsLab() },
       { icon: '🎲', label: 'GALTON', action: () => this.openGalton() },
       { icon: '📄', label: 'README.txt', action: () => this.openReadme() },
       { icon: '🐍', label: 'game.py', action: () => this.runGamePy() },
@@ -506,6 +508,11 @@ export class Desktop {
   // ============================================
   // ТЕРМИНАЛ — с destroy() при закрытии
   // ============================================
+  openModelsLab() {
+    const lab = new ModelsLab(this.windows);
+    lab.render();
+  }
+
   openTerminal() {
     const term = new Terminal();
     const win = this.windows.create({
