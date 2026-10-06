@@ -94,11 +94,9 @@ export class Desktop {
   }
 
   async openGroupMap(worldId) {
-    // ЗАКРЫВАЕМ всё, что может мешать
     const oldId = 'groupmap-' + worldId;
     if (this.windows.windows.has(oldId)) {
       this.windows.close(oldId);
-      // Небольшая пауза, чтобы DOM обновился
       await new Promise((r) => setTimeout(r, 50));
     }
 
@@ -223,8 +221,9 @@ export class Desktop {
   }
 
   openTask(task) {
+    // Закрываем ТОЛЬКО предыдущие задачи, карту не трогаем
     this.windows.windows.forEach((_, id) => {
-      if (id.startsWith('task-') || id.startsWith('questmap-')) {
+      if (id.startsWith('task-')) {
         this.windows.close(id);
       }
     });
@@ -247,40 +246,50 @@ export class Desktop {
     const parts = currentPath.split('/').filter(Boolean);
     const worldId = parts[0];
     const chapterId = parts.slice(0, -1).join('/');
+    const currentFile = parts[parts.length - 1]; // task1.json
 
-    // Закрываем окно задачи
+    // Закрываем текущую задачу
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
 
-    // Проверяем, закрыта ли глава
+    // Получаем список задач в главе
+    let tasks = [];
     let chapterComplete = false;
     try {
       const idxUrl = import.meta.env.BASE_URL + 'tasks/' + chapterId + '/index.json';
       const res = await fetch(idxUrl);
       const idx = await res.json();
-      const ids = (idx.tasks || []).map((t) => chapterId + '/' + t.replace('.json', ''));
+      tasks = idx.tasks || [];
+
+      const ids = tasks.map((t) => chapterId + '/' + t.replace('.json', ''));
       const solved = ids.filter((id) => progress.isSolved(id));
       chapterComplete = ids.length > 0 && solved.length >= ids.length;
     } catch (e) {
-      console.error('[nextTask] не могу проверить главу', e);
+      console.error('[nextTask] fail', e);
     }
 
-    // ВАЖНО: закрываем обе карты, чтобы они пересоздались с новыми данными
-    this.windows.windows.forEach((_, id) => {
-      if (id.startsWith('questmap-') || id.startsWith('groupmap-')) {
-        this.windows.close(id);
-      }
-    });
+    const currentIdx = tasks.indexOf(currentFile);
+    const nextFile = currentIdx >= 0 && currentIdx < tasks.length - 1
+      ? tasks[currentIdx + 1]
+      : null;
 
-    // Задержка перед открытием — чтобы DOM обновился
-    setTimeout(async () => {
-      if (chapterComplete) {
-        await this.openGroupMap(worldId);
-      } else {
-        await this.openQuestMap(chapterId);
-      }
-    }, 500);
+    if (chapterComplete) {
+      // Глава пройдена — открываем карту мира
+      this.windows.windows.forEach((_, id) => {
+        if (id.startsWith('questmap-') || id.startsWith('groupmap-')) {
+          this.windows.close(id);
+        }
+      });
+      setTimeout(() => this.openGroupMap(worldId), 400);
+    } else if (nextFile) {
+      // Открываем следующую задачу — карта остаётся позади
+      const nextPath = '/' + chapterId + '/' + nextFile;
+      setTimeout(() => this.openTaskByPath(nextPath), 250);
+    } else {
+      // Fallback — открываем карту главы
+      setTimeout(() => this.openQuestMap(chapterId), 400);
+    }
   }
 
   openReadme() {
