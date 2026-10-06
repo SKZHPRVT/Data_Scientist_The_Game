@@ -5,8 +5,23 @@ import { Desktop } from './ui/desktop/Desktop.js';
 import { TelegramSDK } from './core/telegram.js';
 import { KeyboardHandler } from './core/keyboard.js';
 import { audio } from './core/audio.js';
+import { progress } from './core/progress.js';
 
 window.__audio = audio;
+
+// === АВТОСБРОС ЧЕРЕЗ ?reset=1 ===
+if (location.search.includes('reset=1')) {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    console.log('[reset] localStorage cleared');
+  } catch (e) {}
+  history.replaceState({}, '', location.pathname);
+}
+
+// === ОТЛАДОЧНАЯ КОМАНДА ===
+window.__progress = progress;
+console.log('[main] progress helper available: window.__progress');
 
 window.addEventListener('error', (e) => {
   console.error('[GLOBAL ERROR]', e.error || e.message);
@@ -27,7 +42,6 @@ window.addEventListener('error', (e) => {
 
 async function start() {
   showLoading();
-
   await bootstrapFS();
 
   const tg = new TelegramSDK();

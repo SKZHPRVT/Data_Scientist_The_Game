@@ -8,13 +8,22 @@ export class TaskView {
     this.startTime = Date.now();
     this.answered = false;
     this.wrongTries = 0;
-    this.fileId = this._getFileId();
+
+    // ВАЖНО: fileId = полный путь от tasks/
+    this.fileId = this._computeFileId();
+    console.log('[TaskView] CONSTRUCTOR task._path:', this.task._path, '→ fileId:', this.fileId);
+
     this.shuffledOptions = this._shuffleOptions(task.options || []);
-    console.log('[TaskView] fileId:', this.fileId);
   }
 
-  _getFileId() {
-    return progress.makeId(this.task._path || this.task.id);
+  _computeFileId() {
+    // Если есть _path (реальный путь) — используем его
+    if (this.task._path) {
+      return progress.makeId(this.task._path);
+    }
+    // Fallback — если нет _path, но есть world/chapter/file
+    console.warn('[TaskView] нет _path, используем task.id:', this.task.id);
+    return this.task.id;
   }
 
   _shuffleOptions(options) {
@@ -134,8 +143,11 @@ export class TaskView {
       if (b !== btn) b.style.opacity = '0.4';
     });
 
+    // === ЗАПИСЬ ПРОГРЕССА — ЯВНО, с проверкой ===
+    console.log('[TaskView] MARKING:', this.fileId);
     progress.markSolved(this.fileId);
     progress.setStars(this.fileId, stars);
+    console.log('[TaskView] AFTER MARK, solved:', progress.getSolved());
 
     resultEl.innerHTML = `
       <div class="task-result-success">
@@ -152,6 +164,7 @@ export class TaskView {
     resultEl.querySelector('#task-next').addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      console.log('[TaskView] NEXT clicked, fileId:', this.fileId);
       if (this.onSolved) this.onSolved(this.fileId, stars);
     });
   }

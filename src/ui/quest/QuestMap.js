@@ -18,13 +18,19 @@ export class QuestMap {
     if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
 
     const tasks = this.data.tasks || [];
-    // Единый ID: junior/basics/task1
+
+    // ВСЕ id — полный путь: junior/basics/task1
     const taskIds = tasks.map((t) => progress.makeId(this.chapterId + '/' + t));
-    const solvedCount = taskIds.filter((id) => progress.isSolved(id)).length;
+    const solvedList = progress.getSolved();
+    const solvedCount = taskIds.filter((id) => solvedList.includes(id)).length;
     const total = taskIds.length || 1;
     const percent = Math.round((solvedCount / total) * 100);
 
-    console.log('[QuestMap]', this.chapterId, 'taskIds:', taskIds, 'solved:', solvedCount);
+    console.log('[QuestMap] chapterId:', this.chapterId);
+    console.log('[QuestMap] taskIds:', taskIds);
+    console.log('[QuestMap] solvedList:', solvedList);
+    console.log('[QuestMap] matched:', taskIds.filter((id) => solvedList.includes(id)));
+    console.log('[QuestMap] count:', solvedCount + '/' + taskIds.length);
 
     return `
       <div class="quest-map">
@@ -43,7 +49,7 @@ export class QuestMap {
           ${tasks.map((fileName, i) => {
             const taskId = progress.makeId(this.chapterId + '/' + fileName);
             const unlocked = progress.isUnlocked(taskId, taskIds);
-            const solved = progress.isSolved(taskId);
+            const solved = solvedList.includes(taskId);
             const stars = progress.getStars(taskId);
 
             let status = '🔒';

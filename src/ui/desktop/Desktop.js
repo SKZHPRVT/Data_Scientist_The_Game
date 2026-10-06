@@ -97,7 +97,7 @@ export class Desktop {
     const oldId = 'groupmap-' + worldId;
     if (this.windows.windows.has(oldId)) {
       this.windows.close(oldId);
-      await new Promise((r) => setTimeout(r, 50));
+      await new Promise((r) => setTimeout(r, 100));
     }
 
     const map = new GroupMap(worldId, {
@@ -133,7 +133,7 @@ export class Desktop {
     const oldId = 'questmap-' + chapterId;
     if (this.windows.windows.has(oldId)) {
       this.windows.close(oldId);
-      await new Promise((r) => setTimeout(r, 50));
+      await new Promise((r) => setTimeout(r, 100));
     }
 
     const map = new QuestMap(chapterId, {
@@ -199,14 +199,23 @@ export class Desktop {
 
   async openTaskByPath(path) {
     try {
-      const url = import.meta.env.BASE_URL + 'tasks' + path;
+      // ВАЖНО: нормализуем path — начинается с /
+      let cleanPath = path.startsWith('/') ? path : '/' + path;
+
+      const url = import.meta.env.BASE_URL + 'tasks' + cleanPath;
+      console.log('[openTaskByPath]', { input: path, clean: cleanPath, url });
+
       const res = await fetch(url);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const task = await res.json();
-      task._path = path;
+
+      // КРИТИЧНО: всегда ставим _path — это id для прогресса
+      task._path = cleanPath;
+      console.log('[openTaskByPath] task._path set to:', task._path);
+
       this.openTask(task);
     } catch (e) {
-      console.error('[openTask] fail', path, e);
+      console.error('[openTaskByPath] fail', path, e);
       this.windows.create({
         id: 'task-error',
         title: '⚠ Ошибка задачи',
@@ -223,9 +232,7 @@ export class Desktop {
   openTask(task) {
     // Закрываем ТОЛЬКО предыдущие задачи, карту не трогаем
     this.windows.windows.forEach((_, id) => {
-      if (id.startsWith('task-')) {
-        this.windows.close(id);
-      }
+      if (id.startsWith('task-')) this.windows.close(id);
     });
 
     const view = new TaskView(task, {
@@ -246,14 +253,16 @@ export class Desktop {
     const parts = currentPath.split('/').filter(Boolean);
     const worldId = parts[0];
     const chapterId = parts.slice(0, -1).join('/');
-    const currentFile = parts[parts.length - 1]; // task1.json
+    const currentFile = parts[parts.length - 1];
+
+    console.log('[_openNextTask]', { worldId, chapterId, currentFile });
 
     // Закрываем текущую задачу
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
 
-    // Получаем список задач в главе
+    // Получаем список задач
     let tasks = [];
     let chapterComplete = false;
     try {
@@ -262,11 +271,17 @@ export class Desktop {
       const idx = await res.json();
       tasks = idx.tasks || [];
 
-      const ids = tasks.map((t) => chapterId + '/' + t.replace('.json', ''));
-      const solved = ids.filter((id) => progress.isSolved(id));
+      const ids = tasks.map((t) => progress.makeId(chapterId + '/' + t));
+      const solvedList = progress.getSolved();
+      const solved = ids.filter((id) => solvedList.includes(id));
       chapterComplete = ids.length > 0 && solved.length >= ids.length;
+
+      console.log('[_openNextTask] tasks:', tasks);
+      console.log('[_openNextTask] ids:', ids);
+      console.log('[_openNextTask] solved:', solved);
+      console.log('[_openNextTask] chapterComplete:', chapterComplete);
     } catch (e) {
-      console.error('[nextTask] fail', e);
+      console.error('[_openNextTask] fail', e);
     }
 
     const currentIdx = tasks.indexOf(currentFile);
@@ -283,11 +298,12 @@ export class Desktop {
       });
       setTimeout(() => this.openGroupMap(worldId), 400);
     } else if (nextFile) {
-      // Открываем следующую задачу — карта остаётся позади
+      // Следующая задача — открываем НАПРЯМУЮ, карта остаётся позади
       const nextPath = '/' + chapterId + '/' + nextFile;
+      console.log('[_openNextTask] opening next:', nextPath);
       setTimeout(() => this.openTaskByPath(nextPath), 250);
     } else {
-      // Fallback — открываем карту главы
+      // Fallback
       setTimeout(() => this.openQuestMap(chapterId), 400);
     }
   }

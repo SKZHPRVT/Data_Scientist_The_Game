@@ -14,19 +14,30 @@ export class GroupMap {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     this.data = await res.json();
 
+    const solvedList = progress.getSolved();
+    console.log('[GroupMap] LOAD, solved total:', solvedList.length);
+    console.log('[GroupMap] solved list:', solvedList);
+
     for (const ch of this.data.chapters) {
       try {
         const chUrl = import.meta.env.BASE_URL + 'tasks/' + this.worldId + '/' + ch.id + '/index.json';
         const chRes = await fetch(chUrl);
-        if (!chRes.ok) { this.chapterStats[ch.id] = { solved: 0, total: 0, ids: [] }; continue; }
+        if (!chRes.ok) {
+          this.chapterStats[ch.id] = { solved: 0, total: 0, ids: [] };
+          continue;
+        }
         const chData = await chRes.json();
-        // Единый ID: junior/basics/task1
-        const ids = (chData.tasks || []).map((t) => progress.makeId(this.worldId + '/' + ch.id + '/' + t));
-        const solved = ids.filter((id) => progress.isSolved(id)).length;
+
+        // ВСЕ id — полный путь
+        const ids = (chData.tasks || []).map((t) =>
+          progress.makeId(this.worldId + '/' + ch.id + '/' + t)
+        );
+        const solved = ids.filter((id) => solvedList.includes(id)).length;
         this.chapterStats[ch.id] = { solved, total: ids.length, ids };
-        console.log('[GroupMap]', ch.id, '->', solved + '/' + ids.length);
+
+        console.log('[GroupMap]', ch.id, ':', solved + '/' + ids.length, '| ids:', ids);
       } catch (e) {
-        console.warn('[GroupMap]', ch.id, 'error', e);
+        console.warn('[GroupMap] error loading', ch.id, e);
         this.chapterStats[ch.id] = { solved: 0, total: 0, ids: [] };
       }
     }
