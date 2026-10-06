@@ -15,7 +15,7 @@ export class Terminal {
   mount(body) {
     this.el = body.querySelector('#terminal-body');
     this._print('Data Scientist | The Game · v0.1.0');
-    this._print('Введи help для списка команд.');
+    this._print('Введи help для списка команд.', 'terminal-success');
     this._prompt();
 
     this.el.addEventListener('click', () => {
@@ -76,16 +76,28 @@ export class Terminal {
 
   _execute(cmd) {
     try {
-      // Встроенные команды
+      // ===== ВСТРОЕННЫЕ КОМАНДЫ =====
       if (cmd === 'help') {
         this._print('Доступные команды:', 'terminal-success');
+        this._print('  ls, cd <path>, cat <file>, pwd');
+        this._print('  python <file> — запустить питон-скрипт');
+        this._print('  clear — очистить терминал');
+        this._print('');
+        this._print('Методы pandas (junior):', 'terminal-success');
         for (const [id, c] of Object.entries(COMMANDS)) {
-          if (c.world === 'junior') this._print(`  ${c.signature} — ${c.description}`);
+          if (c.world === 'junior' && c.signature) {
+            this._print(`  ${c.signature} — ${c.description}`);
+          }
         }
+        return;
+      }
+      if (cmd === 'clear') {
+        this.el.innerHTML = '';
         return;
       }
       if (cmd === 'ls') {
         const items = window.__fs.ls();
+        if (items.length === 0) this._print('(пусто)');
         items.forEach((i) => this._print(`  ${i.type === 'dir' ? '📁' : '📄'} ${i.name}`));
         return;
       }
@@ -95,19 +107,38 @@ export class Terminal {
         return;
       }
       if (cmd.startsWith('cat ')) {
-        const content = window.__fs.readFile(cmd.slice(4).trim());
-        this._print(content);
+        try {
+          const content = window.__fs.readFile(cmd.slice(4).trim());
+          this._print(content);
+        } catch (e) {
+          this._print('[ERROR] ' + e.message, 'terminal-error');
+        }
         return;
       }
       if (cmd === 'pwd') {
         this._print(window.__fs.getCwd());
         return;
       }
+      if (cmd.startsWith('python ')) {
+        const file = cmd.slice(7).trim();
+        try {
+          const content = window.__fs.readFile(file);
+          this._print('$ python ' + file, 'terminal-success');
+          this._print(content);
+        } catch (e) {
+          this._print('[ERROR] ' + e.message, 'terminal-error');
+        }
+        return;
+      }
 
-      // Python-выражение
+      // ===== PYTHON-ВЫРАЖЕНИЕ =====
       const result = evaluate(cmd, { df: window.__df });
       if (result && result.toJSON) {
-        this._print(JSON.stringify(result.toJSON(), null, 2));
+        const json = result.toJSON();
+        this._print(`rows: ${json.rows.length}, columns: ${json.columns.length}`, 'terminal-success');
+        this._print(JSON.stringify(json.rows.slice(0, 5), null, 2));
+      } else if (Array.isArray(result)) {
+        this._print(JSON.stringify(result), 'terminal-success');
       } else {
         this._print(String(result), 'terminal-success');
       }

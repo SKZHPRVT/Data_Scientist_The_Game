@@ -5,10 +5,22 @@ export class Explorer {
   }
 
   render() {
-    const items = window.__fs.ls(this.path);
+    let items = [];
+    try {
+      items = window.__fs.ls(this.path);
+    } catch (e) {
+      items = [];
+    }
+
+    const parent = this.path !== '/' ? `
+      <div class="start-item" data-action="up">⬆️ ..</div>
+    ` : '';
+
     return `
       <div style="font-family: var(--font-mono); font-size: 13px;">
         <div style="color: var(--fg-dim); margin-bottom: 12px;">${this.path}</div>
+        ${parent}
+        ${items.length === 0 ? '<div style="color: var(--fg-dim);">(пусто)</div>' : ''}
         ${items.map((i) => `
           <div class="start-item" data-name="${i.name}" data-type="${i.type}">
             ${i.type === 'dir' ? '📁' : '📄'} ${i.name}
@@ -21,6 +33,13 @@ export class Explorer {
   mount(body) {
     body.querySelectorAll('.start-item').forEach((el) => {
       el.onclick = () => {
+        if (el.dataset.action === 'up') {
+          const parts = this.path.split('/').filter(Boolean);
+          parts.pop();
+          const parent = '/' + parts.join('/');
+          window.dispatchEvent(new CustomEvent('open-explorer', { detail: parent }));
+          return;
+        }
         const name = el.dataset.name;
         const type = el.dataset.type;
         const fullPath = (this.path === '/' ? '' : this.path) + '/' + name;

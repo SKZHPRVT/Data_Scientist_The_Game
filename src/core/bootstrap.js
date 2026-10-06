@@ -15,29 +15,32 @@ export async function bootstrapFS() {
   fs.mkdir('/senior');
   fs.mkdir('/sandbox');
 
-  // Загружаем файлы
+  // Загружаем файлы (из public/)
   const files = [
-    ['/README.txt', '/src/data/README.txt'],
-    ['/game.py', '/src/data/game.py'],
-    ['/junior/basics/task1.json', '/src/tasks/junior/basics/task1.json'],
+    ['/README.txt', 'data/README.txt'],
+    ['/game.py', 'data/game.py'],
+    ['/junior/basics/task1.json', 'tasks/junior/basics/task1.json'],
   ];
 
   for (const [virtualPath, realPath] of files) {
     try {
-      const res = await fetch(realPath);
+      const url = import.meta.env.BASE_URL + realPath;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const content = await res.text();
       fs.mount(virtualPath, content);
     } catch (e) {
-      console.warn('Не удалось загрузить', realPath);
+      console.warn('[FS] Не удалось загрузить', realPath, e.message);
     }
   }
 
   // Загружаем CSV в память как DataFrame
   try {
-    const res = await fetch('/src/data/sales.csv');
+    const url = import.meta.env.BASE_URL + 'data/sales.csv';
+    const res = await fetch(url);
     const csv = await res.text();
     window.__df = parseCSV(csv);
   } catch (e) {
-    console.warn('CSV не загружен');
+    console.warn('[FS] CSV не загружен', e.message);
   }
 }

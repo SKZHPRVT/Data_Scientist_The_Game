@@ -15,16 +15,20 @@ export class Desktop {
     this.startMenu = null;
     this.taskbar = null;
     this.wallpaper = localStorage.getItem('wallpaper') || 'default';
+
+    // Слушаем события от окон
+    window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
   }
 
   render() {
     this.root.innerHTML = `
-      <div class="desktop" id="desktop" style="background-image: url('/assets/wallpapers/${this.wallpaper}.jpg')">
+      <div class="desktop" id="desktop">
         <div class="desktop-icons" id="icons"></div>
       </div>
     `;
 
     this.renderIcons();
+
     this.taskbar = new Taskbar(this.root, {
       onStart: () => this.toggleStartMenu(),
       onTerminal: () => this.openTerminal(),
@@ -34,8 +38,7 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    // Автозапуск: открываем README и game.py
-    this.showWelcome();
+    setTimeout(() => this.runGamePy(), 300);
   }
 
   renderIcons() {
@@ -88,7 +91,7 @@ export class Desktop {
     const term = new Terminal();
     this.windows.create({
       id: 'terminal',
-      title: 'Терминал',
+      title: '⌨️ Терминал',
       content: term.render(),
       onMount: (body) => term.mount(body),
       width: 640,
@@ -101,7 +104,7 @@ export class Desktop {
       onOpenFile: (file) => this.openFile(file),
     });
     this.windows.create({
-      id: 'explorer-' + path,
+      id: 'explorer-' + path.replace(/\//g, '_'),
       title: '📁 ' + path,
       content: explorer.render(),
       onMount: (body) => explorer.mount(body),
@@ -112,28 +115,37 @@ export class Desktop {
 
   openFile(file) {
     if (file.endsWith('.py')) this.runGamePy();
-    if (file.endsWith('.txt')) this.openReadme();
-    if (file.endsWith('.json')) this.openTask(file);
+    else if (file.endsWith('.txt')) this.openReadme();
+    else if (file.endsWith('.json')) this.openTask(file);
   }
 
   openTask(file) {
-    // Открыть задачу в терминале
-    this.openTerminal();
+    this.windows.create({
+      id: 'task-' + file,
+      title: '📄 ' + file.split('/').pop(),
+      content: `
+        <div style="font-family: var(--font-mono); font-size: 13px;">
+          <p class="terminal-success">Задача: ${file}</p>
+          <p style="margin-top: 12px;">Открой Терминал и реши её.</p>
+          <p style="margin-top: 12px; color: var(--fg-dim);">Подсказка: help</p>
+        </div>
+      `,
+      width: 480,
+      height: 300,
+    });
   }
 
   openReadme() {
+    let content = 'README.txt';
+    try {
+      content = window.__fs.readFile('/README.txt');
+    } catch (e) {
+      content = 'README.txt не найден.';
+    }
     this.windows.create({
       id: 'readme',
       title: '📄 README.txt',
-      content: `
-        <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
-          <p><strong>Джун. Добро пожаловать.</strong></p>
-          <p style="margin-top: 12px;">Ты не будешь учить синтаксис. Ты будешь решать задачи.</p>
-          <p style="margin-top: 12px;">В <code>junior/</code> — твой путь. Начни с <code>basics/</code>.</p>
-          <p style="margin-top: 12px;">Если застрянешь — <code>side_quests/</code>. За них дают звёзды.</p>
-          <p style="margin-top: 12px; color: var(--fg-dim);">— Тимлид</p>
-        </div>
-      `,
+      content: `<div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg); white-space: pre-wrap;">${content}</div>`,
       width: 480,
       height: 360,
     });
@@ -201,10 +213,5 @@ export class Desktop {
       width: 480,
       height: 520,
     });
-  }
-
-  showWelcome() {
-    // Первый запуск — показать game.py
-    setTimeout(() => this.runGamePy(), 300);
   }
 }
