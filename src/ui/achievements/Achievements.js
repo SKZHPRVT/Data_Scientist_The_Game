@@ -27,6 +27,11 @@ const ACHIEVEMENTS = [
   { id: 'MENTOR', title: 'Ментор', titleEn: 'Mentor', icon: '👥', desc: 'Объяснил джуну то, что сам недавно не понимал.', descEn: 'Explained to a junior.', code: 'MENTOR' },
   { id: 'ARCHITECT', title: 'Архитектор', titleEn: 'Architect', icon: '🏗️', desc: 'Сначала схема — потом код.', descEn: 'Diagram first, code after.', code: 'ARCHITECT' },
   { id: 'MASTER_SIGNAL', title: 'Магистр Сигнала', titleEn: 'Master of Signal', icon: '👑', desc: 'Ты разделил, выстроил, связал.', descEn: 'You divided, built, connected.', code: 'MASTER_SIGNAL' },
+  { id: 'COLLECTOR', title: 'Коллекционер', titleEn: 'Collector', icon: '👑', desc: 'Собрал все 38 моделей и победил финального босса.', descEn: 'Collected all 38 models and beat the final boss.', code: 'COLLECTOR', platinum: true },
+  { id: 'LINEAR_MAGE', title: 'Линейный маг', titleEn: 'Linear mage', icon: '📏', desc: 'Открыл все 8 линейных моделей.', descEn: 'Unlocked all 8 linear models.', code: 'LINEAR_MAGE' },
+  { id: 'FORESTER', title: 'Лесоруб', titleEn: 'Forester', icon: '🌳', desc: 'Открыл все деревья и ансамбли.', descEn: 'Unlocked all trees and ensembles.', code: 'FORESTER' },
+  { id: 'CLUSTERER', title: 'Кластеризатор', titleEn: 'Clusterer', icon: '🔵', desc: 'Открыл все модели кластеризации.', descEn: 'Unlocked all clustering models.', code: 'CLUSTERER' },
+  { id: 'NEUROMANCER', title: 'Нейромант', titleEn: 'Neuromancer', icon: '🧠', desc: 'Открыл все нейросетевые модели.', descEn: 'Unlocked all neural models.', code: 'NEUROMANCER' },
   { id: 'ILLUMINATI', title: 'Тот, кто читает описания', titleEn: 'One who reads descriptions', icon: '👁', desc: 'Нашёл то, чего не должно было быть.', descEn: 'Found what should not be there.', code: 'ILLUMINATI', secret: true },
   { id: 'DIVIDE_ET_IMPERA', title: 'Divide et Impera', titleEn: 'Divide et Impera', icon: '🏆', desc: 'Ты разделил, выстроил, связал.', descEn: 'You divided, built, connected.', code: 'DIVIDE-ET-IMPERA', platinum: true },
 ];

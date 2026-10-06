@@ -2,11 +2,13 @@
 import { progress } from '../../core/progress.js';
 
 export class ModelsGroupMap {
-  constructor({ onOpenChapter } = {}) {
+  constructor({ onOpenChapter, onOpenBoss } = {}) {
     this.onOpenChapter = onOpenChapter;
-    this.data = null;         // INDEX.json
-    this.families = {};       // id → { quests: [...] }
-    this.familyStats = {};    // id → { solved, total, stars, maxStars, ids }
+    this.onOpenBoss = onOpenBoss;
+    this.data = null;
+    this.families = {};
+    this.familyStats = {};
+    this.bossData = null;
   }
 
   async load() {
@@ -39,6 +41,13 @@ export class ModelsGroupMap {
         };
       }
     }
+
+    // Грузим босса
+    try {
+      this.bossData = await fetch(base + 'BOSS_final.json').then((r) => r.json());
+    } catch (e) {
+      this.bossData = null;
+    }
   }
 
   render() {
@@ -51,6 +60,11 @@ export class ModelsGroupMap {
     const totalSolved = Object.values(this.familyStats).reduce((s, c) => s + c.solved, 0);
     const totalTasks = Object.values(this.familyStats).reduce((s, c) => s + c.total, 0);
     const percent = totalMax > 0 ? Math.round((totalStars / totalMax) * 100) : 0;
+
+    // Босс разблокируется, когда решено 38 / 38
+    const bossUnlocked = totalSolved >= 38;
+    const bossSolved = progress.isSolved('models/BOSS_final');
+    const bossStars = progress.getStars('models/BOSS_final');
 
     return `
       <div class="quest-map">
@@ -96,6 +110,24 @@ export class ModelsGroupMap {
               </div>
             `;
           }).join('')}
+
+          ${this.bossData ? `
+            <div class="quest-item ${bossSolved ? 'solved perfect' : (bossUnlocked ? 'active' : 'locked')}" data-boss="1"
+                 style="margin-top: 12px; border-top: 1px solid var(--fg-dim); padding-top: 12px;">
+              <div class="quest-item-status">${bossSolved ? '👑' : (bossUnlocked ? '👁' : '🔒')}</div>
+              <div class="quest-item-body">
+                <div class="quest-item-title">${this.bossData.icon} ФИНАЛЬНЫЙ БОСС: ${this.bossData.title}</div>
+                <div class="quest-item-sub">
+                  ${bossSolved
+                    ? `Пройден · ⭐ ${bossStars}/4`
+                    : bossUnlocked
+                      ? 'Готов к испытанию · нажми'
+                      : `Нужно открыть 38 / 38 · сейчас ${totalSolved}`
+                  }
+                </div>
+              </div>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
@@ -104,6 +136,20 @@ export class ModelsGroupMap {
   mount(body) {
     body.querySelectorAll('.quest-item').forEach((el) => {
       el.onclick = () => {
+        // Босс
+        if (el.dataset.boss) {
+          if (el.classList.contains('locked')) {
+            if (window.__audio) window.__audio.error();
+            el.style.background = 'rgba(255,51,51,0.2)';
+            setTimeout(() => { el.style.background = ''; }, 300);
+            return;
+          }
+          if (window.__audio) window.__audio.click('open');
+          if (this.onOpenBoss) this.onOpenBoss(this.bossData);
+          return;
+        }
+
+        // Семейство
         const familyId = el.dataset.family;
         if (window.__audio) window.__audio.click('open');
         if (this.onOpenChapter) this.onOpenChapter(familyId);

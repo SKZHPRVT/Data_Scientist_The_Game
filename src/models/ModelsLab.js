@@ -2,6 +2,7 @@
 import { ModelsGroupMap } from '../ui/models/ModelsGroupMap.js';
 import { ModelsQuestMap } from '../ui/models/ModelsQuestMap.js';
 import { TaskView } from '../ui/task/TaskView.js';
+import { BossView } from '../ui/models/BossView.js';
 import { progress } from '../core/progress.js';
 
 export class ModelsLab {
@@ -29,6 +30,7 @@ export class ModelsLab {
 
     const map = new ModelsGroupMap({
       onOpenChapter: (familyId) => this._openFamily(familyId),
+      onOpenBoss: (bossData) => this._openBoss(bossData),
     });
 
     await map.load();
@@ -40,6 +42,38 @@ export class ModelsLab {
       onMount: (body) => map.mount(body),
       width: 600,
       height: 620,
+    });
+  }
+
+  _openBoss(bossData) {
+    const view = new BossView(bossData, {
+      onComplete: (correct, total) => {
+        // Закрываем окно босса
+        this.windows.close('boss-final');
+        // Обновляем карту лаборатории
+        this._refreshLabMapInPlace();
+        // Если идеально — даём ачивку
+        if (correct === total) {
+          // Прямая разблокировка через localStorage
+          const ACH_KEY = 'achievements_v1';
+          try {
+            const arr = JSON.parse(localStorage.getItem(ACH_KEY) || '[]');
+            if (!arr.includes('COLLECTOR')) {
+              arr.push('COLLECTOR');
+              localStorage.setItem(ACH_KEY, JSON.stringify(arr));
+            }
+          } catch (e) {}
+        }
+      },
+    });
+
+    this.windows.create({
+      id: 'boss-final',
+      title: '👁 Финальный босс',
+      content: view.render(),
+      onMount: (body) => view.mount(body),
+      width: 600,
+      height: 700,
     });
   }
 
@@ -188,6 +222,7 @@ export class ModelsLab {
 
     const map = new ModelsGroupMap({
       onOpenChapter: (familyId) => this._openFamily(familyId),
+      onOpenBoss: (bossData) => this._openBoss(bossData),
     });
 
     await map.load();
