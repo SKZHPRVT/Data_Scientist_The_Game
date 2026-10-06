@@ -516,20 +516,29 @@ export class Desktop {
   }
 
   // ============================================
-  // EXPLORER (Файлы)
+  // EXPLORER (Файлы) — асинхронная подгрузка
   // ============================================
-  openExplorer(path) {
+  async openExplorer(path) {
     const explorer = new Explorer(path, {
       onOpenFile: (file) => this.openFile(file),
     });
-    this.windows.create({
+
+    const win = this.windows.create({
       id: 'explorer-' + path.replace(/\//g, '_'),
-      title: '📁 ' + path,
-      content: explorer.render(),
-      onMount: (body) => explorer.mount(body),
+      title: '📁 ' + (path === '/' ? 'Корень' : path),
+      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim); padding: 12px;">Загрузка...</div>`,
       width: 560,
       height: 480,
     });
+
+    try {
+      await explorer.loadDynamic();
+      const bodyEl = win.querySelector('.window-body');
+      bodyEl.innerHTML = explorer.render();
+      explorer.mount(bodyEl);
+    } catch (e) {
+      console.error('[Explorer]', e);
+    }
   }
 
   openFile(file) {
@@ -873,10 +882,8 @@ export class Desktop {
     ach.unlock('MASTER_SIGNAL');
     ach.unlock('DIVIDE_ET_IMPERA');
 
-    // Если все 4 мира пройдены — открываем и ставим matrix
     if (this.babyDone && this.juniorDone && this.middleDone && this.seniorDone) {
       markGameComplete();
-      // Автоматически применяем matrix как финальную награду
       setTimeout(() => {
         storage.set('wallpaper', 'matrix');
         applyWallpaper('matrix');
@@ -956,7 +963,7 @@ export class Desktop {
       { type: 'info', text: '' },
       { type: 'ok', text: '📁 ФАЙЛЫ' },
       { type: 'info', text: 'Иконка Файлы показывает все задачи.' },
-      { type: 'info', text: 'Можно посмотреть README и датасеты.' },
+      { type: 'info', text: 'Там же NOTES, todo, about, CHEATS.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
       { type: 'info', text: 'В каждой папке спрятан чит-код.' },

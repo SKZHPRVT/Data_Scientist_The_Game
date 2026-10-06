@@ -3,21 +3,45 @@ import { parseCSV } from './virtualdf.js';
 export async function bootstrapFS() {
   const fs = window.__fs;
 
-  // Монтируем структуру
+  // Монтируем структуру папок
   fs.mkdir('/junior');
   fs.mkdir('/junior/basics');
   fs.mkdir('/junior/cleaning');
   fs.mkdir('/junior/grouping');
+  fs.mkdir('/junior/merging');
+  fs.mkdir('/junior/datetime');
+  fs.mkdir('/junior/strings');
   fs.mkdir('/junior/side_quests');
   fs.mkdir('/junior/bosses');
   fs.mkdir('/middle');
+  fs.mkdir('/middle/pipelines');
+  fs.mkdir('/middle/features');
+  fs.mkdir('/middle/models');
+  fs.mkdir('/middle/eval');
+  fs.mkdir('/middle/experiments');
+  fs.mkdir('/middle/bosses');
   fs.mkdir('/senior');
+  fs.mkdir('/senior/incidents');
+  fs.mkdir('/senior/research');
+  fs.mkdir('/senior/mentoring');
+  fs.mkdir('/senior/architecture');
+  fs.mkdir('/senior/final');
+  fs.mkdir('/baby');
+  fs.mkdir('/baby/what_is_data');
+  fs.mkdir('/baby/first_table');
+  fs.mkdir('/baby/columns_rows');
+  fs.mkdir('/baby/what_is_ds');
+  fs.mkdir('/baby/first_step');
   fs.mkdir('/sandbox');
 
-  // Загружаем только README и game.py — задачи fetch-им по клику
+  // Загружаем статические файлы
   const files = [
     ['/README.txt', 'data/README.txt'],
     ['/game.py', 'data/game.py'],
+    ['/NOTES.txt', 'data/NOTES.txt'],
+    ['/todo.txt', 'data/todo.txt'],
+    ['/about.txt', 'data/about.txt'],
+    ['/CHEATS.txt', 'data/CHEATS.txt'],
   ];
 
   for (const [virtualPath, realPath] of files) {
@@ -32,14 +56,6 @@ export async function bootstrapFS() {
     }
   }
 
-  // === ЗАГРУЖАЕМ СПИСОК ЗАДАЧ В BASICS ===
-  // Чтобы Explorer видел файлы, монтируем "пустышки" — реальное содержимое грузится по клику
-  const basicsTasks = ['task1', 'task2', 'task3', 'task4', 'task5', 'task6'];
-  for (const name of basicsTasks) {
-    // Монтируем stub — содержимое подгрузится через fetch при открытии
-    fs.mount(`/junior/basics/${name}.json`, '{"_stub":true}');
-  }
-
   // CSV
   try {
     const url = import.meta.env.BASE_URL + 'data/sales.csv';
@@ -48,8 +64,6 @@ export async function bootstrapFS() {
     window.__df = parseCSV(csv);
     window.__csv_sales = csv;
     fs.mount('/sales.csv', csv);
-    fs.mount('/junior/sales.csv', csv);
-    fs.mount('/junior/basics/sales.csv', csv);
   } catch (e) {
     console.warn('[FS] CSV не загружен', e.message);
   }
