@@ -1,12 +1,11 @@
-const KEY = 'tasks_solved_v4';
+const KEY = 'tasks_solved_v5';
 
 export const progress = {
-  // Универсальный ID из пути: /junior/basics/task1.json → junior/basics/task1
   makeId(path) {
     if (!path) return '';
     return String(path)
-      .replace(/^\//, '')      // убираем ведущий /
-      .replace(/\.json$/, ''); // убираем .json на конце
+      .replace(/^\//, '')
+      .replace(/\.json$/, '');
   },
 
   getSolved() {
@@ -28,12 +27,12 @@ export const progress = {
   },
 
   getStars(taskId) {
-    return +localStorage.getItem(`task_${taskId}_stars_v4`) || 0;
+    return +localStorage.getItem(`task_${taskId}_stars_v5`) || 0;
   },
 
   setStars(taskId, stars) {
     const best = this.getStars(taskId);
-    if (stars > best) localStorage.setItem(`task_${taskId}_stars_v4`, stars);
+    if (stars > best) localStorage.setItem(`task_${taskId}_stars_v5`, stars);
   },
 
   isUnlocked(taskId, allTaskIds) {
@@ -46,7 +45,7 @@ export const progress = {
   reset() {
     localStorage.removeItem(KEY);
     Object.keys(localStorage)
-      .filter((k) => k.startsWith('task_') && k.endsWith('_stars_v4'))
+      .filter((k) => k.startsWith('task_') && k.endsWith('_stars_v5'))
       .forEach((k) => localStorage.removeItem(k));
   },
 };
