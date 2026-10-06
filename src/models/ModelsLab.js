@@ -23,6 +23,11 @@ export class ModelsLab {
       return;
     }
 
+    // ЗАКРЫВАЕМ старое окно — иначе create() вернёт старое DOM с устаревшими данными
+    if (this.windows.windows.has('models-lab')) {
+      this.windows.close('models-lab');
+    }
+
     const map = new ModelsGroupMap({
       onOpenChapter: (familyId) => this._openFamily(familyId),
     });
@@ -49,7 +54,12 @@ export class ModelsLab {
       return;
     }
 
-    // Добавляем имя семейства и иконку
+    // ЗАКРЫВАЕМ старое окно этого семейства
+    const familyWindowId = 'models-family-' + familyId;
+    if (this.windows.windows.has(familyWindowId)) {
+      this.windows.close(familyWindowId);
+    }
+
     familyData.family = `${familyIndex.icon} ${familyIndex.name}`;
 
     const map = new ModelsQuestMap(familyId, familyData, {
@@ -57,7 +67,7 @@ export class ModelsLab {
     });
 
     this.windows.create({
-      id: 'models-family-' + familyId,
+      id: familyWindowId,
       title: familyIndex.icon + ' ' + familyIndex.name,
       content: map.render(),
       onMount: (body) => map.mount(body),
@@ -78,7 +88,6 @@ export class ModelsLab {
       title: '📦 ' + (task.title || task.id),
       content: view.render(),
       onMount: (body) => {
-        // Показываем сценарий сверху, если есть
         if (task._story) {
           const storyEl = document.createElement('div');
           storyEl.style.cssText = 'padding: 12px; margin: 0 0 12px 0; background: rgba(0,255,65,0.05); border-left: 3px solid var(--accent); font-family: var(--font-mono); font-size: 12px; line-height: 1.5;';
@@ -99,13 +108,12 @@ export class ModelsLab {
   }
 
   async _onTaskSolved(task, familyId) {
-    // Обновляем карту семейства
+    // Закрываем задачу и перезагружаем карту семейства — прогресс обновится
     this._closeAllTaskWindows();
     await this._refreshFamilyMap(familyId);
   }
 
   async _refreshFamilyMap(familyId) {
-    // Закрываем старую карту семейства и открываем новую
     const windowId = 'models-family-' + familyId;
     if (this.windows.windows.has(windowId)) {
       this.windows.close(windowId);
