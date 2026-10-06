@@ -2,7 +2,7 @@ import { progress } from '../../core/progress.js';
 
 export class QuestMap {
   constructor(chapterId, { onOpenTask } = {}) {
-    this.chapterId = chapterId; // "junior/basics"
+    this.chapterId = chapterId;
     this.onOpenTask = onOpenTask;
     this.data = null;
   }
@@ -18,30 +18,25 @@ export class QuestMap {
     if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
 
     const tasks = this.data.tasks || [];
-
-    // ВСЕ id — полный путь: junior/basics/task1
     const taskIds = tasks.map((t) => progress.makeId(this.chapterId + '/' + t));
-    const solvedList = progress.getSolved();
-    const solvedCount = taskIds.filter((id) => solvedList.includes(id)).length;
-    const total = taskIds.length || 1;
-    const percent = Math.round((solvedCount / total) * 100);
 
-    console.log('[QuestMap] chapterId:', this.chapterId);
-    console.log('[QuestMap] taskIds:', taskIds);
-    console.log('[QuestMap] solvedList:', solvedList);
-    console.log('[QuestMap] matched:', taskIds.filter((id) => solvedList.includes(id)));
-    console.log('[QuestMap] count:', solvedCount + '/' + taskIds.length);
+    // Звёзды: сумма / максимум
+    const sumStars = progress.sumStars(taskIds);
+    const maxStars = progress.maxStars(taskIds);
+    const percent = maxStars > 0 ? Math.round((sumStars / maxStars) * 100) : 0;
+
+    const perfect = progress.isChapterPerfect(taskIds);
 
     return `
       <div class="quest-map">
         <div class="quest-map-header">
-          <div class="quest-map-title">${this.data.icon || '📚'} ${this.data.title || 'Квесты'}</div>
+          <div class="quest-map-title">${this.data.icon || '📚'} ${this.data.title || 'Квесты'}${perfect ? ' 🏆' : ''}</div>
           <div class="quest-map-desc">${this.data.description || ''}</div>
           <div class="quest-map-progress">
             <div class="quest-map-bar">
               <div class="quest-map-bar-fill" style="width: ${percent}%"></div>
             </div>
-            <div class="quest-map-count">${solvedCount} / ${taskIds.length}</div>
+            <div class="quest-map-count">⭐ ${sumStars} / ${maxStars}</div>
           </div>
         </div>
 
@@ -49,15 +44,26 @@ export class QuestMap {
           ${tasks.map((fileName, i) => {
             const taskId = progress.makeId(this.chapterId + '/' + fileName);
             const unlocked = progress.isUnlocked(taskId, taskIds);
-            const solved = solvedList.includes(taskId);
+            const solved = progress.isSolved(taskId);
             const stars = progress.getStars(taskId);
 
             let status = '🔒';
             let cls = 'locked';
             let sub = 'Сначала пройди предыдущий';
 
-            if (solved) { status = '✅'; cls = 'solved'; sub = 'Пройдено'; }
-            else if (unlocked) { status = '▶️'; cls = 'active'; sub = 'Нажми, чтобы начать'; }
+            if (solved) {
+              status = stars === 4 ? '🌟' : '✅';
+              cls = stars === 4 ? 'solved perfect' : 'solved';
+              sub = 'Пройдено';
+            } else if (unlocked) {
+              status = '▶️';
+              cls = 'active';
+              sub = 'Нажми, чтобы начать';
+            }
+
+            const starsStr = solved
+              ? '⭐'.repeat(stars) + '☆'.repeat(4 - stars)
+              : '';
 
             return `
               <div class="quest-item ${cls}" data-file="${fileName}">
@@ -66,7 +72,7 @@ export class QuestMap {
                   <div class="quest-item-title">Квест ${i + 1}</div>
                   <div class="quest-item-sub">${sub}</div>
                 </div>
-                ${solved ? `<div class="quest-item-stars">${'⭐'.repeat(stars)}</div>` : ''}
+                ${solved ? `<div class="quest-item-stars">${starsStr}</div>` : ''}
               </div>
             `;
           }).join('')}

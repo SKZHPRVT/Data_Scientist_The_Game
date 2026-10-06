@@ -9,20 +9,12 @@ export class TaskView {
     this.answered = false;
     this.wrongTries = 0;
 
-    // ВАЖНО: fileId = полный путь от tasks/
     this.fileId = this._computeFileId();
-    console.log('[TaskView] CONSTRUCTOR task._path:', this.task._path, '→ fileId:', this.fileId);
-
     this.shuffledOptions = this._shuffleOptions(task.options || []);
   }
 
   _computeFileId() {
-    // Если есть _path (реальный путь) — используем его
-    if (this.task._path) {
-      return progress.makeId(this.task._path);
-    }
-    // Fallback — если нет _path, но есть world/chapter/file
-    console.warn('[TaskView] нет _path, используем task.id:', this.task.id);
+    if (this.task._path) return progress.makeId(this.task._path);
     return this.task.id;
   }
 
@@ -45,6 +37,15 @@ export class TaskView {
       h |= 0;
     }
     return Math.abs(h);
+  }
+
+  // 0 ошибок → 4, 1 → 3, 2 → 2, 3 → 1, 4+ → 1
+  _calculateStars() {
+    const w = this.wrongTries;
+    if (w === 0) return 4;
+    if (w === 1) return 3;
+    if (w === 2) return 2;
+    return 1;
   }
 
   render() {
@@ -132,10 +133,7 @@ export class TaskView {
   }
 
   _onCorrect(btn, opt, resultEl) {
-    const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-    let stars = 3;
-    if (this.wrongTries > 0) stars = Math.max(1, 3 - this.wrongTries);
-    if (elapsed > 60) stars = Math.max(1, stars - 1);
+    const stars = this._calculateStars();
 
     btn.classList.add('correct');
     this.el.querySelectorAll('.task-option').forEach((b) => {
@@ -143,16 +141,16 @@ export class TaskView {
       if (b !== btn) b.style.opacity = '0.4';
     });
 
-    // === ЗАПИСЬ ПРОГРЕССА — ЯВНО, с проверкой ===
-    console.log('[TaskView] MARKING:', this.fileId);
+    // ЗАПИСЬ: markSolved + setStars (максимум)
     progress.markSolved(this.fileId);
     progress.setStars(this.fileId, stars);
-    console.log('[TaskView] AFTER MARK, solved:', progress.getSolved());
+
+    const starsStr = '⭐'.repeat(stars) + '☆'.repeat(4 - stars);
 
     resultEl.innerHTML = `
       <div class="task-result-success">
         <div class="task-result-title">✅ Верно!</div>
-        <div class="task-result-stars">${'⭐'.repeat(stars)} · ${elapsed} сек</div>
+        <div class="task-result-stars">${starsStr} (${stars}/4)</div>
         <div class="task-result-expl">${opt.explain}</div>
         <button class="task-btn task-btn-next" id="task-next" type="button">Следующий квест →</button>
       </div>
@@ -164,7 +162,6 @@ export class TaskView {
     resultEl.querySelector('#task-next').addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('[TaskView] NEXT clicked, fileId:', this.fileId);
       if (this.onSolved) this.onSolved(this.fileId, stars);
     });
   }
@@ -173,12 +170,20 @@ export class TaskView {
     btn.classList.add('wrong');
     btn.disabled = true;
     if (window.__audio) window.__audio.error();
+
+    const remaining = 4 - this.wrongTries;
+
     resultEl.innerHTML = `
       <div class="task-result-error">
         <div class="task-result-title">❌ Не то</div>
         <div class="task-result-code">${this._esc(opt.code)}</div>
         <div class="task-result-expl">${opt.explain}</div>
-        <div class="task-result-hint">Попробуй другой вариант.</div>
+        <div class="task-result-hint">
+          ${remaining > 0
+            ? `Ошибок: ${this.wrongTries}. Если решишь правильно сейчас — получишь ⭐ ${remaining}/4.`
+            : `Ошибок: ${this.wrongTries}. Ты уже на минимуме ⭐ 1/4.`
+          }
+        </div>
       </div>
     `;
     setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);

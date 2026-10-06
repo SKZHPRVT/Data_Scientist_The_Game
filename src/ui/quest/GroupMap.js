@@ -14,31 +14,25 @@ export class GroupMap {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     this.data = await res.json();
 
-    const solvedList = progress.getSolved();
-    console.log('[GroupMap] LOAD, solved total:', solvedList.length);
-    console.log('[GroupMap] solved list:', solvedList);
-
     for (const ch of this.data.chapters) {
       try {
         const chUrl = import.meta.env.BASE_URL + 'tasks/' + this.worldId + '/' + ch.id + '/index.json';
         const chRes = await fetch(chUrl);
         if (!chRes.ok) {
-          this.chapterStats[ch.id] = { solved: 0, total: 0, ids: [] };
+          this.chapterStats[ch.id] = { solved: 0, total: 0, stars: 0, maxStars: 0, ids: [] };
           continue;
         }
         const chData = await chRes.json();
-
-        // ВСЕ id — полный путь
         const ids = (chData.tasks || []).map((t) =>
           progress.makeId(this.worldId + '/' + ch.id + '/' + t)
         );
-        const solved = ids.filter((id) => solvedList.includes(id)).length;
-        this.chapterStats[ch.id] = { solved, total: ids.length, ids };
+        const solved = ids.filter((id) => progress.isSolved(id)).length;
+        const stars = progress.sumStars(ids);
+        const maxStars = progress.maxStars(ids);
 
-        console.log('[GroupMap]', ch.id, ':', solved + '/' + ids.length, '| ids:', ids);
+        this.chapterStats[ch.id] = { solved, total: ids.length, stars, maxStars, ids };
       } catch (e) {
-        console.warn('[GroupMap] error loading', ch.id, e);
-        this.chapterStats[ch.id] = { solved: 0, total: 0, ids: [] };
+        this.chapterStats[ch.id] = { solved: 0, total: 0, stars: 0, maxStars: 0, ids: [] };
       }
     }
   }
@@ -56,9 +50,9 @@ export class GroupMap {
   render() {
     if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
 
-    const totalSolved = Object.values(this.chapterStats).reduce((s, c) => s + c.solved, 0);
-    const totalTasks = Object.values(this.chapterStats).reduce((s, c) => s + c.total, 0);
-    const percent = totalTasks > 0 ? Math.round((totalSolved / totalTasks) * 100) : 0;
+    const totalStars = Object.values(this.chapterStats).reduce((s, c) => s + c.stars, 0);
+    const totalMax = Object.values(this.chapterStats).reduce((s, c) => s + c.maxStars, 0);
+    const percent = totalMax > 0 ? Math.round((totalStars / totalMax) * 100) : 0;
 
     return `
       <div class="quest-map">
@@ -69,15 +63,16 @@ export class GroupMap {
             <div class="quest-map-bar">
               <div class="quest-map-bar-fill" style="width: ${percent}%"></div>
             </div>
-            <div class="quest-map-count">${totalSolved} / ${totalTasks}</div>
+            <div class="quest-map-count">⭐ ${totalStars} / ${totalMax}</div>
           </div>
         </div>
 
         <div class="quest-list">
           ${this.data.chapters.map((ch) => {
-            const stats = this.chapterStats[ch.id] || { solved: 0, total: 0 };
+            const stats = this.chapterStats[ch.id] || { solved: 0, total: 0, stars: 0, maxStars: 0 };
             const unlocked = this._isChapterUnlocked(ch);
             const complete = stats.total > 0 && stats.solved >= stats.total;
+            const perfect = stats.maxStars > 0 && stats.stars >= stats.maxStars;
 
             let status = '🔒';
             let cls = 'locked';
@@ -85,12 +80,14 @@ export class GroupMap {
 
             if (!unlocked) {
               status = '🔒'; cls = 'locked'; sub = 'Сначала закрой предыдущую';
+            } else if (perfect) {
+              status = '🏆'; cls = 'solved perfect'; sub = `${stats.solved}/${stats.total} · ${stats.stars}/${stats.maxStars} ⭐`;
             } else if (complete) {
-              status = '✅'; cls = 'solved'; sub = `${stats.solved}/${stats.total} · всё готово`;
+              status = '✅'; cls = 'solved'; sub = `${stats.solved}/${stats.total} · ${stats.stars}/${stats.maxStars} ⭐`;
             } else if (stats.solved > 0) {
-              status = '▶️'; cls = 'active'; sub = `${stats.solved}/${stats.total}`;
+              status = '▶️'; cls = 'active'; sub = `${stats.solved}/${stats.total} · ${stats.stars}/${stats.maxStars} ⭐`;
             } else {
-              status = '▶️'; cls = 'active'; sub = `${stats.total} квестов`;
+              status = '▶️'; cls = 'active'; sub = `${stats.total} квестов · 0/${stats.maxStars} ⭐`;
             }
 
             return `
@@ -100,7 +97,6 @@ export class GroupMap {
                   <div class="quest-item-title">${ch.icon || '📁'} ${ch.title}</div>
                   <div class="quest-item-sub">${sub}</div>
                 </div>
-                ${complete ? `<div class="quest-item-stars">⭐</div>` : ''}
               </div>
             `;
           }).join('')}
