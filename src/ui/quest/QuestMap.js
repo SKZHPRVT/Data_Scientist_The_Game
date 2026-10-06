@@ -2,7 +2,7 @@ import { progress } from '../../core/progress.js';
 
 export class QuestMap {
   constructor(chapterId, { onOpenTask } = {}) {
-    this.chapterId = chapterId;
+    this.chapterId = chapterId; // "junior/basics"
     this.onOpenTask = onOpenTask;
     this.data = null;
   }
@@ -10,7 +10,7 @@ export class QuestMap {
   async load() {
     const url = import.meta.env.BASE_URL + 'tasks/' + this.chapterId + '/index.json';
     const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' для ' + url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     this.data = await res.json();
   }
 
@@ -18,7 +18,8 @@ export class QuestMap {
     if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
 
     const tasks = this.data.tasks || [];
-    const taskIds = tasks.map((t) => t.replace('.json', ''));
+    // Полный id: junior/basics/task1
+    const taskIds = tasks.map((t) => this.chapterId + '/' + t.replace('.json', ''));
     const solvedCount = taskIds.filter((id) => progress.isSolved(id)).length;
     const total = taskIds.length || 1;
     const percent = Math.round((solvedCount / total) * 100);
@@ -38,7 +39,7 @@ export class QuestMap {
 
         <div class="quest-list">
           ${tasks.map((fileName, i) => {
-            const taskId = fileName.replace('.json', '');
+            const taskId = this.chapterId + '/' + fileName.replace('.json', '');
             const unlocked = progress.isUnlocked(taskId, taskIds);
             const solved = progress.isSolved(taskId);
             const stars = progress.getStars(taskId);

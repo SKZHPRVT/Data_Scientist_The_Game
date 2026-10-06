@@ -2,7 +2,7 @@ import { progress } from '../../core/progress.js';
 
 export class GroupMap {
   constructor(worldId, { onOpenChapter } = {}) {
-    this.worldId = worldId;
+    this.worldId = worldId; // "junior"
     this.onOpenChapter = onOpenChapter;
     this.data = null;
     this.chapterStats = {};
@@ -11,7 +11,7 @@ export class GroupMap {
   async load() {
     const url = import.meta.env.BASE_URL + 'tasks/' + this.worldId + '/index.json';
     const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' для ' + url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     this.data = await res.json();
 
     for (const ch of this.data.chapters) {
@@ -20,7 +20,8 @@ export class GroupMap {
         const chRes = await fetch(chUrl);
         if (!chRes.ok) { this.chapterStats[ch.id] = { solved: 0, total: 0, ids: [] }; continue; }
         const chData = await chRes.json();
-        const ids = (chData.tasks || []).map((t) => t.replace('.json', ''));
+        // Полный id: junior/basics/task1
+        const ids = (chData.tasks || []).map((t) => this.worldId + '/' + ch.id + '/' + t.replace('.json', ''));
         const solved = ids.filter((id) => progress.isSolved(id)).length;
         this.chapterStats[ch.id] = { solved, total: ids.length, ids };
       } catch (e) {
@@ -30,7 +31,11 @@ export class GroupMap {
   }
 
   _isChapterUnlocked(ch) {
-    if (!ch.unlockAfter) return true;
+    if (!ch.unlockAfter) {
+      // Если это не первая папка, но без unlockAfter — значит явно открыта (например basics)
+      // Но side_quests мы укажем unlockAfter: bosses
+      return true;
+    }
     const prev = this.chapterStats[ch.unlockAfter];
     if (!prev) return false;
     return prev.total > 0 && prev.solved >= prev.total;

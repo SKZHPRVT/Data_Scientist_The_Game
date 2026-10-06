@@ -12,9 +12,10 @@ export class TaskView {
     this.shuffledOptions = this._shuffleOptions(task.options || []);
   }
 
+  // Полный fileId: junior/basics/task1
   _getFileId() {
     if (this.task._path) {
-      return this.task._path.split('/').pop().replace('.json', '');
+      return this.task._path.replace(/^\//, '').replace('.json', '');
     }
     return this.task.id;
   }

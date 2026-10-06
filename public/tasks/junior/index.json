@@ -10,7 +10,7 @@
     { "id": "merging", "title": "Соединение таблиц", "icon": "🔗", "description": "merge и join", "unlockAfter": "grouping" },
     { "id": "datetime", "title": "Даты и время", "icon": "📅", "description": "Работа с датами", "unlockAfter": "merging" },
     { "id": "strings", "title": "Тексты", "icon": "📝", "description": "Строковые методы", "unlockAfter": "datetime" },
-    { "id": "side_quests", "title": "Побочные квесты", "icon": "🎲", "description": "Необязательно, но интересно", "unlockAfter": null, "optional": true },
-    { "id": "bosses", "title": "Боссы", "icon": "👹", "description": "Большие задачи на всё сразу", "unlockAfter": "strings" }
+    { "id": "bosses", "title": "Боссы", "icon": "👹", "description": "Большие задачи на всё сразу", "unlockAfter": "strings" },
+    { "id": "side_quests", "title": "Побочные квесты", "icon": "🎲", "description": "Открываются после боссов", "unlockAfter": "bosses" }
   ]
 }
