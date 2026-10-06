@@ -67,6 +67,8 @@ export class Desktop {
 
     window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
     window.addEventListener('open-task', (e) => this.openTaskByPath(e.detail));
+    window.addEventListener('open-csv', (e) => this.openCsvPreview(e.detail));
+    window.addEventListener('open-file-viewer', (e) => this.openFileViewer(e.detail));
     window.addEventListener('lang-change', () => this._rerender());
   }
 
@@ -99,10 +101,8 @@ export class Desktop {
     this.middleDone = isDevUnlockAll() ? true : await isMiddleComplete();
     this.seniorDone = isDevUnlockAll() ? true : await isSeniorComplete();
 
-    // Проверяем разблокировку обоев
     refreshWallpapers();
 
-    // Если все 4 мира пройдены — открываем matrix
     if (this.babyDone && this.juniorDone && this.middleDone && this.seniorDone) {
       markGameComplete();
     }
@@ -515,6 +515,9 @@ export class Desktop {
     });
   }
 
+  // ============================================
+  // EXPLORER (Файлы)
+  // ============================================
   openExplorer(path) {
     const explorer = new Explorer(path, {
       onOpenFile: (file) => this.openFile(file),
@@ -525,14 +528,93 @@ export class Desktop {
       content: explorer.render(),
       onMount: (body) => explorer.mount(body),
       width: 560,
-      height: 420,
+      height: 480,
     });
   }
 
   openFile(file) {
     if (file.endsWith('.py')) this.runGamePy();
-    else if (file.endsWith('.txt')) this.openReadme();
+    else if (file.endsWith('.txt')) this.openFileViewer(file);
     else if (file.endsWith('.json')) this.openTaskByPath(file);
+    else if (file.endsWith('.csv')) this.openCsvPreview(file);
+    else this.openFileViewer(file);
+  }
+
+  async openFileViewer(path) {
+    let content = '';
+    let error = null;
+    try {
+      content = window.__fs.readFile(path);
+    } catch (e) {
+      error = e.message;
+    }
+
+    const fileName = path.split('/').pop();
+    const lines = content.split('\n').length;
+    const chars = content.length;
+
+    this.windows.create({
+      id: 'file-viewer-' + fileName,
+      title: '📄 ' + fileName,
+      content: `
+        <div class="file-viewer">
+          <div class="file-viewer-meta">
+            ${fileName} · ${lines} строк · ${chars} символов
+          </div>
+          ${error ? `<div style="color: var(--error);">❌ ${error}</div>` : ''}
+          <div class="file-viewer-code">${this._escapeHtml(content)}</div>
+        </div>
+      `,
+      width: 540,
+      height: 500,
+    });
+  }
+
+  async openCsvPreview(path) {
+    let content = '';
+    try {
+      content = window.__fs.readFile(path);
+    } catch (e) {
+      content = '';
+    }
+
+    const fileName = path.split('/').pop();
+    const rows = content.trim().split('\n');
+    const headers = rows[0]?.split(',') || [];
+    const dataRows = rows.slice(1);
+
+    this.windows.create({
+      id: 'csv-' + fileName,
+      title: '📊 ' + fileName,
+      content: `
+        <div class="file-viewer">
+          <div class="file-viewer-meta">
+            ${fileName} · ${dataRows.length} строк · ${headers.length} колонок
+          </div>
+          <div class="csv-preview">
+            <table class="csv-table">
+              <thead>
+                <tr>${headers.map((h) => `<th>${this._escapeHtml(h.trim())}</th>`).join('')}</tr>
+              </thead>
+              <tbody>
+                ${dataRows.slice(0, 50).map((r) => `
+                  <tr>${r.split(',').map((c) => `<td>${this._escapeHtml(c.trim())}</td>`).join('')}</tr>
+                `).join('')}
+              </tbody>
+            </table>
+            ${dataRows.length > 50 ? `<div style="color: var(--fg-dim); padding: 8px; text-align: center;">... ещё ${dataRows.length - 50} строк</div>` : ''}
+          </div>
+        </div>
+      `,
+      width: 620,
+      height: 500,
+    });
+  }
+
+  _escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
   }
 
   async openTaskByPath(path) {
@@ -593,7 +675,6 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
-    // Идеальная папка — markPerfectChapter
     if (chapterComplete && chapterPerfect && worldId !== 'baby') {
       const chId = chapterId.split('/').pop();
       markPerfectChapter(chId);
@@ -679,7 +760,6 @@ export class Desktop {
           }
         }
 
-        // Проверяем все 4 мира
         const allDone = this.babyDone && this.juniorDone && this.middleDone && this.seniorDone;
         if (allDone) {
           markGameComplete();
@@ -714,9 +794,6 @@ export class Desktop {
             <p>🐍 Что такое pandas</p>
             <p style="margin-top: 12px; color: var(--warn); font-weight: 700;">
               🔓 Открыты обои «Лес»
-            </p>
-            <p style="color: var(--accent); font-weight: 700;">
-              Теперь ты готов к серьёзной игре.
             </p>
           </div>
           <div style="font-size: 40px; margin: 20px 0 4px;">🎯</div>
@@ -796,9 +873,14 @@ export class Desktop {
     ach.unlock('MASTER_SIGNAL');
     ach.unlock('DIVIDE_ET_IMPERA');
 
-    // Если все 4 мира пройдены — открываем матрицу
+    // Если все 4 мира пройдены — открываем и ставим matrix
     if (this.babyDone && this.juniorDone && this.middleDone && this.seniorDone) {
       markGameComplete();
+      // Автоматически применяем matrix как финальную награду
+      setTimeout(() => {
+        storage.set('wallpaper', 'matrix');
+        applyWallpaper('matrix');
+      }, 1500);
     }
 
     const finale = new SeniorFinale({
@@ -824,15 +906,7 @@ export class Desktop {
   }
 
   openReadme() {
-    let content = 'README.txt';
-    try { content = window.__fs.readFile('/README.txt'); } catch (e) {}
-    this.windows.create({
-      id: 'readme',
-      title: '📄 README.txt',
-      content: `<div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg); white-space: pre-wrap;">${content}</div>`,
-      width: 480,
-      height: 360,
-    });
+    this.openFileViewer('/README.txt');
   }
 
   runGamePy() {
@@ -876,8 +950,13 @@ export class Desktop {
       { type: 'info', text: '' },
       { type: 'ok', text: '🎨 ОБОИ' },
       { type: 'info', text: 'Обои открываются за прогресс.' },
-      { type: 'info', text: 'Пройди мир — откроется новый фон.' },
-      { type: 'info', text: 'Пройди всю игру — откроется Матрица.' },
+      { type: 'info', text: 'Пройдёшь JUNIOR — Неон.' },
+      { type: 'info', text: 'Пройдёшь MIDDLE — Закат.' },
+      { type: 'info', text: 'Пройдёшь SENIOR — Океан и Матрица.' },
+      { type: 'info', text: '' },
+      { type: 'ok', text: '📁 ФАЙЛЫ' },
+      { type: 'info', text: 'Иконка Файлы показывает все задачи.' },
+      { type: 'info', text: 'Можно посмотреть README и датасеты.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
       { type: 'info', text: 'В каждой папке спрятан чит-код.' },
@@ -887,7 +966,8 @@ export class Desktop {
       { type: 'info', text: 'Иконка GALTON — визуализация случая.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '⌨️ ТЕРМИНАЛ' },
-      { type: 'info', text: 'Хочешь писать код — зайди в Терминал.' },
+      { type: 'info', text: 'Команды: ls, cd, cat, python, help.' },
+      { type: 'info', text: 'Попробуй: whoami, matrix, galton, stats.' },
       { type: 'info', text: '' },
       { type: 'warn', text: '─── ЧТО ДАЛЬШЕ ───' },
       { type: 'info', text: '' },

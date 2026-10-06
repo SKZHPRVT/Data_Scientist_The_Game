@@ -1,5 +1,6 @@
 import { evaluate } from '../../core/interpreter.js';
 import { COMMANDS } from '../../core/commands.js';
+import { progress, rewards } from '../../core/progress.js';
 
 export class Terminal {
   constructor() {
@@ -7,9 +8,8 @@ export class Terminal {
     this.historyIdx = -1;
     this.el = null;
     this._keyboardUnsub = null;
-    this._resizeObserver = null;
-    this._wasAtBottom = true;
     this._originalHeight = null;
+    this._wasAtBottom = true;
   }
 
   render() {
@@ -18,8 +18,9 @@ export class Terminal {
 
   mount(body) {
     this.el = body.querySelector('#terminal-body');
-    this._print('Data Scientist | The Game · v0.1.0');
+    this._print('Data Scientist | The Game · Терминал v1.0');
     this._print('Введи help для списка команд.', 'terminal-success');
+    this._print('');
     this._prompt();
 
     this.el.addEventListener('click', () => {
@@ -31,7 +32,6 @@ export class Terminal {
       this._wasAtBottom = dist < 30;
     });
 
-    // Слушаем клавиатуру
     if (window.__keyboard) {
       this._keyboardUnsub = window.__keyboard.onKeyboardChange((isOpen, offset) => {
         document.body.classList.toggle('keyboard-open', isOpen);
@@ -40,49 +40,25 @@ export class Terminal {
         if (!win) return;
 
         if (isOpen) {
-          // Сохраняем оригинальную высоту ОДИН раз
           if (this._originalHeight === null) {
             this._originalHeight = win.getBoundingClientRect().height;
           }
-
-          // Уменьшаем окно — низ прижимается к клавиатуре
           const rect = win.getBoundingClientRect();
           const vh = window.innerHeight;
           const taskbarH = 44;
           const newHeight = vh - offset - rect.top - taskbarH - 4;
           win.style.height = Math.max(200, newHeight) + 'px';
         } else {
-          // Восстанавливаем оригинальную высоту
           if (this._originalHeight !== null) {
             win.style.height = this._originalHeight + 'px';
             this._originalHeight = null;
           }
         }
 
-        // Прокрутка
         setTimeout(() => {
           if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
         }, 50);
-        setTimeout(() => {
-          if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
-        }, 200);
       });
-    }
-
-    if (window.visualViewport) {
-      this._resizeObserver = () => {
-        if (!this.el) return;
-        const dist = this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight;
-        if (dist < 30) this.el.scrollTop = this.el.scrollHeight;
-      };
-      window.visualViewport.addEventListener('resize', this._resizeObserver);
-    }
-  }
-
-  destroy() {
-    if (this._keyboardUnsub) this._keyboardUnsub();
-    if (this._resizeObserver && window.visualViewport) {
-      window.visualViewport.removeEventListener('resize', this._resizeObserver);
     }
   }
 
@@ -108,15 +84,6 @@ export class Terminal {
     line.appendChild(input);
     this.el.appendChild(line);
     input.focus();
-
-    input.addEventListener('focus', () => {
-      setTimeout(() => {
-        if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
-      }, 300);
-      setTimeout(() => {
-        if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
-      }, 500);
-    });
 
     input.addEventListener('keydown', (e) => {
       if (window.__audio) {
@@ -156,61 +123,232 @@ export class Terminal {
   }
 
   _execute(cmd) {
+    const parts = cmd.split(/\s+/);
+    const name = parts[0];
+    const args = parts.slice(1);
+
     try {
-      if (cmd === 'help') {
-        this._print('Доступные команды:', 'terminal-success');
-        this._print('  ls, cd <path>, cat <file>, pwd');
-        this._print('  python <file> — запустить питон-скрипт');
-        this._print('  clear — очистить терминал');
+      // === HELP ===
+      if (name === 'help') {
+        this._print('═══════════════════════════════', 'terminal-success');
+        this._print('  ФАЙЛОВАЯ СИСТЕМА', 'terminal-success');
+        this._print('═══════════════════════════════', 'terminal-success');
+        this._print('  ls              — что в текущей папке');
+        this._print('  ls <path>       — что в папке');
+        this._print('  cd <path>       — перейти');
+        this._print('  pwd             — где я');
+        this._print('  cat <file>      — прочитать файл');
+        this._print('  tree            — всё дерево');
         this._print('');
-        this._print('Методы pandas (junior):', 'terminal-success');
-        for (const [id, c] of Object.entries(COMMANDS)) {
-          if (c.world === 'junior' && c.signature) {
-            this._print(`  ${c.signature} — ${c.description}`);
-          }
-        }
+        this._print('═══════════════════════════════', 'terminal-success');
+        this._print('  ИГРА', 'terminal-success');
+        this._print('═══════════════════════════════', 'terminal-success');
+        this._print('  quests          — список квестов текущей папки');
+        this._print('  world           — карта миров');
+        this._print('  stats           — прогресс');
+        this._print('  achievements    — ачивки');
+        this._print('');
+        this._print('═══════════════════════════════', 'terminal-success');
+        this._print('  ПАСХАЛКИ', 'terminal-success');
+        this._print('═══════════════════════════════', 'terminal-success');
+        this._print('  whoami          — кто ты');
+        this._print('  matrix          — красная или синяя');
+        this._print('  galton          — о случайности');
+        this._print('  import this     — Zen of Python');
+        this._print('  sudo            — попробуй');
+        this._print('  42              — ответ');
+        this._print('');
+        this._print('Python: pd.read_csv(\'sales.csv\').head()');
         return;
       }
-      if (cmd === 'clear') {
-        this.el.innerHTML = '';
-        return;
-      }
-      if (cmd === 'ls') {
-        const items = window.__fs.ls();
-        if (items.length === 0) this._print('(пусто)');
-        items.forEach((i) => this._print(`  ${i.type === 'dir' ? '📁' : '📄'} ${i.name}`));
-        return;
-      }
-      if (cmd.startsWith('cd ')) {
-        window.__fs.cd(cmd.slice(3).trim());
-        this._print('→ ' + window.__fs.getCwd(), 'terminal-success');
-        return;
-      }
-      if (cmd.startsWith('cat ')) {
+
+      // === ФАЙЛОВАЯ СИСТЕМА ===
+      if (name === 'ls') {
+        const path = args[0] || window.__fs.getCwd();
         try {
-          const content = window.__fs.readFile(cmd.slice(4).trim());
-          this._print(content);
-        } catch (e) {
-          this._print('[ERROR] ' + e.message, 'terminal-error');
-        }
-        return;
-      }
-      if (cmd === 'pwd') {
-        this._print(window.__fs.getCwd());
-        return;
-      }
-      if (cmd.startsWith('python ')) {
-        const file = cmd.slice(7).trim();
-        try {
-          const content = window.__fs.readFile(file);
-          this._print('$ python ' + file, 'terminal-success');
-          this._print(content);
+          const items = window.__fs.ls(path);
+          if (items.length === 0) this._print('(пусто)');
+          items.forEach((i) => {
+            const icon = i.type === 'dir' ? '📁' : '📄';
+            let extra = '';
+            if (i.name.endsWith('.json')) {
+              const taskId = window.__fs.getCwd().replace(/^\//, '').replace(/\/$/, '') + '/' + i.name.replace('.json', '');
+              const stars = progress.getStars(taskId);
+              const solved = progress.isSolved(taskId);
+              if (solved) extra = ' ✅ ' + '⭐'.repeat(stars);
+            }
+            this._print(`  ${icon} ${i.name}${extra}`);
+          });
         } catch (e) {
           this._print('[ERROR] ' + e.message, 'terminal-error');
         }
         return;
       }
 
+      if (name === 'cd') {
+        const path = args[0] || '/';
+        try {
+          window.__fs.cd(path);
+          this._print('→ ' + window.__fs.getCwd(), 'terminal-success');
+        } catch (e) {
+          this._print('[ERROR] ' + e.message, 'terminal-error');
+        }
+        return;
+      }
+
+      if (name === 'pwd') {
+        this._print(window.__fs.getCwd());
+        return;
+      }
+
+      if (name === 'cat') {
+        if (!args[0]) { this._print('Использование: cat <file>', 'terminal-warn'); return; }
+        try {
+          const content = window.__fs.readFile(args[0]);
+          const lines = content.split('\n');
+          // Ограничиваем вывод
+          if (lines.length > 50) {
+            this._print(lines.slice(0, 50).join('\n'));
+            this._print(`... ещё ${lines.length - 50} строк (файл целиком — через Файлы)`, 'terminal-warn');
+          } else {
+            this._print(content);
+          }
+        } catch (e) {
+          this._print('[ERROR] ' + e.message, 'terminal-error');
+        }
+        return;
+      }
+
+      if (name === 'tree') {
+        this._printTree('/', 0);
+        return;
+      }
+
+      if (name === 'clear') {
+        this.el.innerHTML = '';
+        return;
+      }
+
+      // === ИГРОВЫЕ КОМАНДЫ ===
+      if (name === 'quests') {
+        const cwd = window.__fs.getCwd();
+        this._print(`Квесты в ${cwd}:`, 'terminal-success');
+        try {
+          const items = window.__fs.ls(cwd);
+          const tasks = items.filter((i) => i.name.endsWith('.json'));
+          if (tasks.length === 0) {
+            this._print('  (нет задач в этой папке)', 'terminal-warn');
+            this._print('  Попробуй: cd /junior/basics', 'terminal-warn');
+            return;
+          }
+          const cwdClean = cwd.replace(/^\//, '').replace(/\/$/, '');
+          tasks.forEach((t, i) => {
+            const id = cwdClean + '/' + t.name.replace('.json', '');
+            const solved = progress.isSolved(id);
+            const stars = progress.getStars(id);
+            const status = solved ? '✅ ' + '⭐'.repeat(stars) : '▶️ доступно';
+            this._print(`  ${i + 1}. ${t.name}  ${status}`);
+          });
+          this._print('');
+          this._print('Открой через Файлы или карту мира.', 'terminal-success');
+        } catch (e) {
+          this._print('[ERROR] ' + e.message, 'terminal-error');
+        }
+        return;
+      }
+
+      if (name === 'world') {
+        this._print('МИРЫ:', 'terminal-success');
+        this._print('  🍼 BABY SCIENTIST   — если ты новичок');
+        this._print('  🎯 JUNIOR            — основы pandas');
+        this._print('  🚀 MIDDLE            — пайплайны, модели');
+        this._print('  👑 SENIOR            — инциденты, архитектура');
+        return;
+      }
+
+      if (name === 'stats' || name === 'progress') {
+        const solved = progress.getSolved();
+        this._print('ТВОЙ ПРОГРЕСС:', 'terminal-success');
+        this._print(`  Решено задач: ${solved.length}`);
+        let totalStars = 0;
+        solved.forEach((id) => { totalStars += progress.getStars(id); });
+        this._print(`  Звёзд всего: ⭐ ${totalStars}`);
+        this._print(`  Максимум: ${solved.length * 4}`);
+        const percent = solved.length > 0 ? Math.round(totalStars / (solved.length * 4) * 100) : 0;
+        this._print(`  Качество: ${percent}%`);
+        return;
+      }
+
+      if (name === 'achievements' || name === 'ach') {
+        const ach = rewards.getUnlocked();
+        this._print(`Ачивок открыто: ${ach.length}`, 'terminal-success');
+        ach.forEach((id) => this._print(`  ✅ ${id}`));
+        return;
+      }
+
+      // === ПАСХАЛКИ ===
+      if (name === 'whoami') {
+        const solved = progress.getSolved().length;
+        if (solved === 0) this._print('Никто. Пока.', 'terminal-warn');
+        else if (solved < 10) this._print('Джун. Только начал.');
+        else if (solved < 30) this._print('Джун с опытом.');
+        else if (solved < 60) this._print('Почти мидл.');
+        else if (solved < 90) this._print('Мидл. Уже не джун.');
+        else this._print('Senior. Или очень упорный.', 'terminal-success');
+        return;
+      }
+
+      if (name === 'matrix') {
+        this._print('Wake up, Neo...', 'terminal-success');
+        setTimeout(() => this._print('The Matrix has you...', 'terminal-success'), 800);
+        setTimeout(() => this._print('Follow the white rabbit.', 'terminal-success'), 1600);
+        setTimeout(() => this._print('Knock, knock, Neo.', 'terminal-success'), 2400);
+        return;
+      }
+
+      if (name === 'galton') {
+        this._print('Случайность — не хаос. Это распределение.', 'terminal-success');
+        this._print('Открой иконку GALTON на рабочем столе.');
+        this._print('Увидишь нормальное распределение в действии.');
+        return;
+      }
+
+      if (name === 'sudo' || name === 'su') {
+        this._print('nice try 😏', 'terminal-warn');
+        this._print('Ты не в админах. Ты ещё джун.', 'terminal-warn');
+        return;
+      }
+
+      if (name === '42') {
+        this._print('Ответ на главный вопрос жизни, Вселенной и всего такого.', 'terminal-success');
+        return;
+      }
+
+      if (name === 'import' && args[0] === 'this') {
+        this._print('The Zen of Python, by Tim Peters', 'terminal-success');
+        this._print('');
+        this._print('Beautiful is better than ugly.');
+        this._print('Explicit is better than implicit.');
+        this._print('Simple is better than complex.');
+        this._print('Complex is better than complicated.');
+        this._print('Readability counts.');
+        this._print('...');
+        return;
+      }
+
+      if (name === 'import' && args[0] === 'antigravity') {
+        this._print('🪁 Открываю xkcd.com/353...', 'terminal-success');
+        this._print('(но у нас тут мини-апп, так что просто представь)', 'terminal-warn');
+        return;
+      }
+
+      if (name === 'pip') {
+        this._print('ERROR: Ты в игре, а не в питоне.', 'terminal-error');
+        this._print('Попробуй настоящий pandas-синтаксис: pd.read_csv(...)', 'terminal-warn');
+        return;
+      }
+
+      // === PYTHON-ВЫРАЖЕНИЕ ===
       const result = evaluate(cmd, { df: window.__df });
       if (result && result.toJSON) {
         const json = result.toJSON();
@@ -223,6 +361,20 @@ export class Terminal {
       }
     } catch (e) {
       this._print('[ERROR] ' + e.message, 'terminal-error');
+      this._print('Введи help для списка команд.', 'terminal-warn');
     }
+  }
+
+  _printTree(path, depth) {
+    const indent = '  '.repeat(depth);
+    const items = window.__fs.ls(path);
+    items.forEach((i) => {
+      const icon = i.type === 'dir' ? '📁' : '📄';
+      this._print(`${indent}${icon} ${i.name}`);
+      if (i.type === 'dir' && depth < 2) {
+        const newPath = path === '/' ? '/' + i.name : path + '/' + i.name;
+        this._printTree(newPath, depth + 1);
+      }
+    });
   }
 }

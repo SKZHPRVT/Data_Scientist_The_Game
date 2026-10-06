@@ -14,71 +14,107 @@ export class Explorer {
       items = [];
     }
 
+    // Сортируем: сначала папки, потом файлы
     items.sort((a, b) => {
       if (a.type !== b.type) return a.type === 'dir' ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
 
-    const taskFiles = items.filter((i) => i.type === 'file' && i.name.endsWith('.json'));
-    const taskIds = taskFiles.map((f) => f.name.replace('.json', ''));
+    // Если папка — считаем прогресс
+    let folderProgress = null;
+    if (this.path !== '/') {
+      folderProgress = this._getFolderProgress(items);
+    }
 
     const parent = this.path !== '/' ? `
-      <div class="start-item" data-action="up">⬆️ ..</div>
+      <div class="start-item explorer-item" data-action="up">
+        <span class="exp-icon">⬆️</span>
+        <span class="exp-name">..</span>
+        <span class="exp-info">наверх</span>
+      </div>
     ` : '';
 
     return `
-      <div style="font-family: var(--font-mono); font-size: 13px;">
-        <div style="color: var(--fg-dim); margin-bottom: 12px;">${this.path}</div>
-        ${parent}
-        ${items.length === 0 ? '<div style="color: var(--fg-dim);">(пусто)</div>' : ''}
-        ${items.map((i) => {
-          const isDir = i.type === 'dir';
-          const isJson = !isDir && i.name.endsWith('.json');
+      <div class="explorer-view">
+        <div class="explorer-path">
+          📁 ${this.path}
+          ${folderProgress ? `<span style="color: var(--fg-dim); margin-left: 8px;">· ${folderProgress}</span>` : ''}
+        </div>
 
-          if (isDir) {
-            return `
-              <div class="start-item" data-name="${i.name}" data-type="dir">
-                📁 ${i.name}
-              </div>
-            `;
-          }
+        <div class="explorer-list">
+          ${parent}
+          ${items.length === 0 ? '<div style="color: var(--fg-dim); padding: 8px;">(пусто)</div>' : ''}
+          ${items.map((i) => {
+            const isDir = i.type === 'dir';
+            const isJson = !isDir && i.name.endsWith('.json');
+            const isCsv = !isDir && i.name.endsWith('.csv');
+            const isTxt = !isDir && i.name.endsWith('.txt');
+            const isPy = !isDir && i.name.endsWith('.py');
 
-          if (isJson) {
-            const taskId = i.name.replace('.json', '');
-            const unlocked = progress.isUnlocked(taskId, taskIds);
-            const solved = progress.isSolved(taskId);
-            const stars = progress.getStars(taskId);
+            let icon = isDir ? '📁' : '📄';
+            if (isJson) icon = '🎯';
+            else if (isCsv) icon = '📊';
+            else if (isTxt) icon = '📝';
+            else if (isPy) icon = '🐍';
 
-            if (!unlocked) {
-              return `
-                <div class="start-item locked" data-name="${i.name}" data-type="locked">
-                  🔒 ${i.name} <span style="color: var(--fg-dim); font-size: 11px;">— сначала пройди предыдущую</span>
-                </div>
-              `;
+            let info = '';
+            let stars = 0;
+            if (isJson) {
+              const taskId = this._makeTaskId(i.name);
+              stars = progress.getStars(taskId);
+              const solved = progress.isSolved(taskId);
+              info = solved ? '✅ ' + '⭐'.repeat(stars) : 'не решено';
+            } else if (isCsv) {
+              info = 'данные';
+            } else if (isTxt) {
+              info = 'текст';
+            } else if (isPy) {
+              info = 'скрипт';
             }
 
-            const starsStr = solved ? ' ' + '⭐'.repeat(stars) : '';
-            const icon = solved ? '✅' : '📄';
-
             return `
-              <div class="start-item" data-name="${i.name}" data-type="json">
-                ${icon} ${i.name}${starsStr}
+              <div class="start-item explorer-item"
+                   data-name="${i.name}"
+                   data-type="${i.type}"
+                   data-ext="${i.name.split('.').pop()}">
+                <span class="exp-icon">${icon}</span>
+                <span class="exp-name">${i.name}</span>
+                <span class="exp-info">${info}</span>
               </div>
             `;
-          }
-
-          return `
-            <div class="start-item" data-name="${i.name}" data-type="file">
-              📄 ${i.name}
-            </div>
-          `;
-        }).join('')}
+          }).join('')}
+        </div>
       </div>
     `;
   }
 
+  _makeTaskId(fileName) {
+    // /junior/basics/task1.json → junior/basics/task1
+    let cleanPath = this.path.replace(/^\//, '');
+    const base = fileName.replace('.json', '');
+    return cleanPath + '/' + base;
+  }
+
+  _getFolderProgress(items) {
+    const jsonFiles = items.filter((i) => i.type === 'file' && i.name.endsWith('.json'));
+    if (jsonFiles.length === 0) return null;
+
+    let solved = 0;
+    let total = jsonFiles.length;
+    let stars = 0;
+    let maxStars = total * 4;
+
+    jsonFiles.forEach((f) => {
+      const id = this._makeTaskId(f.name);
+      if (progress.isSolved(id)) solved++;
+      stars += progress.getStars(id);
+    });
+
+    return `${solved}/${total} · ⭐ ${stars}/${maxStars}`;
+  }
+
   mount(body) {
-    body.querySelectorAll('.start-item').forEach((el) => {
+    body.querySelectorAll('.explorer-item').forEach((el) => {
       el.onclick = () => {
         if (el.dataset.action === 'up') {
           const parts = this.path.split('/').filter(Boolean);
@@ -88,49 +124,24 @@ export class Explorer {
           return;
         }
 
-        if (el.dataset.type === 'locked') {
-          if (window.__audio) window.__audio.error();
-          this._flashLocked(el);
-          return;
-        }
-
         const name = el.dataset.name;
         const type = el.dataset.type;
+        const ext = el.dataset.ext;
         const fullPath = (this.path === '/' ? '' : this.path) + '/' + name;
 
         if (type === 'dir') {
           window.dispatchEvent(new CustomEvent('open-explorer', { detail: fullPath }));
-        } else if (type === 'json') {
+        } else if (ext === 'json') {
           window.dispatchEvent(new CustomEvent('open-task', { detail: fullPath }));
+        } else if (ext === 'csv') {
+          window.dispatchEvent(new CustomEvent('open-csv', { detail: fullPath }));
+        } else if (ext === 'txt' || ext === 'py') {
+          window.dispatchEvent(new CustomEvent('open-file-viewer', { detail: fullPath }));
         } else {
-          this.handlers.onOpenFile?.(fullPath);
+          // Неизвестный тип — открываем как текст
+          window.dispatchEvent(new CustomEvent('open-file-viewer', { detail: fullPath }));
         }
       };
     });
-  }
-
-  _flashLocked(el) {
-    el.style.transition = 'background 0.2s';
-    el.style.background = 'rgba(255, 51, 51, 0.2)';
-    setTimeout(() => { el.style.background = ''; }, 300);
-
-    const tip = document.createElement('div');
-    tip.textContent = 'Сначала пройди предыдущую задачу';
-    tip.style.cssText = `
-      position: absolute;
-      background: var(--error);
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 4px;
-      font-size: 11px;
-      pointer-events: none;
-      z-index: 9999;
-      white-space: nowrap;
-    `;
-    const rect = el.getBoundingClientRect();
-    tip.style.left = rect.left + 'px';
-    tip.style.top = (rect.top - 30) + 'px';
-    document.body.appendChild(tip);
-    setTimeout(() => tip.remove(), 1500);
   }
 }
