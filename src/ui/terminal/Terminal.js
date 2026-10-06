@@ -8,8 +8,8 @@ export class Terminal {
     this.historyIdx = -1;
     this.el = null;
     this._keyboardUnsub = null;
-    this._originalHeight = null;
     this._wasAtBottom = true;
+    this._savedRect = null;  // { top, height } до открытия клавиатуры
   }
 
   render() {
@@ -40,26 +40,76 @@ export class Terminal {
         if (!win) return;
 
         if (isOpen) {
-          if (this._originalHeight === null) {
-            this._originalHeight = win.getBoundingClientRect().height;
+          // Сохраняем оригинальную позицию и высоту ТОЛЬКО один раз
+          if (!this._savedRect) {
+            const rect = win.getBoundingClientRect();
+            this._savedRect = {
+              top: rect.top,
+              height: rect.height,
+              left: win.style.left,
+              width: win.style.width,
+            };
           }
-          const rect = win.getBoundingClientRect();
+
+          // Растягиваем окно вверх — низ прижимается к клавиатуре
           const vh = window.innerHeight;
           const taskbarH = 44;
-          const newHeight = vh - offset - rect.top - taskbarH - 4;
-          win.style.height = Math.max(200, newHeight) + 'px';
+          const keyboardTop = vh - offset;
+
+          // Верхняя граница = 8px от safe-area или сохранённый top, что меньше
+          const safeTop = 52;
+          const newTop = Math.max(safeTop + 8, this._savedRect.top - 100);
+          const newHeight = keyboardTop - newTop - 4;
+
+          if (newHeight > 100) {
+            win.style.top = newTop + 'px';
+            win.style.height = newHeight + 'px';
+          }
         } else {
-          if (this._originalHeight !== null) {
-            win.style.height = this._originalHeight + 'px';
-            this._originalHeight = null;
+          // Восстанавливаем точь-в-точь
+          if (this._savedRect) {
+            win.style.top = this._savedRect.top + 'px';
+            win.style.height = this._savedRect.height + 'px';
+            if (this._savedRect.left) win.style.left = this._savedRect.left;
+            if (this._savedRect.width) win.style.width = this._savedRect.width;
+            this._savedRect = null;
           }
         }
 
-        setTimeout(() => {
-          if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
-        }, 50);
+        // Прокрутка вниз — несколько раз с задержкой
+        const scrollToBottom = () => {
+          if (this.el && this._wasAtBottom) {
+            this.el.scrollTop = this.el.scrollHeight;
+          }
+        };
+        setTimeout(scrollToBottom, 50);
+        setTimeout(scrollToBottom, 150);
+        setTimeout(scrollToBottom, 300);
+        setTimeout(scrollToBottom, 500);
       });
     }
+
+    // На случай если клавиатура закрыта через системную кнопку
+    if (window.visualViewport) {
+      const resizeHandler = () => {
+        const vh = window.visualViewport.height;
+        const fullH = window.innerHeight;
+        // Если viewport вернулся к полному — значит клавиатура закрыта
+        if (Math.abs(vh - fullH) < 50 && this._savedRect) {
+          const win = body.closest('.window');
+          if (win) {
+            win.style.top = this._savedRect.top + 'px';
+            win.style.height = this._savedRect.height + 'px';
+            this._savedRect = null;
+          }
+        }
+      };
+      window.visualViewport.addEventListener('resize', resizeHandler);
+    }
+  }
+
+  destroy() {
+    if (this._keyboardUnsub) this._keyboardUnsub();
   }
 
   _print(text, cls = '') {
@@ -84,6 +134,15 @@ export class Terminal {
     line.appendChild(input);
     this.el.appendChild(line);
     input.focus();
+
+    input.addEventListener('focus', () => {
+      setTimeout(() => {
+        if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
+      }, 300);
+      setTimeout(() => {
+        if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
+      }, 600);
+    });
 
     input.addEventListener('keydown', (e) => {
       if (window.__audio) {
@@ -172,7 +231,8 @@ export class Terminal {
             const icon = i.type === 'dir' ? '📁' : '📄';
             let extra = '';
             if (i.name.endsWith('.json')) {
-              const taskId = window.__fs.getCwd().replace(/^\//, '').replace(/\/$/, '') + '/' + i.name.replace('.json', '');
+              const cwd = window.__fs.getCwd().replace(/^\//, '').replace(/\/$/, '');
+              const taskId = cwd + '/' + i.name.replace('.json', '');
               const stars = progress.getStars(taskId);
               const solved = progress.isSolved(taskId);
               if (solved) extra = ' ✅ ' + '⭐'.repeat(stars);
@@ -206,7 +266,6 @@ export class Terminal {
         try {
           const content = window.__fs.readFile(args[0]);
           const lines = content.split('\n');
-          // Ограничиваем вывод
           if (lines.length > 50) {
             this._print(lines.slice(0, 50).join('\n'));
             this._print(`... ещё ${lines.length - 50} строк (файл целиком — через Файлы)`, 'terminal-warn');
