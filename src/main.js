@@ -8,8 +8,8 @@ import { audio } from './core/audio.js';
 import { progress } from './core/progress.js';
 
 window.__audio = audio;
+window.__progress = progress;
 
-// === АВТОСБРОС ЧЕРЕЗ ?reset=1 ===
 if (location.search.includes('reset=1')) {
   try {
     localStorage.clear();
@@ -18,10 +18,6 @@ if (location.search.includes('reset=1')) {
   } catch (e) {}
   history.replaceState({}, '', location.pathname);
 }
-
-// === ОТЛАДОЧНАЯ КОМАНДА ===
-window.__progress = progress;
-console.log('[main] progress helper available: window.__progress');
 
 window.addEventListener('error', (e) => {
   console.error('[GLOBAL ERROR]', e.error || e.message);
@@ -75,35 +71,68 @@ async function start() {
   forceResize();
 }
 
+// Загрузка: 2 строки, рандом цифр, без горизонтального лага
 function showLoading() {
   const el = document.createElement('div');
   el.className = 'loading';
-  el.innerHTML = '<div class="loading-digits" id="load-digits">00000000000000</div>';
+  el.innerHTML = `
+    <div class="loading-lines">
+      <div class="loading-line" id="load-line-1">0000</div>
+      <div class="loading-line" id="load-line-2">000000000</div>
+    </div>
+  `;
   document.body.appendChild(el);
 
-  const target = 'DATA SCIENTIST';
-  let display = '00000000000000';
+  const target1 = 'DATA';
+  const target2 = 'SCIENTIST';
+  const line1 = document.getElementById('load-line-1');
+  const line2 = document.getElementById('load-line-2');
+
+  let display1 = target1.split('').map(() => String(Math.floor(Math.random() * 10))).join('');
+  let display2 = target2.split('').map(() => String(Math.floor(Math.random() * 10))).join('');
 
   const interval = setInterval(() => {
     let done = true;
-    for (let i = 0; i < target.length; i++) {
-      if (display[i] !== target[i]) {
+
+    let newDisplay1 = '';
+    for (let i = 0; i < target1.length; i++) {
+      if (display1[i] === target1[i]) {
+        newDisplay1 += target1[i];
+      } else {
         done = false;
-        if (Math.random() < 0.2) {
-          display = display.slice(0, i) + target[i] + display.slice(i + 1);
+        if (Math.random() < 0.28) {
+          newDisplay1 += target1[i];
         } else {
-          const r = String(Math.floor(Math.random() * 10));
-          display = display.slice(0, i) + r + display.slice(i + 1);
+          newDisplay1 += String(Math.floor(Math.random() * 10));
         }
       }
     }
-    const digits = document.getElementById('load-digits');
-    if (digits) digits.textContent = display;
+
+    let newDisplay2 = '';
+    for (let i = 0; i < target2.length; i++) {
+      if (display2[i] === target2[i]) {
+        newDisplay2 += target2[i];
+      } else {
+        done = false;
+        if (Math.random() < 0.28) {
+          newDisplay2 += target2[i];
+        } else {
+          newDisplay2 += String(Math.floor(Math.random() * 10));
+        }
+      }
+    }
+
+    display1 = newDisplay1;
+    display2 = newDisplay2;
+
+    if (line1) line1.textContent = display1;
+    if (line2) line2.textContent = display2;
+
     if (done) {
       clearInterval(interval);
-      setTimeout(() => el.remove(), 600);
+      setTimeout(() => el.remove(), 500);
     }
-  }, 60);
+  }, 55);
 }
 
 start();

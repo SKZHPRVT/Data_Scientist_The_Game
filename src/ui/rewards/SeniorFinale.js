@@ -69,7 +69,7 @@ export class SeniorFinale {
             ${isEn ? 'Your path:' : 'Твой путь:'}
           </p>
           <div style="text-align: center; font-size: 14px; line-height: 2;">
-            🍼 BABY · ✅<br>
+            🍼 BABY SCIENTIST · ✅<br>
             🎯 JUNIOR · ✅<br>
             🚀 MIDDLE · ✅<br>
             👑 SENIOR · ✅

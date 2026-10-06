@@ -93,7 +93,6 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    // Финалы — показываем по одному разу
     if (!isDevUnlockAll()) {
       if (this.seniorDone && !rewards.isUnlocked('senior_finale_shown')) {
         setTimeout(() => this._showSeniorFinale(), 800);
@@ -104,7 +103,6 @@ export class Desktop {
       }
     }
 
-    // game.py — ВСЕГДА если ничего не решено
     setTimeout(() => {
       const solved = progress.getSolved();
       if (solved.length === 0) {
@@ -117,7 +115,7 @@ export class Desktop {
   renderIcons() {
     const icons = document.getElementById('icons');
     const items = [
-      { icon: '🍼', label: 'BABY', action: () => this.openGroupMap('baby') },
+      { icon: '🍼', label: 'BABY SCIENTIST', action: () => this.openGroupMap('baby') },
       { icon: '🎯', label: 'JUNIOR', action: () => this.openGroupMap('junior') },
       { icon: '🚀', label: 'MIDDLE', action: () => this.openWorldGate('middle') },
       { icon: '👑', label: 'SENIOR', action: () => this.openWorldGate('senior') },
@@ -253,9 +251,6 @@ export class Desktop {
     return [{ type: 'info', text: 'Доступ запрещён.' }];
   }
 
-  // ============================================
-  // ПОСИМВОЛЬНАЯ ПЕЧАТЬ (эффект печатной машинки)
-  // ============================================
   _runGateScript(el, lines, onDone) {
     if (!el) return;
     let lineIdx = 0;
@@ -285,17 +280,14 @@ export class Desktop {
       const fullText = prefix + line.text;
       let charIdx = 0;
 
-      // Для пустых строк — просто пропустить без задержки
       if (fullText.length === 0) {
         lineIdx++;
         setTimeout(printLine, 40);
         return;
       }
 
-      // Печать посимвольно
       const typeChar = () => {
         if (charIdx >= fullText.length) {
-          // Конец строки
           lineIdx++;
           let delay = 150;
           if (line.type === 'err') delay = 300;
@@ -309,13 +301,11 @@ export class Desktop {
         div.textContent = fullText.slice(0, charIdx + 1);
         el.scrollTop = el.scrollHeight;
 
-        // Звук при каждом символе
         if (window.__audio && charIdx % 2 === 0) {
           try { window.__audio.key('normal'); } catch (e) {}
         }
 
         charIdx++;
-        // Быстрая печать — 15-30мс на символ
         const charDelay = 15 + Math.random() * 15;
         setTimeout(typeChar, charDelay);
       };
@@ -337,7 +327,7 @@ export class Desktop {
     });
     const win = this.windows.create({
       id: oldId,
-      title: '🎯 ' + worldId.toUpperCase(),
+      title: '🎯 ' + (worldId === 'baby' ? 'BABY SCIENTIST' : worldId.toUpperCase()),
       content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
       width: 520,
       height: 660,
@@ -595,7 +585,7 @@ export class Desktop {
     this.babyDone = true;
     this.windows.create({
       id: 'baby-complete',
-      title: '🍼 Baby Scientist пройден',
+      title: '🍼 BABY SCIENTIST пройден',
       content: `
         <div style="font-family: var(--font-mono); color: var(--fg); text-align: center; padding: 20px; display: flex; flex-direction: column; align-items: center;">
           <div style="font-size: 64px; margin-bottom: 8px;">🍼</div>
@@ -621,7 +611,7 @@ export class Desktop {
             → Перейти в JUNIOR
           </button>
           <button class="task-btn" id="baby-stay" style="width: 100%; margin-top: 8px;">
-            Остаться в BABY
+            Остаться в BABY SCIENTIST
           </button>
         </div>
       `,
@@ -722,7 +712,7 @@ export class Desktop {
       { type: 'warn', text: '─── ЧТО ЭТО ЗА ИГРА ───' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Это симулятор карьеры Data Scientist.' },
-      { type: 'info', text: 'Четыре мира: BABY → JUNIOR → MIDDLE → SENIOR.' },
+      { type: 'info', text: 'Четыре мира: BABY SCIENTIST → JUNIOR → MIDDLE → SENIOR.' },
       { type: 'info', text: '' },
       { type: 'info', text: 'В каждом мире — папки с темами.' },
       { type: 'info', text: 'В каждой папке — квесты про pandas.' },
@@ -731,6 +721,8 @@ export class Desktop {
       { type: 'info', text: '' },
       { type: 'info', text: 'Если ты никогда не работал с данными —' },
       { type: 'info', text: 'начни с BABY SCIENTIST (🍼).' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Если уже знаешь pandas — сразу JUNIOR (🎯).' },
       { type: 'info', text: '' },
       { type: 'warn', text: '─── КАК ИГРАТЬ ───' },
       { type: 'info', text: '' },
@@ -776,7 +768,7 @@ export class Desktop {
       { type: 'info', text: '' },
       { type: 'ok', text: '─── НАЧНЁМ ───' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Открой карту BABY или JUNIOR.' },
+      { type: 'info', text: 'Открой карту BABY SCIENTIST или JUNIOR.' },
       { type: 'info', text: 'Первый квест в junior — прочитать CSV.' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Удачи. Она тебе понадобится.' },
@@ -795,7 +787,7 @@ export class Desktop {
           btn.className = 'terminal-line';
           btn.style.marginTop = '16px';
           btn.innerHTML = `
-            <button class="taskbar-btn active" id="start-baby" style="pointer-events:auto;">[ 🍼 BABY ]</button>
+            <button class="taskbar-btn active" id="start-baby" style="pointer-events:auto;">[ 🍼 BABY SCIENTIST ]</button>
             <button class="taskbar-btn" id="start-junior" style="pointer-events:auto; margin-left: 8px;">[ 🎯 JUNIOR ]</button>
           `;
           el.appendChild(btn);
