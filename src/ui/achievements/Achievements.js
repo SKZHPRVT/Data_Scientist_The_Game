@@ -1,4 +1,6 @@
 import { t } from '../../i18n/index.js';
+import { DEV_UNLOCK_ALL } from '../../core/dev.js';
+import { handleDevCommand } from '../../core/devCommands.js';
 
 const ACHIEVEMENTS = [
   // === JUNIOR ===
@@ -33,7 +35,7 @@ const ACHIEVEMENTS = [
   { id: 'RESEARCH', title: 'Исследователь', titleEn: 'Researcher', icon: '🔬', desc: 'Читал статьи, а не только туториалы.', descEn: 'Read papers, not just tutorials.', code: 'RESEARCH' },
   { id: 'MENTOR', title: 'Ментор', titleEn: 'Mentor', icon: '👥', desc: 'Объяснил джуну то, что сам недавно не понимал.', descEn: 'Explained to a junior what you just learned.', code: 'MENTOR' },
   { id: 'ARCHITECT', title: 'Архитектор', titleEn: 'Architect', icon: '🏗️', desc: 'Сначала схема — потом код.', descEn: 'Diagram first, code after.', code: 'ARCHITECT' },
-  { id: 'MASTER_SIGNAL', title: 'Магистр Сигнала', titleEn: 'Master of Signal', icon: '👑', desc: 'Ты разделил, выстроил, связал. Путь пройден целиком.', descEn: 'You divided, built, connected. The path is complete.', code: 'MASTER_SIGNAL' },
+  { id: 'MASTER_SIGNAL', title: 'Магистр Сигнала', titleEn: 'Master of Signal', icon: '👑', desc: 'Ты разделил, выстроил, связал. Путь пройден целиком.', descEn: 'You divided, built, connected.', code: 'MASTER_SIGNAL' },
 
   // === Секретная ===
   { id: 'ILLUMINATI', title: 'Тот, кто читает описания', titleEn: 'One who reads descriptions', icon: '👁', desc: 'Нашёл то, чего не должно было быть. Око видит тебя.', descEn: 'Found what should not be there. The Eye sees you.', code: 'ILLUMINATI', secret: true },
@@ -48,6 +50,7 @@ export class Achievements {
   constructor(options = {}) {
     this.unlocked = this._load();
     this.mode = options.mode || 'achievements';
+    this.onAction = options.onAction || null;
   }
 
   _load() {
@@ -88,7 +91,7 @@ export class Achievements {
         </p>
         ${isCheatMode ? `<p style="color: var(--fg-dim); font-size: 11px;">${t('cheats_hint')}</p>` : ''}
 
-        <div id="ach-list" style="margin-top: 12px; max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+        <div id="ach-list" style="margin-top: 12px; max-height: ${DEV_UNLOCK_ALL && isCheatMode ? '180px' : '340px'}; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
           ${visible.map((a) => {
             const unlocked = this.isUnlocked(a.id);
             const lang = localStorage.getItem('lang') === 'en' ? 'en' : 'ru';
@@ -110,11 +113,31 @@ export class Achievements {
         <div style="display: flex; gap: 8px; margin-top: 8px;">
           <input type="text" id="code-input" placeholder="${t('ach_code_placeholder')}"
                  style="flex: 1; background: transparent; border: 1px solid var(--fg-dim); color: var(--fg);
-                        padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; border-radius: 4px;
-                        text-transform: uppercase;">
+                        padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; border-radius: 4px;"
+                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
           <button class="task-btn" id="code-btn" style="flex: 0 0 auto; padding: 8px 16px;">${t('ach_code_ok')}</button>
         </div>
-        <div id="code-result" style="margin-top: 8px; font-size: 11px; min-height: 16px;"></div>
+        <div id="code-result" style="margin-top: 8px; font-size: 11px; min-height: 16px; white-space: pre-wrap; font-family: var(--font-mono);"></div>
+
+        ${DEV_UNLOCK_ALL && isCheatMode ? `
+          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--fg-dim);">
+            <p style="color: var(--warn); font-weight: 700; font-size: 12px; margin-bottom: 8px;">
+              ⚙️ DEV-КОМАНДЫ (только в dev-режиме)
+            </p>
+            <p style="font-size: 10px; color: var(--fg-dim); line-height: 1.7; font-family: var(--font-mono);">
+              sv_cheats 1     — открыть всё<br>
+              sv_cheats 0     — закрыть всё<br>
+              end             — финал SENIOR<br>
+              junior_end      — финал JUNIOR<br>
+              middle_end      — карта MIDDLE<br>
+              unlock W        — мир на 1⭐ (junior|middle|senior)<br>
+              complete W      — мир на 4⭐<br>
+              stars N         — всем N звёзд (1..4)<br>
+              reset           — сбросить всё<br>
+              help            — справка
+            </p>
+          </div>
+        ` : ''}
       </div>
     `;
   }
@@ -126,24 +149,65 @@ export class Achievements {
 
     if (!btn || !input) return;
 
-    btn.onclick = () => this._tryCode(input.value.trim(), result, body);
+    btn.onclick = () => this._tryCode(input.value, result, body);
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') btn.click();
     });
-    input.addEventListener('input', (e) => {
-      const pos = e.target.selectionStart;
-      e.target.value = e.target.value.toUpperCase();
-      e.target.setSelectionRange(pos, pos);
-    });
   }
 
-  _tryCode(code, resultEl, body) {
-    const clean = code.trim().toUpperCase();
-    if (!clean) {
+  async _tryCode(code, resultEl, body) {
+    const raw = code.trim();
+    const clean = raw.toUpperCase().replace(/\s+/g, ' ');
+
+    if (!raw) {
       resultEl.innerHTML = `<span style="color: var(--warn);">${t('ach_enter_code')}</span>`;
       return;
     }
 
+    // === СНАЧАЛА — ДЕВ-КОМАНДЫ (только если DEV) ===
+    if (DEV_UNLOCK_ALL) {
+      const devResult = await handleDevCommand(raw);
+      if (devResult && devResult.ok) {
+        resultEl.innerHTML = `<span style="color: var(--accent);">${devResult.message}</span>`;
+        if (window.__audio) window.__audio.success();
+
+        // Обработка action
+        if (devResult.action === 'reload') {
+          setTimeout(() => location.reload(), 800);
+        } else if (devResult.action === 'show_senior_finale') {
+          if (this.onAction) this.onAction('show_senior_finale');
+          setTimeout(() => {
+            const win = body.closest('.window');
+            if (win) win.remove();
+          }, 500);
+        } else if (devResult.action === 'show_junior_finale') {
+          if (this.onAction) this.onAction('show_junior_finale');
+          setTimeout(() => {
+            const win = body.closest('.window');
+            if (win) win.remove();
+          }, 500);
+        } else if (devResult.action === 'show_middle_map') {
+          if (this.onAction) this.onAction('show_middle_map');
+          setTimeout(() => {
+            const win = body.closest('.window');
+            if (win) win.remove();
+          }, 500);
+        }
+        return;
+      }
+      // Если это была похожая на дев-команду штука, но не сработала — проверим как ачивку
+      if (devResult && !devResult.ok && devResult.message !== 'DEV mode выключен') {
+        const firstWord = raw.trim().toLowerCase().split(/\s+/)[0];
+        const devCommandNames = ['sv_cheats', 'end', 'junior_end', 'middle_end', 'unlock', 'complete', 'stars', 'reset', 'help'];
+        if (devCommandNames.includes(firstWord)) {
+          resultEl.innerHTML = `<span style="color: var(--error);">${devResult.message}</span>`;
+          if (window.__audio) window.__audio.error();
+          return;
+        }
+      }
+    }
+
+    // === ЗАТЕМ — ИГРОВЫЕ АЧИВКИ ===
     const ach = ACHIEVEMENTS.find((a) => a.code === clean);
     if (!ach) {
       resultEl.innerHTML = `<span style="color: var(--error);">${t('ach_unknown')}</span>`;
