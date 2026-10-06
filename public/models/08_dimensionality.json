@@ -1,0 +1,66 @@
+{
+  "family": "Понижение размерности",
+  "icon": "🗜️",
+  "quests": [
+    {
+      "id": "pca",
+      "title": "Главные компоненты",
+      "story": "50 признаков, нужно сжать до 5 для визуализации. Линейная структура.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "pca", "text": "PCA", "correct": true, "why": "Линейное сжатие — быстро и интерпретируемо." },
+        { "id": "tsne", "text": "t-SNE", "correct": false, "why": "t-SNE для визуализации, не для сжатия под модель." },
+        { "id": "umap", "text": "UMAP", "correct": false, "why": "Тоже для визуализации." },
+        { "id": "ae", "text": "Autoencoder", "correct": false, "why": "Оверкилл для линейной структуры." }
+      ],
+      "unlocks": "PCA",
+      "xp": 15,
+      "explanation": "PCA ищет ортогональные оси максимальной дисперсии."
+    },
+    {
+      "id": "kernel_pca",
+      "title": "Нелинейное сжатие",
+      "story": "Данные имеют нелинейную структуру — PCA не справляется.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "kpca", "text": "Kernel PCA", "correct": true, "why": "Ядро проецирует в нелинейное пространство → линейный PCA там." },
+        { "id": "pca", "text": "PCA", "correct": false, "why": "Линейный — не справится." },
+        { "id": "tsne", "text": "t-SNE", "correct": false, "why": "Для визуализации, не для трансформации." },
+        { "id": "umap", "text": "UMAP", "correct": false, "why": "Для визуализации." }
+      ],
+      "unlocks": "Kernel PCA",
+      "xp": 25,
+      "explanation": "Kernel PCA = PCA в пространстве ядра. Ловит нелинейные структуры."
+    },
+    {
+      "id": "tsne",
+      "title": "Визуализация",
+      "story": "1000 точек в 100-мерном пространстве. Нужно увидеть кластеры на 2D.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "tsne", "text": "t-SNE", "correct": true, "why": "Стандарт для визуализации высокоразмерных данных." },
+        { "id": "pca", "text": "PCA", "correct": false, "why": "Линейный — потеряет структуру." },
+        { "id": "kpca", "text": "Kernel PCA", "correct": false, "why": "Тоже, но t-SNE лучше для визуализации." },
+        { "id": "umap", "text": "UMAP", "correct": false, "why": "UMAP тоже, но t-SNE классика." }
+      ],
+      "unlocks": "t-SNE",
+      "xp": 25,
+      "explanation": "t-SNE сохраняет локальные соседства. Хорошо для визуализации кластеров."
+    },
+    {
+      "id": "umap",
+      "title": "Современный подход",
+      "story": "100000 точек. t-SNE работает 2 часа. Нужно быстрее и с сохранением глобальной структуры.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "umap", "text": "UMAP", "correct": true, "why": "Быстрее t-SNE, сохраняет и локальную, и глобальную структуру." },
+        { "id": "tsne", "text": "t-SNE", "correct": false, "why": "Медленно на больших данных." },
+        { "id": "pca", "text": "PCA", "correct": false, "why": "Линейный — потеряет структуру." },
+        { "id": "kpca", "text": "Kernel PCA", "correct": false, "why": "Не масштабируется." }
+      ],
+      "unlocks": "UMAP",
+      "xp": 30,
+      "explanation": "UMAP = Uniform Manifold Approximation and Projection. Быстро, сохраняет структуру."
+    }
+  ]
+}

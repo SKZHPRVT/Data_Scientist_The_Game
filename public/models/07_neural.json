@@ -1,0 +1,51 @@
+{
+  "family": "Нейросетевые модели",
+  "icon": "🧠",
+  "quests": [
+    {
+      "id": "mlp",
+      "title": "Перцептрон",
+      "story": "Сложная нелинейная задача. Деревья не справляются.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "mlp", "text": "Multi-Layer Perceptron", "correct": true, "why": "Универсальный аппроксиматор — любые нелинейности." },
+        { "id": "svm", "text": "SVM (RBF)", "correct": false, "why": "SVM тоже, но MLP масштабируется лучше." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Может не справиться с задачей." },
+        { "id": "xgb", "text": "XGBoost", "correct": false, "why": "На табличке хорош, на сложных данных — нет." }
+      ],
+      "unlocks": "Multi-Layer Perceptron",
+      "xp": 25,
+      "explanation": "MLP = слои нейронов с нелинейными активациями. Теорема аппроксимации — универсален."
+    },
+    {
+      "id": "rbf_nn",
+      "title": "Радиальные базисы",
+      "story": "Задача с локальной структурой. MLP учится долго.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "rbf", "text": "RBF Neural Network", "correct": true, "why": "RBF-слой учится быстро, хорошо для локальных функций." },
+        { "id": "mlp", "text": "MLP", "correct": false, "why": "Работает, но дольше." },
+        { "id": "svm", "text": "SVM (RBF)", "correct": false, "why": "Тоже, но RBF-NN — нейросетевой аналог." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Не для локальных функций." }
+      ],
+      "unlocks": "RBF Neural Network",
+      "xp": 25,
+      "explanation": "RBF-сеть = гауссовы функции вокруг центров + линейный выход. Интерполяция."
+    },
+    {
+      "id": "autoencoder",
+      "title": "Сжатие без учителя",
+      "story": "Нужно сжать данные 1000 → 10 признаков без потери смысла.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "ae", "text": "Autoencoder", "correct": true, "why": "Нелинейное сжатие через bottleneck-слой." },
+        { "id": "pca", "text": "PCA", "correct": false, "why": "PCA — только линейное сжатие." },
+        { "id": "tsne", "text": "t-SNE", "correct": false, "why": "t-SNE для визуализации, не для сжатия." },
+        { "id": "umap", "text": "UMAP", "correct": false, "why": "Тоже для визуализации." }
+      ],
+      "unlocks": "Autoencoder",
+      "xp": 30,
+      "explanation": "Autoencoder = encoder + decoder. Обучается восстанавливать вход. Bottleneck = сжатие."
+    }
+  ]
+}

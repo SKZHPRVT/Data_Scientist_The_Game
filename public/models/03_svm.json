@@ -1,0 +1,51 @@
+{
+  "family": "Методы опорных векторов",
+  "icon": "⚔️",
+  "quests": [
+    {
+      "id": "svm_linear",
+      "title": "Линейный SVM",
+      "story": "Два класса, линейно разделимы, нужна максимальная маржа.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "svml", "text": "Linear SVM", "correct": true, "why": "Максимальная маржа между классами — устойчивее логистической." },
+        { "id": "logistic", "text": "LogisticRegression", "correct": false, "why": "Тоже работает, но SVM даёт больше маржи." },
+        { "id": "knn", "text": "KNN", "correct": false, "why": "KNN не строит границу явно." },
+        { "id": "tree", "text": "DecisionTree", "correct": false, "why": "Дерево даёт ступенчатую границу — не оптимально." }
+      ],
+      "unlocks": "Linear SVM",
+      "xp": 15,
+      "explanation": "Linear SVM максимизирует зазор между классами. Работает и на малых данных."
+    },
+    {
+      "id": "svm_rbf",
+      "title": "Нелинейная граница",
+      "story": "Данные не разделимы линейно. Классы в форме колец.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "rbf", "text": "SVM с RBF-ядром", "correct": true, "why": "RBF проецирует данные в бесконечномерное пространство → нелинейная граница." },
+        { "id": "svml", "text": "Linear SVM", "correct": false, "why": "Линейный не справится с кольцами." },
+        { "id": "logistic", "text": "LogisticRegression", "correct": false, "why": "Только линейная граница." },
+        { "id": "pca", "text": "PCA + Linear SVM", "correct": false, "why": "PCA — линейное преобразование, не поможет." }
+      ],
+      "unlocks": "SVM (RBF)",
+      "xp": 20,
+      "explanation": "RBF-ядро = K(x,y) = exp(-γ·||x-y||²). Эффективно бесконечномерное пространство признаков."
+    },
+    {
+      "id": "svm_poly",
+      "title": "Полиномиальная граница",
+      "story": "Данные имеют полиномиальную структуру. RBF слишком гибкий.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "poly", "text": "SVM с полиномиальным ядром", "correct": true, "why": "Явная полиномиальная граница — интерпретируемее RBF." },
+        { "id": "rbf", "text": "SVM (RBF)", "correct": false, "why": "RBF работает, но полиномиальное ядро точнее, если структура полиномиальная." },
+        { "id": "svml", "text": "Linear SVM", "correct": false, "why": "Только линейная граница." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Слишком сложно для полиномиальной задачи." }
+      ],
+      "unlocks": "SVM (Polynomial)",
+      "xp": 20,
+      "explanation": "Полиномиальное ядро = (γ·⟨x,y⟩ + r)^d. Степень d задаёт порядок границы."
+    }
+  ]
+}

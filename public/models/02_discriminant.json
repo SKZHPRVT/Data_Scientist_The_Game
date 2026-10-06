@@ -1,0 +1,66 @@
+{
+  "family": "Дискриминанты и байесовские",
+  "icon": "🎲",
+  "quests": [
+    {
+      "id": "lda",
+      "title": "Линейный дискриминант",
+      "story": "Два класса, признаки коррелируют, выборки маленькие. Нужна линейная граница.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "lda", "text": "LDA", "correct": true, "why": "LDA ищет линейную проекцию, максимизирующую разделение классов." },
+        { "id": "logistic", "text": "LogisticRegression", "correct": false, "why": "Тоже вариант, но LDA лучше при малых выборках." },
+        { "id": "svm", "text": "SVM", "correct": false, "why": "SVM тоже, но LDA — проще и стабильнее на малых данных." },
+        { "id": "knn", "text": "KNN", "correct": false, "why": "KNN плохо на малых данных и высоких размерностях." }
+      ],
+      "unlocks": "LDA",
+      "xp": 15,
+      "explanation": "LDA предполагает нормальность и одинаковую ковариацию классов → линейная граница."
+    },
+    {
+      "id": "qda",
+      "title": "Квадратичный дискриминант",
+      "story": "Классы имеют разную ковариацию. Линейная граница не подходит.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "qda", "text": "QDA", "correct": true, "why": "Разрешает разную ковариацию → квадратичная граница." },
+        { "id": "lda", "text": "LDA", "correct": false, "why": "LDA предполагает одинаковую ковариацию — не подходит." },
+        { "id": "logistic", "text": "LogisticRegression", "correct": false, "why": "Только линейная граница." },
+        { "id": "nb", "text": "Naive Bayes", "correct": false, "why": "Предполагает независимость признаков." }
+      ],
+      "unlocks": "QDA",
+      "xp": 20,
+      "explanation": "QDA отбрасывает предположение об одинаковой ковариации → квадратичная граница."
+    },
+    {
+      "id": "gaussian_nb",
+      "title": "Наивный байес",
+      "story": "Мало данных, но признаки непрерывны и предположительно независимы.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "gnb", "text": "Gaussian Naive Bayes", "correct": true, "why": "Предполагает нормальность каждого признака → работает на малых данных." },
+        { "id": "logistic", "text": "LogisticRegression", "correct": false, "why": "Тоже, но NB быстрее и лучше на малых выборках." },
+        { "id": "svm", "text": "SVM", "correct": false, "why": "SVM требует больше данных." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Лес переобучится." }
+      ],
+      "unlocks": "Gaussian Naive Bayes",
+      "xp": 15,
+      "explanation": "Gaussian NB = теорема Байеса + предположение нормальности каждого признака."
+    },
+    {
+      "id": "multinomial_nb",
+      "title": "Текстовый классификатор",
+      "story": "10000 писем. Нужно отличить спам от не-спама. Признаки — частоты слов.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "mnb", "text": "Multinomial Naive Bayes", "correct": true, "why": "Стандарт для текстов: работает с частотами слов." },
+        { "id": "gnb", "text": "Gaussian NB", "correct": false, "why": "Gaussian — для непрерывных признаков, не для частот." },
+        { "id": "logistic", "text": "LogisticRegression", "correct": false, "why": "Тоже работает, но NB быстрее и исторически лучше на тексте." },
+        { "id": "svm", "text": "SVM", "correct": false, "why": "SVM хорош, но требует больше настройки." }
+      ],
+      "unlocks": "Multinomial Naive Bayes",
+      "xp": 20,
+      "explanation": "Multinomial NB работает с подсчётами слов. Классика для спам-фильтров."
+    }
+  ]
+}

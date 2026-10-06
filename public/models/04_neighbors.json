@@ -1,0 +1,36 @@
+{
+  "family": "Методы на расстояниях",
+  "icon": "📍",
+  "quests": [
+    {
+      "id": "knn",
+      "title": "Ближайшие соседи",
+      "story": "Задача классификации. Данные чистые, признаков мало, нужно простое решение.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "knn", "text": "K-Neighbors", "correct": true, "why": "Простой, не требует обучения, работает из коробки." },
+        { "id": "svm", "text": "SVM", "correct": false, "why": "SVM тоже, но KNN — проще и быстрее на малых данных." },
+        { "id": "logistic", "text": "LogisticRegression", "correct": false, "why": "Нужна линейная граница — KNN гибче." },
+        { "id": "tree", "text": "DecisionTree", "correct": false, "why": "Дерево переобучится на малых данных." }
+      ],
+      "unlocks": "K-Neighbors",
+      "xp": 15,
+      "explanation": "KNN ищет K ближайших точек и голосует. Ленивый алгоритм — обучение = 0."
+    },
+    {
+      "id": "radius_neighbors",
+      "title": "Соседи по радиусу",
+      "story": "Плотность точек разная. KNN берёт фиксированное K — иногда это плохо.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "radius", "text": "Radius Neighbors", "correct": true, "why": "Берёт всех соседей в радиусе r — адаптируется к плотности." },
+        { "id": "knn", "text": "KNN", "correct": false, "why": "Фиксированное K плохо при разной плотности." },
+        { "id": "dbscan", "text": "DBSCAN", "correct": false, "why": "DBSCAN — кластеризация, не классификация." },
+        { "id": "svm", "text": "SVM", "correct": false, "why": "SVM не про плотность." }
+      ],
+      "unlocks": "Radius Neighbors",
+      "xp": 20,
+      "explanation": "Radius Neighbors использует фиксированный радиус вместо фиксированного K."
+    }
+  ]
+}

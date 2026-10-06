@@ -1,0 +1,126 @@
+{
+  "family": "Деревья и ансамбли",
+  "icon": "🌳",
+  "quests": [
+    {
+      "id": "decision_tree",
+      "title": "Первое дерево",
+      "story": "Нужна интерпретируемая модель для кредитного скоринга. Регуляторы требуют объяснений.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "tree", "text": "DecisionTree", "correct": true, "why": "Дерево можно нарисовать и объяснить регулятору." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Лес — чёрный ящик. Не подходит для регуляторов." },
+        { "id": "xgb", "text": "XGBoost", "correct": false, "why": "Тоже сложно объяснить." },
+        { "id": "logistic", "text": "LogisticRegression", "correct": false, "why": "Линейная — не поймает нелинейность." }
+      ],
+      "unlocks": "Decision Tree",
+      "xp": 15,
+      "explanation": "DecisionTree рекурсивно делит пространство по порогам признаков. Прозрачная логика."
+    },
+    {
+      "id": "random_forest",
+      "title": "Лес",
+      "story": "Одно дерево переобучается. Нужна стабильность.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "rf", "text": "RandomForest", "correct": true, "why": "Много деревьев на бутстрапах — усреднение снижает переобучение." },
+        { "id": "tree", "text": "DecisionTree", "correct": false, "why": "Одно дерево переобучается." },
+        { "id": "logistic", "text": "LogisticRegression", "correct": false, "why": "Слишком просто." },
+        { "id": "knn", "text": "KNN", "correct": false, "why": "KNN тоже, но лес устойчивее." }
+      ],
+      "unlocks": "Random Forest",
+      "xp": 20,
+      "explanation": "RandomForest = бэггинг + случайные подмножества признаков на каждом сплите."
+    },
+    {
+      "id": "extra_trees",
+      "title": "Ещё более случайный",
+      "story": "RandomForest хорош, но обучается долго. Нужно быстрее.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "extra", "text": "ExtraTrees", "correct": true, "why": "Случайные пороги вместо оптимальных → быстрее, часто точнее." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Дольше обучается." },
+        { "id": "xgb", "text": "XGBoost", "correct": false, "why": "Бустинг — другая парадигма." },
+        { "id": "tree", "text": "DecisionTree", "correct": false, "why": "Одно дерево — плохо." }
+      ],
+      "unlocks": "Extra Trees",
+      "xp": 20,
+      "explanation": "ExtraTrees выбирает пороги случайно, а не оптимально → больше разнообразия."
+    },
+    {
+      "id": "adaboost",
+      "title": "Первый бустинг",
+      "story": "Слабые классификаторы. Нужно собрать из них сильный.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "ada", "text": "AdaBoost", "correct": true, "why": "Классический бустинг: каждый следующий фокусируется на ошибках предыдущего." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Бэггинг, не бустинг." },
+        { "id": "tree", "text": "DecisionTree", "correct": false, "why": "Слабое дерево — но нужна композиция." },
+        { "id": "svm", "text": "SVM", "correct": false, "why": "SVM — не ансамбль." }
+      ],
+      "unlocks": "AdaBoost",
+      "xp": 20,
+      "explanation": "AdaBoost взвешивает объекты: ошибочные получают больший вес."
+    },
+    {
+      "id": "gradient_boosting",
+      "title": "Градиентный бустинг",
+      "story": "AdaBoost устарел. Нужен бустинг на градиентах.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "gb", "text": "Gradient Boosting", "correct": true, "why": "Бустинг через градиенты функции потерь — общее и мощное." },
+        { "id": "ada", "text": "AdaBoost", "correct": false, "why": "Классический, но слабее GB." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Бэггинг, не бустинг." },
+        { "id": "knn", "text": "KNN", "correct": false, "why": "Не ансамбль." }
+      ],
+      "unlocks": "Gradient Boosting",
+      "xp": 25,
+      "explanation": "GB обучает каждое дерево на антиградиенте ошибки предыдущего ансамбля."
+    },
+    {
+      "id": "xgboost",
+      "title": "Король таблички",
+      "story": "Kaggle-соревнование. Табличные данные. Нужно выжать максимум.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "xgb", "text": "XGBoost", "correct": true, "why": "Регуляризованный GB + оптимизации → SOTA на табличке." },
+        { "id": "gb", "text": "Gradient Boosting", "correct": false, "why": "Работает, но XGBoost быстрее и точнее." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Слабее бустинга на табличке." },
+        { "id": "nn", "text": "Нейросеть", "correct": false, "why": "На табличке обычно проигрывает бустингу." }
+      ],
+      "unlocks": "XGBoost",
+      "xp": 30,
+      "explanation": "XGBoost = eXtreme Gradient Boosting. Регуляризация + параллелизм + работа с пропусками."
+    },
+    {
+      "id": "lightgbm",
+      "title": "Быстрый бустинг",
+      "story": "10 миллионов строк. XGBoost обучается 6 часов. Нужно быстрее.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "lgbm", "text": "LightGBM", "correct": true, "why": "Гистограммный бустинг → в 10 раз быстрее на больших данных." },
+        { "id": "xgb", "text": "XGBoost", "correct": false, "why": "Медленнее на больших данных." },
+        { "id": "cat", "text": "CatBoost", "correct": false, "why": "CatBoost — для категорий, не для скорости." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Слабее бустинга." }
+      ],
+      "unlocks": "LightGBM",
+      "xp": 30,
+      "explanation": "LightGBM использует гистограммы и leaf-wise рост → скорость и память."
+    },
+    {
+      "id": "catboost",
+      "title": "Котики и категории",
+      "story": "Много категориальных признаков (города, товары, профессии). One-hot даёт 10000 колонок.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "cat", "text": "CatBoost", "correct": true, "why": "Работает с категориями нативно, без one-hot." },
+        { "id": "xgb", "text": "XGBoost", "correct": false, "why": "Требует one-hot или target encoding вручную." },
+        { "id": "lgbm", "text": "LightGBM", "correct": false, "why": "Поддерживает категории, но CatBoost лучше." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Требует one-hot." }
+      ],
+      "unlocks": "CatBoost",
+      "xp": 30,
+      "explanation": "CatBoost использует ordered target statistics для категорий — без утечки данных."
+    }
+  ]
+}

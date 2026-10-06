@@ -1,0 +1,96 @@
+{
+  "family": "Кластеризация",
+  "icon": "🔵",
+  "quests": [
+    {
+      "id": "kmeans",
+      "title": "K центроидов",
+      "story": "Маркетинг хочет разбить клиентов на 3 группы. Признаков мало, кластеры сферические.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "kmeans", "text": "K-Means", "correct": true, "why": "Знаешь K, кластеры сферические — идеально." },
+        { "id": "dbscan", "text": "DBSCAN", "correct": false, "why": "DBSCAN — когда не знаешь K. Здесь знаешь." },
+        { "id": "agglo", "text": "Agglomerative", "correct": false, "why": "Тоже работает, но K-Means быстрее." },
+        { "id": "gmm", "text": "GMM", "correct": false, "why": "GMM даёт вероятности — оверкилл для простой задачи." }
+      ],
+      "unlocks": "K-Means",
+      "xp": 15,
+      "explanation": "K-Means итеративно двигает K центроидов, минимизируя сумму квадратов расстояний."
+    },
+    {
+      "id": "minibatch_kmeans",
+      "title": "Мини-батчи",
+      "story": "10 миллионов точек. K-Means не влезает в память.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "mbk", "text": "Mini-Batch K-Means", "correct": true, "why": "Обрабатывает батчами → работает на больших данных." },
+        { "id": "kmeans", "text": "K-Means", "correct": false, "why": "Не влезет в память." },
+        { "id": "dbscan", "text": "DBSCAN", "correct": false, "why": "DBSCAN ещё тяжелее." },
+        { "id": "agglo", "text": "Agglomerative", "correct": false, "why": "O(n²) по памяти — невозможно." }
+      ],
+      "unlocks": "Mini-Batch K-Means",
+      "xp": 20,
+      "explanation": "Mini-Batch K-Means обновляет центроиды на маленьких батчах. Быстро и мало памяти."
+    },
+    {
+      "id": "dbscan",
+      "title": "Плотность",
+      "story": "Кластеры неправильной формы + шум. K неизвестно.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "dbscan", "text": "DBSCAN", "correct": true, "why": "Кластеры по плотности, шум отсекается, K не нужен." },
+        { "id": "kmeans", "text": "K-Means", "correct": false, "why": "K-Means делает сферические кластеры — не подходит." },
+        { "id": "agglo", "text": "Agglomerative", "correct": false, "why": "Тоже, но K всё равно нужен." },
+        { "id": "gmm", "text": "GMM", "correct": false, "why": "Предполагает эллипсы, не любую форму." }
+      ],
+      "unlocks": "DBSCAN",
+      "xp": 20,
+      "explanation": "DBSCAN: кластер = плотная область. Точки в разреженных зонах → шум."
+    },
+    {
+      "id": "agglomerative",
+      "title": "Иерархия",
+      "story": "Нужна иерархия кластеров, чтобы понять структуру на разных уровнях.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "agglo", "text": "Agglomerative Clustering", "correct": true, "why": "Строит дендрограмму — видно, как кластеры объединяются." },
+        { "id": "kmeans", "text": "K-Means", "correct": false, "why": "Плоские кластеры, нет иерархии." },
+        { "id": "dbscan", "text": "DBSCAN", "correct": false, "why": "Тоже плоские." },
+        { "id": "gmm", "text": "GMM", "correct": false, "why": "Плоские, вероятностные." }
+      ],
+      "unlocks": "Agglomerative",
+      "xp": 20,
+      "explanation": "Agglomerative: каждый объект — кластер, потом объединяются по близости."
+    },
+    {
+      "id": "affinity",
+      "title": "Без K",
+      "story": "Не знаешь K, не знаешь форму кластеров. Нужен алгоритм, который сам решит.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "aff", "text": "Affinity Propagation", "correct": true, "why": "Сам находит число кластеров через передачу сообщений." },
+        { "id": "kmeans", "text": "K-Means", "correct": false, "why": "Нужен K." },
+        { "id": "agglo", "text": "Agglomerative", "correct": false, "why": "Тоже нужен K (или порог)." },
+        { "id": "gmm", "text": "GMM", "correct": false, "why": "Нужно число компонент." }
+      ],
+      "unlocks": "Affinity Propagation",
+      "xp": 25,
+      "explanation": "Affinity Propagation обменивается сообщениями между точками. Кластеры возникают сами."
+    },
+    {
+      "id": "gmm",
+      "title": "Вероятностные кластеры",
+      "story": "Кластеры пересекаются. Нужны вероятности принадлежности.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "gmm", "text": "Gaussian Mixture Models", "correct": true, "why": "Даёт вероятность принадлежности к каждому кластеру." },
+        { "id": "kmeans", "text": "K-Means", "correct": false, "why": "Жёсткое разбиение, без вероятностей." },
+        { "id": "dbscan", "text": "DBSCAN", "correct": false, "why": "Жёсткое, плюс есть шум." },
+        { "id": "agglo", "text": "Agglomerative", "correct": false, "why": "Жёсткое разбиение." }
+      ],
+      "unlocks": "Gaussian Mixture",
+      "xp": 25,
+      "explanation": "GMM = смесь гауссиан. EM-алгоритм находит параметры и вероятности."
+    }
+  ]
+}

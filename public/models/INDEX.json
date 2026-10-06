@@ -1,0 +1,107 @@
+{
+  "families": [
+    {
+      "id": "01_linear",
+      "name": "Линейные модели",
+      "icon": "📏",
+      "count": 8,
+      "models": [
+        { "id": "linear_regression", "name": "Linear Regression", "type": "regression", "unlocked": false },
+        { "id": "logistic_regression", "name": "Logistic Regression", "type": "classification", "unlocked": false },
+        { "id": "ridge", "name": "Ridge (L2)", "type": "regression", "unlocked": false },
+        { "id": "lasso", "name": "Lasso (L1)", "type": "regression", "unlocked": false },
+        { "id": "elasticnet", "name": "ElasticNet (L1+L2)", "type": "regression", "unlocked": false },
+        { "id": "bayesian", "name": "Bayesian Regression", "type": "regression", "unlocked": false },
+        { "id": "quantile", "name": "Quantile Regression", "type": "regression", "unlocked": false },
+        { "id": "ransac", "name": "RANSAC Regression", "type": "regression", "unlocked": false }
+      ]
+    },
+    {
+      "id": "02_discriminant",
+      "name": "Дискриминанты и байесовские",
+      "icon": "🎲",
+      "count": 4,
+      "models": [
+        { "id": "lda", "name": "LDA", "type": "classification", "unlocked": false },
+        { "id": "qda", "name": "QDA", "type": "classification", "unlocked": false },
+        { "id": "gaussian_nb", "name": "Gaussian Naive Bayes", "type": "classification", "unlocked": false },
+        { "id": "multinomial_nb", "name": "Multinomial Naive Bayes", "type": "classification", "unlocked": false }
+      ]
+    },
+    {
+      "id": "03_svm",
+      "name": "Методы опорных векторов",
+      "icon": "⚔️",
+      "count": 3,
+      "models": [
+        { "id": "svm_linear", "name": "Linear SVM", "type": "classification", "unlocked": false },
+        { "id": "svm_rbf", "name": "SVM (RBF)", "type": "classification", "unlocked": false },
+        { "id": "svm_poly", "name": "SVM (Polynomial)", "type": "classification", "unlocked": false }
+      ]
+    },
+    {
+      "id": "04_neighbors",
+      "name": "Методы на расстояниях",
+      "icon": "📍",
+      "count": 2,
+      "models": [
+        { "id": "knn", "name": "K-Neighbors", "type": "both", "unlocked": false },
+        { "id": "radius_neighbors", "name": "Radius Neighbors", "type": "classification", "unlocked": false }
+      ]
+    },
+    {
+      "id": "05_trees",
+      "name": "Деревья и ансамбли",
+      "icon": "🌳",
+      "count": 8,
+      "models": [
+        { "id": "decision_tree", "name": "Decision Tree", "type": "both", "unlocked": false },
+        { "id": "random_forest", "name": "Random Forest", "type": "both", "unlocked": false },
+        { "id": "extra_trees", "name": "Extra Trees", "type": "both", "unlocked": false },
+        { "id": "adaboost", "name": "AdaBoost", "type": "both", "unlocked": false },
+        { "id": "gradient_boosting", "name": "Gradient Boosting", "type": "both", "unlocked": false },
+        { "id": "xgboost", "name": "XGBoost", "type": "both", "unlocked": false },
+        { "id": "lightgbm", "name": "LightGBM", "type": "both", "unlocked": false },
+        { "id": "catboost", "name": "CatBoost", "type": "both", "unlocked": false }
+      ]
+    },
+    {
+      "id": "06_clustering",
+      "name": "Кластеризация",
+      "icon": "🔵",
+      "count": 6,
+      "models": [
+        { "id": "kmeans", "name": "K-Means", "type": "clustering", "unlocked": false },
+        { "id": "minibatch_kmeans", "name": "Mini-Batch K-Means", "type": "clustering", "unlocked": false },
+        { "id": "dbscan", "name": "DBSCAN", "type": "clustering", "unlocked": false },
+        { "id": "agglomerative", "name": "Agglomerative", "type": "clustering", "unlocked": false },
+        { "id": "affinity", "name": "Affinity Propagation", "type": "clustering", "unlocked": false },
+        { "id": "gmm", "name": "Gaussian Mixture", "type": "clustering", "unlocked": false }
+      ]
+    },
+    {
+      "id": "07_neural",
+      "name": "Нейросетевые модели",
+      "icon": "🧠",
+      "count": 3,
+      "models": [
+        { "id": "mlp", "name": "Multi-Layer Perceptron", "type": "both", "unlocked": false },
+        { "id": "rbf_nn", "name": "RBF Neural Network", "type": "both", "unlocked": false },
+        { "id": "autoencoder", "name": "Autoencoder", "type": "unsupervised", "unlocked": false }
+      ]
+    },
+    {
+      "id": "08_dimensionality",
+      "name": "Понижение размерности",
+      "icon": "🗜️",
+      "count": 4,
+      "models": [
+        { "id": "pca", "name": "PCA", "type": "unsupervised", "unlocked": false },
+        { "id": "kernel_pca", "name": "Kernel PCA", "type": "unsupervised", "unlocked": false },
+        { "id": "tsne", "name": "t-SNE", "type": "unsupervised", "unlocked": false },
+        { "id": "umap", "name": "UMAP", "type": "unsupervised", "unlocked": false }
+      ]
+    }
+  ],
+  "total": 38
+}

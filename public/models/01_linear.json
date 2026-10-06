@@ -1,0 +1,126 @@
+{
+  "family": "Линейные модели",
+  "icon": "📏",
+  "quests": [
+    {
+      "id": "linear_regression",
+      "title": "Прямая линия",
+      "story": "Пришёл первый заказ: сеть кофеен хочет предсказывать выручку по площади точки. 200 точек, 3 признака, линейная связь.",
+      "question": "Какую модель возьмёшь первой?",
+      "options": [
+        { "id": "linear", "text": "LinearRegression", "correct": true, "why": "Линейная связь, мало признаков — базовая модель." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Оверкилл. Сначала линейная модель — она быстрее и интерпретируемее." },
+        { "id": "xgb", "text": "XGBoost", "correct": false, "why": "Слишком сложно для линейной задачи." },
+        { "id": "svm", "text": "SVM", "correct": false, "why": "SVM — для классификации, не для выручки." }
+      ],
+      "unlocks": "Linear Regression",
+      "xp": 10,
+      "explanation": "LinearRegression ищет прямую, которая минимизирует MSE. База для всего. Всегда начинай с неё."
+    },
+    {
+      "id": "logistic_regression",
+      "title": "Сигмоида",
+      "story": "Банк хочет предсказать: клиент уйдёт или нет. 5000 клиентов, 15 признаков.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "logistic", "text": "LogisticRegression", "correct": true, "why": "Классификация, вероятность на выходе — идеально для оттока." },
+        { "id": "linear", "text": "LinearRegression", "correct": false, "why": "Регрессия предсказывает число, не класс." },
+        { "id": "kmeans", "text": "KMeans", "correct": false, "why": "Кластеризация — не для предсказания класса." },
+        { "id": "pca", "text": "PCA", "correct": false, "why": "PCA — понижение размерности, не классификатор." }
+      ],
+      "unlocks": "Logistic Regression",
+      "xp": 10,
+      "explanation": "LogisticRegression пропускает линейную комбинацию через сигмоиду → вероятность класса."
+    },
+    {
+      "id": "ridge",
+      "title": "Переобучение",
+      "story": "Ты обучил LinearRegression на 50 признаках. Train R²=0.99, Test R²=0.12. Провал.",
+      "question": "Что делать?",
+      "options": [
+        { "id": "ridge", "text": "Ridge — L2-регуляризация", "correct": true, "why": "Много признаков + переобучение = Ridge. Штрафует большие веса." },
+        { "id": "more_data", "text": "Добавить данных", "correct": false, "why": "Поможет, но не решит проблему 50 признаков." },
+        { "id": "knn", "text": "Перейти на KNN", "correct": false, "why": "KNN переобучится ещё сильнее на 50 признаках." },
+        { "id": "tree", "text": "DecisionTree", "correct": false, "why": "Дерево переобучится на 50 признаках ещё быстрее." }
+      ],
+      "unlocks": "Ridge (L2)",
+      "xp": 15,
+      "explanation": "Ridge добавляет к MSE штраф α·Σw². Веса уменьшаются, модель обобщает лучше."
+    },
+    {
+      "id": "lasso",
+      "title": "Отбор признаков",
+      "story": "200 признаков. 190 из них — шум. Нужна разреженная модель.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "lasso", "text": "Lasso — L1-регуляризация", "correct": true, "why": "L1 зануляет неважные веса → автоматический отбор признаков." },
+        { "id": "ridge", "text": "Ridge", "correct": false, "why": "Ridge уменьшает, но не зануляет. Оставит шум." },
+        { "id": "pca", "text": "PCA + Linear", "correct": false, "why": "PCA создаёт новые признаки — теряется интерпретация." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Работает, но не даёт разреженности." }
+      ],
+      "unlocks": "Lasso (L1)",
+      "xp": 15,
+      "explanation": "Lasso использует |w| вместо w². Оптимум часто на границе → часть весов строго 0."
+    },
+    {
+      "id": "elasticnet",
+      "title": "Два в одном",
+      "story": "100 коррелирующих признаков. Lasso нестабилен, Ridge не отбирает.",
+      "question": "Что берёшь?",
+      "options": [
+        { "id": "elastic", "text": "ElasticNet", "correct": true, "why": "L1+L2. Отбирает признаки группами, стабильнее Lasso." },
+        { "id": "lasso", "text": "Lasso", "correct": false, "why": "При корреляции Lasso выбирает случайный из группы." },
+        { "id": "ridge", "text": "Ridge", "correct": false, "why": "Ridge не отбирает признаки — оставит все 100." },
+        { "id": "none", "text": "Без регуляризации", "correct": false, "why": "100 коррелирующих признаков без регуляризации = катастрофа." }
+      ],
+      "unlocks": "ElasticNet (L1+L2)",
+      "xp": 20,
+      "explanation": "ElasticNet = α·ρ·Σ|w| + α·(1-ρ)/2·Σw². Компромисс между Lasso и Ridge."
+    },
+    {
+      "id": "bayesian",
+      "title": "Вероятностный взгляд",
+      "story": "Мало данных (50 строк), но есть априорное знание о распределении весов.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "bayes", "text": "Bayesian Regression", "correct": true, "why": "Использует априор + данные → устойчив на малых выборках." },
+        { "id": "linear", "text": "LinearRegression", "correct": false, "why": "На 50 строках переобучится." },
+        { "id": "rf", "text": "RandomForest", "correct": false, "why": "Мало данных — лес не поможет." },
+        { "id": "xgb", "text": "XGBoost", "correct": false, "why": "XGBoost на 50 строках — гарантированное переобучение." }
+      ],
+      "unlocks": "Bayesian Regression",
+      "xp": 25,
+      "explanation": "Bayesian Regression кладёт prior на веса и обновляет его данными. Пост-распределение → устойчивость."
+    },
+    {
+      "id": "quantile",
+      "title": "Не только среднее",
+      "story": "Страховая хочет предсказать не средний убыток, а 90-й процентиль — худший случай.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "quantile", "text": "Quantile Regression", "correct": true, "why": "Предсказывает квантиль, а не среднее. Точно под задачу." },
+        { "id": "linear", "text": "LinearRegression", "correct": false, "why": "Даст среднее — не то, что нужно." },
+        { "id": "ridge", "text": "Ridge", "correct": false, "why": "Тоже среднее." },
+        { "id": "tree", "text": "DecisionTree", "correct": false, "why": "Дерево не даёт квантили напрямую." }
+      ],
+      "unlocks": "Quantile Regression",
+      "xp": 25,
+      "explanation": "Quantile Regression минимизирует pinball loss для заданного квантиля τ."
+    },
+    {
+      "id": "ransac",
+      "title": "Выбросы",
+      "story": "Данные с 20% выбросов. Обычная линейная регрессия ломается.",
+      "question": "Что используешь?",
+      "options": [
+        { "id": "ransac", "text": "RANSAC", "correct": true, "why": "Случайно выбирает подмножества, обучает, оставляет лучшую модель — игнорирует выбросы." },
+        { "id": "linear", "text": "LinearRegression", "correct": false, "why": "Выбросы сдвинут прямую." },
+        { "id": "ridge", "text": "Ridge", "correct": false, "why": "Регуляризация не спасает от выбросов." },
+        { "id": "lasso", "text": "Lasso", "correct": false, "why": "Тоже нет." }
+      ],
+      "unlocks": "RANSAC Regression",
+      "xp": 25,
+      "explanation": "RANSAC = RANdom SAmple Consensus. Итеративно выбирает inliers и обучает только на них."
+    }
+  ]
+}
