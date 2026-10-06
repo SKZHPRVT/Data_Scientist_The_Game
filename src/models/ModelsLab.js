@@ -3,6 +3,7 @@ import { ModelsGroupMap } from '../ui/models/ModelsGroupMap.js';
 import { ModelsQuestMap } from '../ui/models/ModelsQuestMap.js';
 import { TaskView } from '../ui/task/TaskView.js';
 import { BossView } from '../ui/models/BossView.js';
+import { checkAndNotify } from '../ui/models/achievementChecker.js';
 import { progress } from '../core/progress.js';
 
 export class ModelsLab {
@@ -64,6 +65,10 @@ export class ModelsLab {
             }
           } catch (e) {}
         }
+        // Проверяем ачивки после босса
+        try {
+          import('../ui/models/achievementChecker.js').then((m) => m.checkAndNotify());
+        } catch (e) {}
       },
     });
 
@@ -146,6 +151,13 @@ export class ModelsLab {
     // Обновляем карту семейства в фоне (чтобы прогресс в списке был свежим)
     this._refreshFamilyMapInPlace(familyId);
     this._refreshLabMapInPlace();
+
+    // Проверяем ачивки лаборатории (после того, как прогресс записан)
+    try {
+      await checkAndNotify();
+    } catch (e) {
+      console.warn('[Achievements]', e.message);
+    }
 
     // Ищем следующий квест в семействе
     const lab = window.__models;
