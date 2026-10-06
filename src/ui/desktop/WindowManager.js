@@ -5,6 +5,30 @@ export class WindowManager {
     this.zIndex = 100;
     this.offset = 0;
     this._safeCache = null;
+    this._refitTimers = new WeakMap();
+
+    // Следим за изменением окна — сбрасываем кэш
+    window.addEventListener('resize', () => { this._safeCache = null; });
+    window.addEventListener('orientationchange', () => {
+      this._safeCache = null;
+      // Пересчитываем каждое окно с задержкой (важно для Telegram)
+      setTimeout(() => this._refitAll(), 100);
+      setTimeout(() => this._refitAll(), 400);
+      setTimeout(() => this._refitAll(), 800);
+    });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        this._safeCache = null;
+        clearTimeout(this._vvTimer);
+        this._vvTimer = setTimeout(() => this._refitAll(), 150);
+      });
+    }
+  }
+
+  // === ПЕРЕСЧИТАТЬ ВСЕ ОКНА ===
+  _refitAll() {
+    this.windows.forEach((win) => this._refitWindow(win));
   }
 
   _getSafeArea() {
@@ -31,7 +55,10 @@ export class WindowManager {
     };
     test.remove();
 
-    result.top = Math.max(result.top, 0) + 52;
+    // Доп. отступ ТОЛЬКО в портрете (в ландшафте Telegram убирает верхнюю панель)
+    const isPortrait = window.innerHeight >= window.innerWidth;
+    const telegramOffset = isPortrait ? 52 : 0;
+    result.top = Math.max(result.top, 0) + telegramOffset;
 
     this._safeCache = result;
     return result;
@@ -47,9 +74,8 @@ export class WindowManager {
     const vh = window.innerHeight;
     const taskbarH = 44;
     const safe = this._getSafeArea();
-
-    // === ЖЁСТКО ОГРАНИЧИВАЕМ РАЗМЕРЫ ПОД ЭКРАН ===
     const padding = 8;
+
     const availableW = vw - safe.left - safe.right - padding * 2;
     const availableH = vh - safe.top - safe.bottom - taskbarH - padding * 2;
 
@@ -57,12 +83,11 @@ export class WindowManager {
     const finalH = Math.min(height, availableH);
 
     this.offset = (this.offset + 1) % 5;
-    // Центрируем по горизонтали с небольшим сдвигом
     const defaultLeft = Math.max(
       safe.left + padding,
       Math.min(safe.left + padding + this.offset * 20, vw - finalW - safe.right - padding)
     );
-    const defaultTop = Math.max(safe.top + this.offset * 20, safe.top + 8);
+    const defaultTop = Math.max(safe.top + padding + this.offset * 12, safe.top + 8);
 
     const win = document.createElement('div');
     win.className = 'window';
@@ -97,15 +122,7 @@ export class WindowManager {
     win.addEventListener('mousedown', () => this.focus(id));
     win.addEventListener('touchstart', () => this.focus(id));
 
-    this._makeDraggable(win, win.querySelector('.window-title'), safe, taskbarH);
-
-    const onResize = () => {
-      this._safeCache = null;
-      this._refitWindow(win);
-    };
-    window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', onResize);
-    win._onResize = onResize;
+    this._makeDraggable(win, win.querySelector('.window-title'), taskbarH);
 
     if (window.__audio && !window.__skipNextOpenSound) {
       window.__audio.open();
@@ -117,7 +134,7 @@ export class WindowManager {
     return win;
   }
 
-  // === ПОДГОНЯЕМ РАЗМЕРЫ ОКНА ПОД ТЕКУЩИЙ ЭКРАН ===
+  // === ПОДГОНЯЕМ РАЗМЕРЫ И ПОЗИЦИЮ ПОД ЭКРАН ===
   _refitWindow(win) {
     if (!win || !win.parentNode) return;
 
@@ -130,34 +147,46 @@ export class WindowManager {
     const availableW = vw - safe.left - safe.right - padding * 2;
     const availableH = vh - safe.top - safe.bottom - taskbarH - padding * 2;
 
-    // Сжимаем, если окно больше доступного
     const currentW = win.offsetWidth;
     const currentH = win.offsetHeight;
 
-    if (currentW > availableW) win.style.width = availableW + 'px';
-    if (currentH > availableH) win.style.height = availableH + 'px';
+    // Сжимаем — но НЕ растягиваем обратно (запоминаем "желаемый" размер в dataset)
+    const desiredW = parseFloat(win.dataset.desiredW || currentW);
+    const desiredH = parseFloat(win.dataset.desiredH || currentH);
 
-    // Подтягиваем позицию
-    this._clampWindow(win, safe, taskbarH);
+    if (!win.dataset.desiredW) win.dataset.desiredW = currentW;
+    if (!win.dataset.desiredH) win.dataset.desiredH = currentH;
+
+    const targetW = Math.min(desiredW, availableW);
+    const targetH = Math.min(desiredH, availableH);
+
+    win.style.width = targetW + 'px';
+    win.style.height = targetH + 'px';
+
+    this._clampWindow(win, taskbarH);
   }
 
-  _clampWindow(win, safe, taskbarH) {
+  _clampWindow(win, taskbarH) {
     if (!win || !win.parentNode) return;
+
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const rect = win.getBoundingClientRect();
+    const safe = this._getSafeArea();
     const padding = 8;
 
-    const minTop = safe.top + padding;
-    const maxTop = vh - taskbarH - safe.bottom - 40;
+    const rect = win.getBoundingClientRect();
+
+    // Границы, куда окно может попасть
     const minLeft = safe.left + padding;
-    const maxLeft = vw - rect.width - safe.right - padding;
+    const maxLeft = Math.max(minLeft, vw - rect.width - safe.right - padding);
+    const minTop = safe.top + padding;
+    const maxTop = Math.max(minTop, vh - rect.height - taskbarH - safe.bottom - padding);
 
+    const newLeft = Math.max(minLeft, Math.min(rect.left, maxLeft));
     const newTop = Math.max(minTop, Math.min(rect.top, maxTop));
-    const newLeft = Math.max(minLeft, Math.min(rect.left, Math.max(minLeft, maxLeft)));
 
-    win.style.top = newTop + 'px';
     win.style.left = newLeft + 'px';
+    win.style.top = newTop + 'px';
   }
 
   focus(id) {
@@ -169,10 +198,7 @@ export class WindowManager {
     const win = this.windows.get(id);
     if (win) {
       if (window.__audio) window.__audio.close();
-      if (win._onResize) {
-        window.removeEventListener('resize', win._onResize);
-        window.removeEventListener('orientationchange', win._onResize);
-      }
+      clearTimeout(this._refitTimers.get(win));
       win.remove();
       this.windows.delete(id);
     }
@@ -183,7 +209,7 @@ export class WindowManager {
     if (win) win.style.display = win.style.display === 'none' ? 'flex' : 'none';
   }
 
-  _makeDraggable(win, handle, safe, taskbarH) {
+  _makeDraggable(win, handle, taskbarH) {
     let offsetX = 0, offsetY = 0, dragging = false, activePointer = null;
 
     const start = (e) => {
@@ -213,19 +239,19 @@ export class WindowManager {
       const vh = window.innerHeight;
       const w = win.offsetWidth;
       const h = win.offsetHeight;
+      const safe = this._getSafeArea();
       const padding = 8;
+
+      const minLeft = safe.left + padding;
+      const maxLeft = Math.max(minLeft, vw - w - safe.right - padding);
+      const minTop = safe.top + padding;
+      const maxTop = Math.max(minTop, vh - h - taskbarH - safe.bottom - padding);
 
       let newLeft = cx - offsetX;
       let newTop = cy - offsetY;
 
-      // Не даём уехать за пределы экрана
-      const minLeft = safe.left + padding;
-      const maxLeft = vw - w - safe.right - padding;
-      const minTop = safe.top + padding;
-      const maxTop = vh - h - taskbarH - safe.bottom - padding;
-
-      newLeft = Math.max(minLeft, Math.min(newLeft, Math.max(minLeft, maxLeft)));
-      newTop = Math.max(minTop, Math.min(newTop, Math.max(minTop, maxTop)));
+      newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
+      newTop = Math.max(minTop, Math.min(newTop, maxTop));
 
       win.style.left = newLeft + 'px';
       win.style.top = newTop + 'px';
@@ -236,7 +262,6 @@ export class WindowManager {
       dragging = false;
       activePointer = null;
       win.style.transition = '';
-      this._clampWindow(win, safe, taskbarH);
     };
 
     handle.addEventListener('mousedown', start);
