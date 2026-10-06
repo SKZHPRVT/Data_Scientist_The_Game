@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/data_scientist_the_game/',
+  base: '/Data_Scientist_The_Game/',
   build: {
     outDir: 'dist',
     assetsInlineLimit: 4096,
