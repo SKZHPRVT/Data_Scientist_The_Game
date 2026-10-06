@@ -51,8 +51,13 @@ async function start() {
   const desktop = new Desktop(document.getElementById('app'), tg);
   desktop.render();
 
+  // Запоминаем максимальную высоту ОДИН раз при старте
+  let _maxH = window.innerHeight;
+
   const forceResize = () => {
-    const h = window.visualViewport?.height ?? window.innerHeight;
+    // Обновляем максимум, если экран стал больше (поворот и т.п.)
+    _maxH = Math.max(_maxH, window.innerHeight);
+    const h = _maxH;
     document.documentElement.style.height = h + 'px';
     document.body.style.height = h + 'px';
     const app = document.getElementById('app');
