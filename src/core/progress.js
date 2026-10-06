@@ -1,6 +1,14 @@
 const KEY = 'tasks_solved_v4';
 
 export const progress = {
+  // Универсальный ID из пути: /junior/basics/task1.json → junior/basics/task1
+  makeId(path) {
+    if (!path) return '';
+    return String(path)
+      .replace(/^\//, '')      // убираем ведущий /
+      .replace(/\.json$/, ''); // убираем .json на конце
+  },
+
   getSolved() {
     try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
     catch { return []; }
@@ -15,6 +23,7 @@ export const progress = {
     if (!s.includes(taskId)) {
       s.push(taskId);
       localStorage.setItem(KEY, JSON.stringify(s));
+      console.log('[progress] marked:', taskId, '| all:', s);
     }
   },
 

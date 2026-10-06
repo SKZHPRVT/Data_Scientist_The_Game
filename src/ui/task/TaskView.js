@@ -10,14 +10,11 @@ export class TaskView {
     this.wrongTries = 0;
     this.fileId = this._getFileId();
     this.shuffledOptions = this._shuffleOptions(task.options || []);
+    console.log('[TaskView] fileId:', this.fileId);
   }
 
-  // Полный fileId: junior/basics/task1
   _getFileId() {
-    if (this.task._path) {
-      return this.task._path.replace(/^\//, '').replace('.json', '');
-    }
-    return this.task.id;
+    return progress.makeId(this.task._path || this.task.id);
   }
 
   _shuffleOptions(options) {

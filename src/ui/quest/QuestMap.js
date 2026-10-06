@@ -18,11 +18,13 @@ export class QuestMap {
     if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
 
     const tasks = this.data.tasks || [];
-    // Полный id: junior/basics/task1
-    const taskIds = tasks.map((t) => this.chapterId + '/' + t.replace('.json', ''));
+    // Единый ID: junior/basics/task1
+    const taskIds = tasks.map((t) => progress.makeId(this.chapterId + '/' + t));
     const solvedCount = taskIds.filter((id) => progress.isSolved(id)).length;
     const total = taskIds.length || 1;
     const percent = Math.round((solvedCount / total) * 100);
+
+    console.log('[QuestMap]', this.chapterId, 'taskIds:', taskIds, 'solved:', solvedCount);
 
     return `
       <div class="quest-map">
@@ -39,7 +41,7 @@ export class QuestMap {
 
         <div class="quest-list">
           ${tasks.map((fileName, i) => {
-            const taskId = this.chapterId + '/' + fileName.replace('.json', '');
+            const taskId = progress.makeId(this.chapterId + '/' + fileName);
             const unlocked = progress.isUnlocked(taskId, taskIds);
             const solved = progress.isSolved(taskId);
             const stars = progress.getStars(taskId);

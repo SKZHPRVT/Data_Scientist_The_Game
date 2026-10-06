@@ -14,50 +14,32 @@ export class GroupMap {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     this.data = await res.json();
 
-    console.log('[GroupMap] chapters order:', this.data.chapters.map(c => c.id));
-
     for (const ch of this.data.chapters) {
       try {
         const chUrl = import.meta.env.BASE_URL + 'tasks/' + this.worldId + '/' + ch.id + '/index.json';
         const chRes = await fetch(chUrl);
-        if (!chRes.ok) {
-          console.warn('[GroupMap] нет index.json для', ch.id);
-          this.chapterStats[ch.id] = { solved: 0, total: 0, ids: [] };
-          continue;
-        }
+        if (!chRes.ok) { this.chapterStats[ch.id] = { solved: 0, total: 0, ids: [] }; continue; }
         const chData = await chRes.json();
-        const ids = (chData.tasks || []).map((t) => this.worldId + '/' + ch.id + '/' + t.replace('.json', ''));
+        // Единый ID: junior/basics/task1
+        const ids = (chData.tasks || []).map((t) => progress.makeId(this.worldId + '/' + ch.id + '/' + t));
         const solved = ids.filter((id) => progress.isSolved(id)).length;
         this.chapterStats[ch.id] = { solved, total: ids.length, ids };
-        console.log('[GroupMap]', ch.id, '->', solved + '/' + ids.length, 'unlockAfter:', ch.unlockAfter);
+        console.log('[GroupMap]', ch.id, '->', solved + '/' + ids.length);
       } catch (e) {
-        console.warn('[GroupMap] ошибка загрузки', ch.id, e);
+        console.warn('[GroupMap]', ch.id, 'error', e);
         this.chapterStats[ch.id] = { solved: 0, total: 0, ids: [] };
       }
     }
   }
 
   _isChapterUnlocked(ch) {
-    // Если явно не указано — считаем первую главу открытой,
-    // НО только если она первая в списке
     if (ch.unlockAfter === null || ch.unlockAfter === undefined) {
       const idx = this.data.chapters.findIndex((c) => c.id === ch.id);
-      // Открываем только первую без unlockAfter
-      // Если не первая — закрыто
-      if (idx === 0) return true;
-      // Иначе считаем открытой по умолчанию (для side_quests если ошибка)
-      return false;
+      return idx === 0;
     }
-
     const prev = this.chapterStats[ch.unlockAfter];
-    if (!prev) {
-      console.warn('[GroupMap] предыдущая глава не найдена:', ch.unlockAfter);
-      return false;
-    }
-    // Открыта, если предыдущая полностью решена
-    const complete = prev.total > 0 && prev.solved >= prev.total;
-    console.log('[GroupMap] isUnlocked', ch.id, '-> prev', ch.unlockAfter, prev.solved + '/' + prev.total, '=', complete);
-    return complete;
+    if (!prev) return false;
+    return prev.total > 0 && prev.solved >= prev.total;
   }
 
   render() {
