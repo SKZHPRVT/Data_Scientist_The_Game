@@ -70,11 +70,12 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    // Финальный экран Junior — один раз
+    // Финальный экран Junior
     if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
       setTimeout(() => this._showJuniorFinale(), 800);
     }
 
+    // Если ничего не решено — показываем интро
     setTimeout(() => {
       const solved = progress.getSolved();
       if (solved.length === 0) {
@@ -128,14 +129,11 @@ export class Desktop {
   }
 
   // =================== WORLD GATE ===================
-  // Показывает терминальное окно-заглушку при попытке войти в мир
   async openWorldGate(worldId) {
-    // Если это MIDDLE и Junior завершён — открываем реальную карту
     if (worldId === 'middle' && this.juniorDone) {
       this.openGroupMap('middle');
       return;
     }
-    // Иначе — показываем терминал с текстом
     const text = this._getGateText(worldId);
     this.windows.create({
       id: 'worldgate-' + worldId,
@@ -163,22 +161,21 @@ export class Desktop {
           { type: 'warn', text: '⚠ Раздел в разработке.' },
           { type: 'info', text: 'Следи за обновлениями.' },
         ];
-      } else {
-        return [
-          { type: 'cmd', text: 'cd middle/' },
-          { type: 'err', text: '✗ Permission denied' },
-          { type: 'err', text: 'ACCESS_DENIED: junior_not_complete' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'MIDDLE — мир инженера.' },
-          { type: 'info', text: 'Здесь начинают строить настоящие пайплайны:' },
-          { type: 'info', text: 'clean → features → train → eval → deploy.' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Но сначала нужно доказать,' },
-          { type: 'info', text: 'что ты умеешь работать с данными.' },
-          { type: 'info', text: '' },
-          { type: 'warn', text: '🔑 Требуется: пройти JUNIOR полностью.' },
-        ];
       }
+      return [
+        { type: 'cmd', text: 'cd middle/' },
+        { type: 'err', text: '✗ Permission denied' },
+        { type: 'err', text: 'ACCESS_DENIED: junior_not_complete' },
+        { type: 'info', text: '' },
+        { type: 'info', text: 'MIDDLE — мир инженера.' },
+        { type: 'info', text: 'Здесь начинают строить настоящие пайплайны:' },
+        { type: 'info', text: 'clean → features → train → eval → deploy.' },
+        { type: 'info', text: '' },
+        { type: 'info', text: 'Но сначала нужно доказать,' },
+        { type: 'info', text: 'что ты умеешь работать с данными.' },
+        { type: 'info', text: '' },
+        { type: 'warn', text: '🔑 Требуется: пройти JUNIOR полностью.' },
+      ];
     }
 
     if (worldId === 'senior') {
@@ -197,27 +194,24 @@ export class Desktop {
           { type: 'info', text: '' },
           { type: 'warn', text: '🔑 Требуется: пройти MIDDLE полностью.' },
         ];
-      } else {
-        return [
-          { type: 'cmd', text: 'cd senior/' },
-          { type: 'err', text: '✗ Permission denied' },
-          { type: 'err', text: 'ACCESS_DENIED: junior_and_middle_not_complete' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'SENIOR — мир архитектора.' },
-          { type: 'info', text: 'Сюда приходят сеньоры, которые уже видели,' },
-          { type: 'info', text: 'как падает прод в 3 ночи.' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'Тебе ещё рано. Сначала пройди JUNIOR и MIDDLE.' },
-        ];
       }
+      return [
+        { type: 'cmd', text: 'cd senior/' },
+        { type: 'err', text: '✗ Permission denied' },
+        { type: 'err', text: 'ACCESS_DENIED: junior_and_middle_not_complete' },
+        { type: 'info', text: '' },
+        { type: 'info', text: 'SENIOR — мир архитектора.' },
+        { type: 'info', text: 'Сюда приходят те, кто видел, как падает прод в 3 ночи.' },
+        { type: 'info', text: '' },
+        { type: 'info', text: 'Тебе ещё рано.' },
+        { type: 'warn', text: '🔑 Требуется: пройти JUNIOR и MIDDLE.' },
+      ];
     }
 
-    return [
-      { type: 'info', text: 'Доступ запрещён.' },
-    ];
+    return [{ type: 'info', text: 'Доступ запрещён.' }];
   }
 
-  _runGateScript(body, worldId, lines) {
+  _runGateScript(body, worldId, lines, onDone) {
     const el = body.querySelector(`#gate-term-${worldId}`);
     if (!el) return;
 
@@ -225,17 +219,17 @@ export class Desktop {
 
     const typeLine = () => {
       if (i >= lines.length) {
-        // Курсор в конце
         const cursor = document.createElement('div');
         cursor.className = 'terminal-line';
         cursor.innerHTML = `<span class="terminal-prompt">$ </span><span class="gate-cursor">▊</span>`;
         el.appendChild(cursor);
+        el.scrollTop = el.scrollHeight;
+        if (onDone) onDone();
         return;
       }
 
       const line = lines[i];
       const div = document.createElement('div');
-      div.className = 'terminal-line';
       let cls = '';
       let prefix = '';
 
@@ -243,7 +237,6 @@ export class Desktop {
       else if (line.type === 'ok') { cls = 'terminal-success'; }
       else if (line.type === 'err') { cls = 'terminal-error'; }
       else if (line.type === 'warn') { cls = 'terminal-warn'; }
-      else { cls = ''; }
 
       div.className = 'terminal-line ' + cls;
       div.textContent = prefix + line.text;
@@ -252,16 +245,15 @@ export class Desktop {
 
       i++;
 
-      // Звук при печати
       if (window.__audio && line.text.length > 0) {
         window.__audio.key('normal');
       }
 
-      // Задержка — разная для разных типов
-      let delay = 250;
-      if (line.type === 'err') delay = 400;
+      let delay = 200;
+      if (line.type === 'err') delay = 350;
       if (line.type === 'cmd') delay = 500;
-      if (line.text === '') delay = 80;
+      if (line.type === 'warn') delay = 300;
+      if (line.text === '') delay = 60;
 
       setTimeout(typeLine, delay);
     };
@@ -461,7 +453,6 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
-    // Приз за идеальную папку
     if (chapterComplete && chapterPerfect) {
       const chId = chapterId.split('/').pop();
       const reward = CHAPTER_REWARDS[chId];
@@ -477,7 +468,6 @@ export class Desktop {
       }
     }
 
-    // Намёк на чит-код (если не идеально)
     if (chapterComplete && !chapterPerfect) {
       const chId = chapterId.split('/').pop();
       const hint = CHEAT_HINTS[chId];
@@ -515,7 +505,6 @@ export class Desktop {
           if (!rewards.isUnlocked('junior_finale_shown')) {
             setTimeout(() => this._showJuniorFinale(), 2000);
           } else {
-            // Просто обновляем иконки
             setTimeout(() => this.renderIcons(), 500);
           }
         }
@@ -590,22 +579,81 @@ export class Desktop {
           { type: 'info', text: '' },
           { type: 'info', text: 'Привет.' },
           { type: 'info', text: '' },
-          { type: 'info', text: 'Ты — джун в DS-отделе.' },
-          { type: 'info', text: 'Тебе дали доступ к сырым данным.' },
+          { type: 'info', text: 'Если ты это читаешь — значит ты в DS-отделе.' },
+          { type: 'info', text: 'Добро пожаловать.' },
           { type: 'info', text: '' },
-          { type: 'info', text: 'Цель: пройти JUNIOR, получить ключ в MIDDLE.' },
-          { type: 'info', text: '' },
-          { type: 'warn', text: 'Условия:' },
-          { type: 'info', text: '• Закрой все папки junior' },
-          { type: 'info', text: '• Победи 1 босса' },
-          { type: 'info', text: '• Набери звёзды для рейтинга' },
-          { type: 'info', text: '' },
-          { type: 'ok', text: 'Начни с карты JUNIOR.' },
-        ];
-        this._runGateScript(body, 'gamepy', lines);
 
-        // Кнопка Старт
-        setTimeout(() => {
+          { type: 'warn', text: '─── КТО ТЫ ───' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Ты — джун. Тебе дали доступ к сырым данным.' },
+          { type: 'info', text: 'Никто не будет объяснять что делать.' },
+          { type: 'info', text: 'Никто не будет проверять твои гипотезы.' },
+          { type: 'info', text: 'Только ты и датасет. Как в реальной работе.' },
+          { type: 'info', text: '' },
+
+          { type: 'warn', text: '─── ЧТО ЭТО ЗА ИГРА ───' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Это симулятор карьеры Data Scientist.' },
+          { type: 'info', text: 'Три мира: JUNIOR → MIDDLE → SENIOR.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'В каждом мире — папки с темами.' },
+          { type: 'info', text: 'В каждой папке — квесты про pandas.' },
+          { type: 'info', text: 'Каждый квест — 4 варианта ответа.' },
+          { type: 'info', text: 'Выбираешь правильный — идёшь дальше.' },
+          { type: 'info', text: '' },
+
+          { type: 'warn', text: '─── КАК ИГРАТЬ ───' },
+          { type: 'info', text: '' },
+          { type: 'ok', text: '⭐ ЗВЁЗДЫ' },
+          { type: 'info', text: 'Без ошибок — 4 звезды.' },
+          { type: 'info', text: '1 ошибка — 3 звезды.' },
+          { type: 'info', text: '2 ошибки — 2 звезды.' },
+          { type: 'info', text: '3+ ошибки — 1 звезда.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Собери 4 звезды во всех квестах папки —' },
+          { type: 'info', text: 'получишь награду: обои и ачивку.' },
+          { type: 'info', text: '' },
+
+          { type: 'ok', text: '🔒 ПОСЛЕДОВАТЕЛЬНОСТЬ' },
+          { type: 'info', text: 'Квесты открываются по очереди.' },
+          { type: 'info', text: 'Папки тоже — сначала basics, потом cleaning.' },
+          { type: 'info', text: 'Нельзя прыгнуть в middle, не пройдя junior.' },
+          { type: 'info', text: '' },
+
+          { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
+          { type: 'info', text: 'В каждой папке спрятан чит-код.' },
+          { type: 'info', text: 'Найдёшь — открой Пуск → Чит-коды.' },
+          { type: 'info', text: 'Введи слово — получишь ачивку.' },
+          { type: 'info', text: '' },
+
+          { type: 'ok', text: '⌨️ ТЕРМИНАЛ' },
+          { type: 'info', text: 'Хочешь писать код по-настоящему —' },
+          { type: 'info', text: 'зайди в Терминал. Там можно ls, cd, cat.' },
+          { type: 'info', text: 'Для остальных — весь геймплей в квестах.' },
+          { type: 'info', text: '' },
+
+          { type: 'warn', text: '─── ЧТО ДАЛЬШЕ ───' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Пройдёшь junior — откроется MIDDLE:' },
+          { type: 'info', text: 'пайплайны, фичи, модели, метрики.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Пройдёшь middle — откроется SENIOR:' },
+          { type: 'info', text: 'инциденты в проде, архитектура, менторство.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Финал — стать Магистром Сигнала.' },
+          { type: 'info', text: '' },
+
+          { type: 'ok', text: '─── НАЧНЁМ ───' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Открой карту JUNIOR.' },
+          { type: 'info', text: 'Начни с папки basics.' },
+          { type: 'info', text: 'Первый квест — прочитать CSV.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Удачи. Она тебе понадобится.' },
+          { type: 'info', text: '' },
+        ];
+
+        this._runGateScript(body, 'gamepy', lines, () => {
           const el = body.querySelector('#gamepy-term');
           if (!el) return;
           const btn = document.createElement('div');
@@ -617,10 +665,10 @@ export class Desktop {
           btn.querySelector('#start-btn').onclick = () => {
             this.openGroupMap('junior');
           };
-        }, 2000);
+        });
       },
-      width: 540,
-      height: 480,
+      width: 620,
+      height: 620,
     });
   }
 
