@@ -28,7 +28,7 @@ const ACHIEVEMENTS = [
   { id: 'LEAKAGE', title: 'Утечка', titleEn: 'Leakage', icon: '💧', desc: 'Случайно заглянул в test. Никто не заметил. Но ты знаешь.', descEn: 'Peeked at test. Nobody saw. But you know.', code: 'LEAKAGE', secret: true },
   { id: 'PEEKING', title: 'Подглядывающий', titleEn: 'Peeker', icon: '👀', desc: 'Остановил A/B тест на третий день. Смело.', descEn: 'Stopped A/B on day 3. Bold.', code: 'PEEKING', secret: true },
 
-  // === SENIOR (задел) ===
+  // === SENIOR ===
   { id: 'INCIDENT', title: 'Ночной инцидент', titleEn: 'Night incident', icon: '🚨', desc: 'Прод упал в 3 ночи. Ты поднял.', descEn: 'Prod went down at 3 AM. You fixed it.', code: 'INCIDENT' },
   { id: 'RESEARCH', title: 'Исследователь', titleEn: 'Researcher', icon: '🔬', desc: 'Читал статьи, а не только туториалы.', descEn: 'Read papers, not just tutorials.', code: 'RESEARCH' },
   { id: 'MENTOR', title: 'Ментор', titleEn: 'Mentor', icon: '👥', desc: 'Объяснил джуну то, что сам недавно не понимал.', descEn: 'Explained to a junior what you just learned.', code: 'MENTOR' },

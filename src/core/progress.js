@@ -101,10 +101,10 @@ export const rewards = {
   },
 };
 
-export async function isJuniorComplete() {
+async function checkWorldComplete(worldId) {
   if (DEV_UNLOCK_ALL) return true;
   try {
-    const base = import.meta.env.BASE_URL + 'tasks/junior/';
+    const base = import.meta.env.BASE_URL + 'tasks/' + worldId + '/';
     const res = await fetch(base + 'index.json');
     const worldIdx = await res.json();
     for (const ch of worldIdx.chapters || []) {
@@ -112,7 +112,7 @@ export async function isJuniorComplete() {
         const chRes = await fetch(base + ch.id + '/index.json');
         if (!chRes.ok) continue;
         const chData = await chRes.json();
-        const ids = (chData.tasks || []).map((x) => progress.makeId('junior/' + ch.id + '/' + x));
+        const ids = (chData.tasks || []).map((x) => progress.makeId(worldId + '/' + ch.id + '/' + x));
         if (ids.length > 0 && !ids.every((id) => progress.isSolved(id))) return false;
       } catch (e) {}
     }
@@ -120,21 +120,6 @@ export async function isJuniorComplete() {
   } catch (e) { return false; }
 }
 
-export async function isMiddleComplete() {
-  if (DEV_UNLOCK_ALL) return true;
-  try {
-    const base = import.meta.env.BASE_URL + 'tasks/middle/';
-    const res = await fetch(base + 'index.json');
-    const worldIdx = await res.json();
-    for (const ch of worldIdx.chapters || []) {
-      try {
-        const chRes = await fetch(base + ch.id + '/index.json');
-        if (!chRes.ok) continue;
-        const chData = await chRes.json();
-        const ids = (chData.tasks || []).map((x) => progress.makeId('middle/' + ch.id + '/' + x));
-        if (ids.length > 0 && !ids.every((id) => progress.isSolved(id))) return false;
-      } catch (e) {}
-    }
-    return true;
-  } catch (e) { return false; }
-}
+export function isJuniorComplete() { return checkWorldComplete('junior'); }
+export function isMiddleComplete() { return checkWorldComplete('middle'); }
+export function isSeniorComplete() { return checkWorldComplete('senior'); }

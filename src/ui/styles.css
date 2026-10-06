@@ -1544,3 +1544,145 @@ textarea {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
 }
+
+/* ===== SENIOR FINALE ===== */
+.senior-finale {
+  font-family: var(--font-mono);
+  color: var(--fg);
+  text-align: center;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.finale-eyes {
+  font-size: 56px;
+  filter: drop-shadow(0 0 20px var(--accent));
+  animation: finalePulse 2s ease-in-out infinite;
+}
+
+.finale-crown-big {
+  font-size: 64px;
+  margin-top: -12px;
+  filter: drop-shadow(0 0 24px var(--warn));
+  animation: finalePulse 2s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+@keyframes finalePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+.finale-main-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 3px;
+  margin-top: 20px;
+  text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+}
+
+.finale-divider {
+  color: var(--fg-dim);
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin: 16px 0;
+  opacity: 0.6;
+}
+
+.finale-body {
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 16px;
+  background: rgba(0, 255, 65, 0.04);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.finale-achievements {
+  width: 100%;
+  padding: 16px;
+  background: rgba(255, 170, 0, 0.06);
+  border-radius: 8px;
+  border-left: 3px solid var(--warn);
+  box-sizing: border-box;
+}
+
+/* ===== SENIOR FINALE ===== */
+.senior-finale {
+  font-family: var(--font-mono);
+  color: var(--fg);
+  text-align: center;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.finale-eyes {
+  font-size: 56px;
+  filter: drop-shadow(0 0 20px var(--accent));
+  animation: finalePulse 2s ease-in-out infinite;
+}
+
+.finale-crown-big {
+  font-size: 64px;
+  margin-top: -12px;
+  filter: drop-shadow(0 0 24px var(--warn));
+  animation: finalePulse 2s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+@keyframes finalePulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+.finale-main-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 3px;
+  margin-top: 20px;
+  text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+}
+
+.finale-divider {
+  color: var(--fg-dim);
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin: 16px 0;
+  opacity: 0.6;
+}
+
+.finale-body {
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 16px;
+  background: rgba(0, 255, 65, 0.04);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.finale-achievements {
+  width: 100%;
+  padding: 16px;
+  background: rgba(255, 170, 0, 0.06);
+  border-radius: 8px;
+  border-left: 3px solid var(--warn);
+  box-sizing: border-box;
+}

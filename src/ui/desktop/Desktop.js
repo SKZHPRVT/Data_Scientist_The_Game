@@ -11,16 +11,17 @@ import { QuestMap } from '../quest/QuestMap.js';
 import { GroupMap } from '../quest/GroupMap.js';
 import { showRewardPopup } from '../rewards/RewardPopup.js';
 import { JuniorFinale } from '../rewards/JuniorFinale.js';
+import { SeniorFinale } from '../rewards/SeniorFinale.js';
 import { storage } from '../../core/storage.js';
-import { progress, rewards, isJuniorComplete } from '../../core/progress.js';
+import {
+  progress, rewards,
+  isJuniorComplete, isMiddleComplete, isSeniorComplete,
+} from '../../core/progress.js';
 import { CHAPTER_REWARDS } from '../../core/rewards.js';
 import { DEV_UNLOCK_ALL } from '../../core/dev.js';
 
-// ============================================
-// ЧИТ-ХИНТЫ (показываются после прохождения папки)
-// ============================================
 const CHEAT_HINTS = {
-  // === JUNIOR ===
+  // JUNIOR
   basics: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER',
   cleaning: 'Ты чистюля. И слово подходящее. Код: CLEAN',
   grouping: 'Связующий — тот, кто соединяет. Код: CONNECT',
@@ -28,15 +29,13 @@ const CHEAT_HINTS = {
   datetime: 'Даты и время... до 3 ночи... Код: COFFEE',
   strings: 'Тексты и пропуски. Слово из 3 букв. Код: NAN',
   bosses: 'Идеальный на трейне — но не на тесте. Код: OVERFIT',
-
-  // === MIDDLE ===
+  // MIDDLE
   pipelines: 'Весь путь в одном объекте. Код: PIPELINE',
   features: 'Создай признаки — выиграй соревнование. Код: FEATURES_MASTER',
   models: 'Обучи, сохрани, переиспользуй. Код: MODEL_MASTER',
   eval: 'Accuracy врёт при дисбалансе. Код: EVAL_MASTER',
   experiments: 'A/B — не гадай, а проверяй. Код: AB_MASTER',
-
-  // === SENIOR ===
+  // SENIOR
   incidents: 'Прод упал в 3 ночи — собери логи. Код: INCIDENT',
   research: 'Читай статьи, а не только туториалы. Код: RESEARCH',
   mentoring: 'Объясни джуну то, что сам знаешь. Код: MENTOR',
@@ -52,6 +51,8 @@ export class Desktop {
     this.startMenu = null;
     this.taskbar = null;
     this.juniorDone = false;
+    this.middleDone = false;
+    this.seniorDone = false;
 
     window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
     window.addEventListener('open-task', (e) => this.openTaskByPath(e.detail));
@@ -68,6 +69,8 @@ export class Desktop {
 
   async render() {
     this.juniorDone = DEV_UNLOCK_ALL ? true : await isJuniorComplete();
+    this.middleDone = DEV_UNLOCK_ALL ? true : await isMiddleComplete();
+    this.seniorDone = DEV_UNLOCK_ALL ? true : await isSeniorComplete();
 
     this.root.innerHTML = `
       <div class="desktop" id="desktop">
@@ -90,9 +93,15 @@ export class Desktop {
     this.taskbar.render();
 
     if (!DEV_UNLOCK_ALL) {
+      // Junior финал
       if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
         setTimeout(() => this._showJuniorFinale(), 800);
       }
+      // Senior финал (самый важный — приоритет выше)
+      else if (this.seniorDone && !rewards.isUnlocked('senior_finale_shown')) {
+        setTimeout(() => this._showSeniorFinale(), 800);
+      }
+      // Первое интро
       setTimeout(() => {
         const solved = progress.getSolved();
         if (solved.length === 0) {
@@ -155,6 +164,10 @@ export class Desktop {
       this.openGroupMap('middle');
       return;
     }
+    if (worldId === 'senior' && this.middleDone) {
+      this.openGroupMap('senior');
+      return;
+    }
     const text = this._getGateText(worldId);
     this.windows.create({
       id: 'worldgate-' + worldId,
@@ -171,6 +184,7 @@ export class Desktop {
 
   _getGateText(worldId) {
     const isJuniorDone = this.juniorDone;
+    const isMiddleDone = this.middleDone;
 
     if (worldId === 'middle') {
       if (isJuniorDone) {
@@ -197,28 +211,25 @@ export class Desktop {
     }
 
     if (worldId === 'senior') {
-      if (isJuniorDone) {
+      if (isMiddleDone) {
         return [
           { type: 'cmd', text: 'cd senior/' },
-          { type: 'err', text: '✗ Permission denied' },
-          { type: 'err', text: 'ACCESS_DENIED: middle_not_complete' },
+          { type: 'ok', text: '✓ Доступ разрешён' },
           { type: 'info', text: '' },
           { type: 'info', text: 'SENIOR — мир архитектора.' },
           { type: 'info', text: 'Тут падает прод. Горят дедлайны.' },
-          { type: 'info', text: 'Модель даёт 99% на трейне — но не на тесте.' },
-          { type: 'info', text: '' },
           { type: 'info', text: 'Это не про код. Это про решения.' },
-          { type: 'warn', text: '🔑 Требуется: пройти MIDDLE полностью.' },
         ];
       }
       return [
         { type: 'cmd', text: 'cd senior/' },
         { type: 'err', text: '✗ Permission denied' },
-        { type: 'err', text: 'ACCESS_DENIED: junior_and_middle_not_complete' },
+        { type: 'err', text: 'ACCESS_DENIED: middle_not_complete' },
         { type: 'info', text: '' },
         { type: 'info', text: 'SENIOR — мир архитектора.' },
-        { type: 'info', text: 'Тебе ещё рано.' },
-        { type: 'warn', text: '🔑 Требуется: пройти JUNIOR и MIDDLE.' },
+        { type: 'info', text: 'Сюда приходят те, кто видел, как падает прод в 3 ночи.' },
+        { type: 'info', text: '' },
+        { type: 'warn', text: '🔑 Требуется: пройти MIDDLE полностью.' },
       ];
     }
 
@@ -471,7 +482,7 @@ export class Desktop {
       }
     }
 
-    // Намёк на чит-код (если не идеально)
+    // Намёк на чит-код
     if (chapterComplete && !chapterPerfect) {
       const chId = chapterId.split('/').pop();
       const hint = CHEAT_HINTS[chId];
@@ -502,14 +513,24 @@ export class Desktop {
         setTimeout(() => this.openGroupMap(worldId), 300);
       }
 
-      if (worldId === 'junior' && !DEV_UNLOCK_ALL) {
-        const done = await isJuniorComplete();
-        if (done) {
-          this.juniorDone = true;
-          if (!rewards.isUnlocked('junior_finale_shown')) {
-            setTimeout(() => this._showJuniorFinale(), 2000);
-          } else {
-            setTimeout(() => this.renderIcons(), 500);
+      if (!DEV_UNLOCK_ALL) {
+        if (worldId === 'junior') {
+          const done = await isJuniorComplete();
+          if (done) {
+            this.juniorDone = true;
+            if (!rewards.isUnlocked('junior_finale_shown')) {
+              setTimeout(() => this._showJuniorFinale(), 2000);
+            } else {
+              setTimeout(() => this.renderIcons(), 500);
+            }
+          }
+        } else if (worldId === 'senior') {
+          const done = await isSeniorComplete();
+          if (done) {
+            this.seniorDone = true;
+            if (!rewards.isUnlocked('senior_finale_shown')) {
+              setTimeout(() => this._showSeniorFinale(), 2000);
+            }
           }
         }
       }
@@ -537,6 +558,30 @@ export class Desktop {
       onMount: (body) => finale.mount(body),
       width: 500,
       height: 620,
+    });
+  }
+
+  _showSeniorFinale() {
+    rewards.unlock('senior_finale_shown');
+    this.seniorDone = true;
+
+    // Открываем титульные ачивки
+    const ach = new Achievements();
+    ach.unlock('MASTER_SIGNAL');
+    ach.unlock('DIVIDE_ET_IMPERA');
+
+    const finale = new SeniorFinale({
+      onClose: () => {
+        this.windows.close('senior-finale');
+      },
+    });
+    this.windows.create({
+      id: 'senior-finale',
+      title: '👑 Магистр Сигнала',
+      content: finale.render(),
+      onMount: (body) => finale.mount(body),
+      width: 520,
+      height: 720,
     });
   }
 
