@@ -14,7 +14,6 @@ import { JuniorFinale } from '../rewards/JuniorFinale.js';
 import { storage } from '../../core/storage.js';
 import { progress, rewards, isJuniorComplete } from '../../core/progress.js';
 import { CHAPTER_REWARDS } from '../../core/rewards.js';
-import { t } from '../../i18n/index.js';
 
 const CHEAT_HINTS = {
   basics: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER',
@@ -33,6 +32,7 @@ export class Desktop {
     this.windows = new WindowManager(root);
     this.startMenu = null;
     this.taskbar = null;
+    this.juniorDone = false;
 
     window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
     window.addEventListener('open-task', (e) => this.openTaskByPath(e.detail));
@@ -48,8 +48,7 @@ export class Desktop {
   }
 
   async render() {
-    // Проверяем, завершён ли junior
-    const juniorDone = await isJuniorComplete();
+    this.juniorDone = await isJuniorComplete();
 
     this.root.innerHTML = `
       <div class="desktop" id="desktop">
@@ -60,7 +59,7 @@ export class Desktop {
     const wpId = storage.get('wallpaper', 'default');
     applyWallpaper(wpId);
 
-    this.renderIcons(juniorDone);
+    this.renderIcons();
 
     this.taskbar = new Taskbar(this.root, {
       onStart: () => this.toggleStartMenu(),
@@ -71,8 +70,8 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    // Показываем финал Junior, если завершён и ещё не видел
-    if (juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
+    // Финальный экран Junior — один раз
+    if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
       setTimeout(() => this._showJuniorFinale(), 800);
     }
 
@@ -85,23 +84,17 @@ export class Desktop {
     }, 400);
   }
 
-  renderIcons(juniorDone = false) {
+  renderIcons() {
     const icons = document.getElementById('icons');
     const items = [
       { icon: '🎯', label: 'JUNIOR', action: () => this.openGroupMap('junior') },
-    ];
-
-    // MIDDLE — только если junior пройден
-    if (juniorDone) {
-      items.push({ icon: '🚀', label: 'MIDDLE', action: () => this.openGroupMap('middle') });
-    }
-
-    items.push(
+      { icon: '🚀', label: 'MIDDLE', action: () => this.openWorldGate('middle') },
+      { icon: '👑', label: 'SENIOR', action: () => this.openWorldGate('senior') },
       { icon: '📁', label: 'SANDBOX', action: () => this.openSandbox() },
       { icon: '📄', label: 'README.txt', action: () => this.openReadme() },
       { icon: '🐍', label: 'game.py', action: () => this.runGamePy() },
       { icon: '⌨️', label: 'Терминал', action: () => this.openTerminal() },
-    );
+    ];
 
     icons.innerHTML = items
       .map((item, i) => `
@@ -134,44 +127,149 @@ export class Desktop {
     this.startMenu.render();
   }
 
-  _showJuniorFinale() {
-    rewards.unlock('junior_finale_shown');
-    const finale = new JuniorFinale({
-      onStartMiddle: () => {
-        this.windows.close('junior-finale');
-        this.openGroupMap('middle');
-      },
-    });
+  // =================== WORLD GATE ===================
+  // Показывает терминальное окно-заглушку при попытке войти в мир
+  async openWorldGate(worldId) {
+    // Если это MIDDLE и Junior завершён — открываем реальную карту
+    if (worldId === 'middle' && this.juniorDone) {
+      this.openGroupMap('middle');
+      return;
+    }
+    // Иначе — показываем терминал с текстом
+    const text = this._getGateText(worldId);
     this.windows.create({
-      id: 'junior-finale',
-      title: '🎉 Junior завершён',
-      content: finale.render(),
-      onMount: (body) => finale.mount(body),
-      width: 500,
-      height: 620,
+      id: 'worldgate-' + worldId,
+      title: '⚡ ' + worldId.toUpperCase() + '.gate',
+      content: `<div class="terminal" id="gate-term-${worldId}"></div>`,
+      onMount: (body) => this._runGateScript(body, worldId, text),
+      width: 540,
+      height: 440,
     });
   }
 
-  openSandbox() {
-    this.windows.create({
-      id: 'sandbox',
-      title: '🧪 SANDBOX',
-      content: `
-        <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
-          <p style="font-size: 16px; color: var(--accent); font-weight: 700;">🧪 Песочница</p>
-          <p style="margin-top: 16px;">Здесь можно экспериментировать с pandas без заданий и таймера.</p>
-          <p style="margin-top: 12px; color: var(--fg-dim);">Функционал в разработке. Скоро:</p>
-          <p>• Свободный ввод pandas-команд</p>
-          <p>• Свой CSV-датасет</p>
-          <p>• Сохранение скриптов</p>
-          <p>• Графики (plotly)</p>
-        </div>
-      `,
-      width: 480,
-      height: 400,
-    });
+  _getGateText(worldId) {
+    const isJuniorDone = this.juniorDone;
+
+    if (worldId === 'middle') {
+      if (isJuniorDone) {
+        return [
+          { type: 'cmd', text: 'cd middle/' },
+          { type: 'ok', text: '✓ Доступ разрешён' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'MIDDLE — мир инженера.' },
+          { type: 'info', text: 'Тут строят пайплайны, обучают модели,' },
+          { type: 'info', text: 'считают метрики и дебажат прод.' },
+          { type: 'info', text: '' },
+          { type: 'warn', text: '⚠ Раздел в разработке.' },
+          { type: 'info', text: 'Следи за обновлениями.' },
+        ];
+      } else {
+        return [
+          { type: 'cmd', text: 'cd middle/' },
+          { type: 'err', text: '✗ Permission denied' },
+          { type: 'err', text: 'ACCESS_DENIED: junior_not_complete' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'MIDDLE — мир инженера.' },
+          { type: 'info', text: 'Здесь начинают строить настоящие пайплайны:' },
+          { type: 'info', text: 'clean → features → train → eval → deploy.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Но сначала нужно доказать,' },
+          { type: 'info', text: 'что ты умеешь работать с данными.' },
+          { type: 'info', text: '' },
+          { type: 'warn', text: '🔑 Требуется: пройти JUNIOR полностью.' },
+        ];
+      }
+    }
+
+    if (worldId === 'senior') {
+      if (isJuniorDone) {
+        return [
+          { type: 'cmd', text: 'cd senior/' },
+          { type: 'err', text: '✗ Permission denied' },
+          { type: 'err', text: 'ACCESS_DENIED: middle_not_complete' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'SENIOR — мир архитектора.' },
+          { type: 'info', text: 'Тут падает прод. Горят дедлайны.' },
+          { type: 'info', text: 'Модель даёт 99% на трейне — но не на тесте.' },
+          { type: 'info', text: 'Бизнес не понимает, что ты делаешь.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Это не про код. Это про решения.' },
+          { type: 'info', text: '' },
+          { type: 'warn', text: '🔑 Требуется: пройти MIDDLE полностью.' },
+        ];
+      } else {
+        return [
+          { type: 'cmd', text: 'cd senior/' },
+          { type: 'err', text: '✗ Permission denied' },
+          { type: 'err', text: 'ACCESS_DENIED: junior_and_middle_not_complete' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'SENIOR — мир архитектора.' },
+          { type: 'info', text: 'Сюда приходят сеньоры, которые уже видели,' },
+          { type: 'info', text: 'как падает прод в 3 ночи.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Тебе ещё рано. Сначала пройди JUNIOR и MIDDLE.' },
+        ];
+      }
+    }
+
+    return [
+      { type: 'info', text: 'Доступ запрещён.' },
+    ];
   }
 
+  _runGateScript(body, worldId, lines) {
+    const el = body.querySelector(`#gate-term-${worldId}`);
+    if (!el) return;
+
+    let i = 0;
+
+    const typeLine = () => {
+      if (i >= lines.length) {
+        // Курсор в конце
+        const cursor = document.createElement('div');
+        cursor.className = 'terminal-line';
+        cursor.innerHTML = `<span class="terminal-prompt">$ </span><span class="gate-cursor">▊</span>`;
+        el.appendChild(cursor);
+        return;
+      }
+
+      const line = lines[i];
+      const div = document.createElement('div');
+      div.className = 'terminal-line';
+      let cls = '';
+      let prefix = '';
+
+      if (line.type === 'cmd') { cls = ''; prefix = '$ '; }
+      else if (line.type === 'ok') { cls = 'terminal-success'; }
+      else if (line.type === 'err') { cls = 'terminal-error'; }
+      else if (line.type === 'warn') { cls = 'terminal-warn'; }
+      else { cls = ''; }
+
+      div.className = 'terminal-line ' + cls;
+      div.textContent = prefix + line.text;
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+
+      i++;
+
+      // Звук при печати
+      if (window.__audio && line.text.length > 0) {
+        window.__audio.key('normal');
+      }
+
+      // Задержка — разная для разных типов
+      let delay = 250;
+      if (line.type === 'err') delay = 400;
+      if (line.type === 'cmd') delay = 500;
+      if (line.text === '') delay = 80;
+
+      setTimeout(typeLine, delay);
+    };
+
+    setTimeout(typeLine, 400);
+  }
+
+  // =================== GROUP MAP ===================
   async openGroupMap(worldId) {
     const oldId = 'groupmap-' + worldId;
     if (this.windows.windows.has(oldId)) {
@@ -363,13 +461,12 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
-    // Если папка пройдена идеально — показываем приз
+    // Приз за идеальную папку
     if (chapterComplete && chapterPerfect) {
       const chId = chapterId.split('/').pop();
       const reward = CHAPTER_REWARDS[chId];
       if (reward && !rewards.isUnlocked('chapter_' + chId)) {
         rewards.unlock('chapter_' + chId);
-        // Открываем ачивку
         if (reward.achievement) {
           const ach = new Achievements();
           ach.unlock(reward.achievement);
@@ -380,7 +477,7 @@ export class Desktop {
       }
     }
 
-    // Если папка пройдена (не идеально) — намёк на чит-код
+    // Намёк на чит-код (если не идеально)
     if (chapterComplete && !chapterPerfect) {
       const chId = chapterId.split('/').pop();
       const hint = CHEAT_HINTS[chId];
@@ -403,7 +500,6 @@ export class Desktop {
       }
     }
 
-    // Переход дальше
     if (chapterComplete) {
       const groupWin = this.windows.windows.get('groupmap-' + worldId);
       if (groupWin) {
@@ -412,15 +508,16 @@ export class Desktop {
         setTimeout(() => this.openGroupMap(worldId), 300);
       }
 
-      // Проверяем, завершён ли мир
       if (worldId === 'junior') {
         const done = await isJuniorComplete();
-        if (done && !rewards.isUnlocked('junior_finale_shown')) {
-          setTimeout(() => this._showJuniorFinale(), 2000);
-        }
-        // Перерисовываем иконки, чтобы появился MIDDLE
         if (done) {
-          setTimeout(() => this._rerender(), 2500);
+          this.juniorDone = true;
+          if (!rewards.isUnlocked('junior_finale_shown')) {
+            setTimeout(() => this._showJuniorFinale(), 2000);
+          } else {
+            // Просто обновляем иконки
+            setTimeout(() => this.renderIcons(), 500);
+          }
         }
       }
     } else if (nextFile) {
@@ -429,6 +526,45 @@ export class Desktop {
     } else {
       setTimeout(() => this.openQuestMap(chapterId), 300);
     }
+  }
+
+  _showJuniorFinale() {
+    rewards.unlock('junior_finale_shown');
+    this.juniorDone = true;
+    const finale = new JuniorFinale({
+      onStartMiddle: () => {
+        this.windows.close('junior-finale');
+        this.openWorldGate('middle');
+      },
+    });
+    this.windows.create({
+      id: 'junior-finale',
+      title: '🎉 Junior завершён',
+      content: finale.render(),
+      onMount: (body) => finale.mount(body),
+      width: 500,
+      height: 620,
+    });
+  }
+
+  openSandbox() {
+    this.windows.create({
+      id: 'sandbox',
+      title: '🧪 SANDBOX',
+      content: `
+        <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
+          <p style="font-size: 16px; color: var(--accent); font-weight: 700;">🧪 Песочница</p>
+          <p style="margin-top: 16px;">Здесь можно экспериментировать с pandas без заданий и таймера.</p>
+          <p style="margin-top: 12px; color: var(--fg-dim);">Функционал в разработке. Скоро:</p>
+          <p>• Свободный ввод pandas-команд</p>
+          <p>• Свой CSV-датасет</p>
+          <p>• Сохранение скриптов</p>
+          <p>• Графики (plotly)</p>
+        </div>
+      `,
+      width: 480,
+      height: 400,
+    });
   }
 
   openReadme() {
@@ -447,23 +583,44 @@ export class Desktop {
     this.windows.create({
       id: 'gamepy',
       title: '🐍 game.py',
-      content: `
-        <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
-          <p class="terminal-success">$ python game.py</p>
-          <p style="margin-top: 16px;">Привет.</p>
-          <p style="margin-top: 12px;">Ты — джун в DS-отделе.</p>
-          <p style="margin-top: 12px;">Цель: пройти junior, получить ключ в middle.</p>
-          <p style="margin-top: 16px;">Начни с карты JUNIOR.</p>
-          <p style="margin-top: 16px;"><button class="taskbar-btn active" id="start-btn">[ НАЧАТЬ → ]</button></p>
-        </div>
-      `,
-      width: 520,
-      height: 420,
+      content: `<div class="terminal" id="gamepy-term"></div>`,
       onMount: (body) => {
-        body.querySelector('#start-btn')?.addEventListener('click', () => {
-          this.openGroupMap('junior');
-        });
+        const lines = [
+          { type: 'cmd', text: 'python game.py' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Привет.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Ты — джун в DS-отделе.' },
+          { type: 'info', text: 'Тебе дали доступ к сырым данным.' },
+          { type: 'info', text: '' },
+          { type: 'info', text: 'Цель: пройти JUNIOR, получить ключ в MIDDLE.' },
+          { type: 'info', text: '' },
+          { type: 'warn', text: 'Условия:' },
+          { type: 'info', text: '• Закрой все папки junior' },
+          { type: 'info', text: '• Победи 1 босса' },
+          { type: 'info', text: '• Набери звёзды для рейтинга' },
+          { type: 'info', text: '' },
+          { type: 'ok', text: 'Начни с карты JUNIOR.' },
+        ];
+        this._runGateScript(body, 'gamepy', lines);
+
+        // Кнопка Старт
+        setTimeout(() => {
+          const el = body.querySelector('#gamepy-term');
+          if (!el) return;
+          const btn = document.createElement('div');
+          btn.className = 'terminal-line';
+          btn.style.marginTop = '16px';
+          btn.innerHTML = `<button class="taskbar-btn active" id="start-btn" style="pointer-events:auto;">[ НАЧАТЬ → ]</button>`;
+          el.appendChild(btn);
+          el.scrollTop = el.scrollHeight;
+          btn.querySelector('#start-btn').onclick = () => {
+            this.openGroupMap('junior');
+          };
+        }, 2000);
       },
+      width: 540,
+      height: 480,
     });
   }
 

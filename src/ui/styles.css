@@ -1533,3 +1533,14 @@ textarea {
   cursor: not-allowed;
   border-style: dashed;
 }
+
+/* Мигающий курсор в терминале-заглушке */
+.gate-cursor {
+  display: inline-block;
+  animation: blink 1s step-end infinite;
+  color: var(--accent);
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
