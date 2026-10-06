@@ -1,5 +1,5 @@
-const KEY = 'tasks_solved_v8';
-const STAR_KEY = (id) => `task_${id}_stars_v8`;
+const KEY = 'tasks_solved_v9';
+const STAR_KEY = (id) => `task_${id}_stars_v9`;
 const MAX_STARS = 4;
 
 export const progress = {
@@ -28,31 +28,24 @@ export const progress = {
     if (!solved.includes(taskId)) {
       solved.push(taskId);
       localStorage.setItem(KEY, JSON.stringify(solved));
-      console.log('[progress] markSolved:', taskId, '| total:', solved.length);
     }
   },
 
   getStars(taskId) {
     const v = localStorage.getItem(STAR_KEY(taskId));
-    const n = v ? parseInt(v, 10) : 0;
-    return n;
+    return v ? parseInt(v, 10) : 0;
   },
 
   setStars(taskId, stars) {
-    const clamped = Math.max(1, Math.min(MAX_STARS, stars)); // минимум 1
+    const clamped = Math.max(1, Math.min(MAX_STARS, stars));
     const current = this.getStars(taskId);
-    console.log('[progress] setStars:', taskId, '| current:', current, '→ new:', clamped);
     if (clamped > current) {
       localStorage.setItem(STAR_KEY(taskId), String(clamped));
-      console.log('[progress] SAVED:', taskId, '=', clamped);
-    } else {
-      console.log('[progress] not saved (current >= new)');
     }
   },
 
   sumStars(taskIds) {
-    const total = taskIds.reduce((sum, id) => sum + this.getStars(id), 0);
-    return total;
+    return taskIds.reduce((sum, id) => sum + this.getStars(id), 0);
   },
 
   maxStars(taskIds) {
@@ -77,15 +70,57 @@ export const progress = {
   reset() {
     localStorage.removeItem(KEY);
     Object.keys(localStorage)
-      .filter((k) => k.startsWith('task_') && k.endsWith('_stars_v8'))
+      .filter((k) => k.startsWith('task_') && k.endsWith('_stars_v9'))
       .forEach((k) => localStorage.removeItem(k));
   },
+};
 
-  debug() {
-    console.log('=== SOLVED ===');
-    console.log(this.getSolved());
-    console.log('=== STARS ===');
-    const starsKeys = Object.keys(localStorage).filter(k => k.includes('stars_v8'));
-    starsKeys.forEach(k => console.log(k, '=', localStorage.getItem(k)));
+// === ПРИЗЫ ===
+const REWARD_KEY = 'rewards_v1';
+
+export const rewards = {
+  getUnlocked() {
+    try {
+      const raw = localStorage.getItem(REWARD_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  },
+  isUnlocked(id) {
+    return this.getUnlocked().includes(id);
+  },
+  unlock(id) {
+    const arr = this.getUnlocked();
+    if (!arr.includes(id)) {
+      arr.push(id);
+      localStorage.setItem(REWARD_KEY, JSON.stringify(arr));
+      return true;
+    }
+    return false;
   },
 };
+
+// === ПРОВЕРКА ЗАВЕРШЕНИЯ JUNIOR ===
+export async function isJuniorComplete() {
+  try {
+    const base = import.meta.env.BASE_URL + 'tasks/junior/';
+    const res = await fetch(base + 'index.json');
+    const worldIdx = await res.json();
+
+    // Собираем все задачи junior
+    for (const ch of worldIdx.chapters || []) {
+      try {
+        const chRes = await fetch(base + ch.id + '/index.json');
+        if (!chRes.ok) continue;
+        const chData = await chRes.json();
+        const ids = (chData.tasks || []).map((x) =>
+          progress.makeId('junior/' + ch.id + '/' + x)
+        );
+        // Если хоть одна не решена — false
+        if (!ids.every((id) => progress.isSolved(id))) return false;
+      } catch (e) {}
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}

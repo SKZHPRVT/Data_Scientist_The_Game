@@ -1395,3 +1395,141 @@ textarea {
   border-radius: 4px;
   line-height: 1.5;
 }
+
+/* ===== ПРИЗ (попап) ===== */
+.reward-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reward-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+}
+.reward-panel {
+  position: relative;
+  width: 90%;
+  max-width: 420px;
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  font-family: var(--font-mono);
+  color: var(--fg);
+  box-shadow: 0 0 40px rgba(0, 255, 65, 0.3);
+  animation: rewardPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes rewardPop {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.reward-crown {
+  font-size: 64px;
+  margin-bottom: 8px;
+  animation: crownPulse 1.5s ease-in-out infinite;
+}
+@keyframes crownPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.reward-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.reward-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg);
+  margin-bottom: 16px;
+}
+.reward-wallpaper-preview {
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--fg-dim);
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+}
+.reward-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.reward-btn:hover { background: #00dd33; }
+.reward-btn-secondary {
+  background: transparent;
+  color: var(--fg-dim);
+  border: 1px solid var(--fg-dim);
+  font-weight: 400;
+}
+.reward-btn-secondary:hover { background: rgba(255,255,255,0.05); }
+
+/* ===== ФИНАЛ JUNIOR ===== */
+.finale-view {
+  font-family: var(--font-mono);
+  color: var(--fg);
+  text-align: center;
+  padding: 20px;
+}
+.finale-icon {
+  font-size: 72px;
+  margin-bottom: 8px;
+  animation: crownPulse 1.5s ease-in-out infinite;
+}
+.finale-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+.finale-body {
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: left;
+  padding: 16px;
+  background: rgba(0, 255, 65, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  margin-bottom: 20px;
+}
+.finale-key {
+  font-size: 56px;
+  margin: 16px 0 4px;
+  animation: crownPulse 1.5s ease-in-out infinite;
+}
+.finale-key-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--warn);
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+}
+.finale-actions { display: flex; flex-direction: column; }
+
+/* ===== Папки «Скоро» ===== */
+.quest-item.soon {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-style: dashed;
+}

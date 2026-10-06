@@ -9,18 +9,21 @@ import { Progress } from '../settings/Progress.js';
 import { TaskView } from '../task/TaskView.js';
 import { QuestMap } from '../quest/QuestMap.js';
 import { GroupMap } from '../quest/GroupMap.js';
+import { showRewardPopup } from '../rewards/RewardPopup.js';
+import { JuniorFinale } from '../rewards/JuniorFinale.js';
 import { storage } from '../../core/storage.js';
-import { progress } from '../../core/progress.js';
+import { progress, rewards, isJuniorComplete } from '../../core/progress.js';
+import { CHAPTER_REWARDS } from '../../core/rewards.js';
 import { t } from '../../i18n/index.js';
 
 const CHEAT_HINTS = {
-  basics: { code: 'FILTER', text: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER' },
-  cleaning: { code: 'CLEAN', text: 'Ты чистюля. И слово подходящее. Код: CLEAN' },
-  grouping: { code: 'CONNECT', text: 'Связующий — тот, кто соединяет. Код: CONNECT' },
-  merging: { code: 'DIVIDE', text: 'Разделяй — и понимай. Код: DIVIDE' },
-  datetime: { code: 'COFFEE', text: 'Даты и время... до 3 ночи... Код: COFFEE' },
-  strings: { code: 'NAN', text: 'Тексты и пропуски. Слово из 3 букв. Код: NAN' },
-  bosses: { code: 'OVERFIT', text: 'Идеальный на трейне — но не на тесте. Код: OVERFIT' },
+  basics: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER',
+  cleaning: 'Ты чистюля. И слово подходящее. Код: CLEAN',
+  grouping: 'Связующий — тот, кто соединяет. Код: CONNECT',
+  merging: 'Разделяй — и понимай. Код: DIVIDE',
+  datetime: 'Даты и время... до 3 ночи... Код: COFFEE',
+  strings: 'Тексты и пропуски. Слово из 3 букв. Код: NAN',
+  bosses: 'Идеальный на трейне — но не на тесте. Код: OVERFIT',
 };
 
 export class Desktop {
@@ -33,14 +36,10 @@ export class Desktop {
 
     window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
     window.addEventListener('open-task', (e) => this.openTaskByPath(e.detail));
-    window.addEventListener('lang-change', () => {
-      // Перерисовываем рабочий стол
-      this._rerender();
-    });
+    window.addEventListener('lang-change', () => this._rerender());
   }
 
   _rerender() {
-    // Закрываем все окна
     this.windows.windows.forEach((_, id) => this.windows.close(id));
     this.startMenu?.destroy();
     this.startMenu = null;
@@ -48,7 +47,10 @@ export class Desktop {
     this.render();
   }
 
-  render() {
+  async render() {
+    // Проверяем, завершён ли junior
+    const juniorDone = await isJuniorComplete();
+
     this.root.innerHTML = `
       <div class="desktop" id="desktop">
         <div class="desktop-icons" id="icons"></div>
@@ -58,7 +60,7 @@ export class Desktop {
     const wpId = storage.get('wallpaper', 'default');
     applyWallpaper(wpId);
 
-    this.renderIcons();
+    this.renderIcons(juniorDone);
 
     this.taskbar = new Taskbar(this.root, {
       onStart: () => this.toggleStartMenu(),
@@ -69,6 +71,11 @@ export class Desktop {
     });
     this.taskbar.render();
 
+    // Показываем финал Junior, если завершён и ещё не видел
+    if (juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
+      setTimeout(() => this._showJuniorFinale(), 800);
+    }
+
     setTimeout(() => {
       const solved = progress.getSolved();
       if (solved.length === 0) {
@@ -78,15 +85,23 @@ export class Desktop {
     }, 400);
   }
 
-  renderIcons() {
+  renderIcons(juniorDone = false) {
     const icons = document.getElementById('icons');
     const items = [
-      { icon: '🎯', label: t('desktop_junior'), action: () => this.openGroupMap('junior') },
-      { icon: '📁', label: t('desktop_sandbox'), action: () => this.openSandbox() },
-      { icon: '📄', label: t('desktop_readme'), action: () => this.openReadme() },
-      { icon: '🐍', label: t('desktop_gamepy'), action: () => this.runGamePy() },
-      { icon: '⌨️', label: t('desktop_terminal'), action: () => this.openTerminal() },
+      { icon: '🎯', label: 'JUNIOR', action: () => this.openGroupMap('junior') },
     ];
+
+    // MIDDLE — только если junior пройден
+    if (juniorDone) {
+      items.push({ icon: '🚀', label: 'MIDDLE', action: () => this.openGroupMap('middle') });
+    }
+
+    items.push(
+      { icon: '📁', label: 'SANDBOX', action: () => this.openSandbox() },
+      { icon: '📄', label: 'README.txt', action: () => this.openReadme() },
+      { icon: '🐍', label: 'game.py', action: () => this.runGamePy() },
+      { icon: '⌨️', label: 'Терминал', action: () => this.openTerminal() },
+    );
 
     icons.innerHTML = items
       .map((item, i) => `
@@ -119,20 +134,37 @@ export class Desktop {
     this.startMenu.render();
   }
 
+  _showJuniorFinale() {
+    rewards.unlock('junior_finale_shown');
+    const finale = new JuniorFinale({
+      onStartMiddle: () => {
+        this.windows.close('junior-finale');
+        this.openGroupMap('middle');
+      },
+    });
+    this.windows.create({
+      id: 'junior-finale',
+      title: '🎉 Junior завершён',
+      content: finale.render(),
+      onMount: (body) => finale.mount(body),
+      width: 500,
+      height: 620,
+    });
+  }
+
   openSandbox() {
     this.windows.create({
       id: 'sandbox',
-      title: '🧪 ' + t('desktop_sandbox'),
+      title: '🧪 SANDBOX',
       content: `
         <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
-          <p style="font-size: 16px; color: var(--accent); font-weight: 700;">${t('sandbox_title')}</p>
-          <p style="margin-top: 16px;">${t('sandbox_desc')}</p>
-          <p style="margin-top: 12px; color: var(--fg-dim);">${t('sandbox_soon')}</p>
-          <p>${t('sandbox_item1')}</p>
-          <p>${t('sandbox_item2')}</p>
-          <p>${t('sandbox_item3')}</p>
-          <p>${t('sandbox_item4')}</p>
-          <p style="margin-top: 16px;">${t('sandbox_use_terminal')}</p>
+          <p style="font-size: 16px; color: var(--accent); font-weight: 700;">🧪 Песочница</p>
+          <p style="margin-top: 16px;">Здесь можно экспериментировать с pandas без заданий и таймера.</p>
+          <p style="margin-top: 12px; color: var(--fg-dim);">Функционал в разработке. Скоро:</p>
+          <p>• Свободный ввод pandas-команд</p>
+          <p>• Свой CSV-датасет</p>
+          <p>• Сохранение скриптов</p>
+          <p>• Графики (plotly)</p>
         </div>
       `,
       width: 480,
@@ -154,13 +186,12 @@ export class Desktop {
     const win = this.windows.create({
       id: oldId,
       title: '🎯 ' + worldId.toUpperCase(),
-      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">${t('progress_loading')}</div>`,
+      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
       width: 520,
       height: 660,
     });
 
     win._questMap = map;
-    win._mapType = 'group';
     win._worldId = worldId;
 
     try {
@@ -202,13 +233,12 @@ export class Desktop {
     const win = this.windows.create({
       id: oldId,
       title: '🗺 ' + chapterId.split('/').pop(),
-      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">${t('progress_loading')}</div>`,
+      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
       width: 520,
       height: 660,
     });
 
     win._questMap = map;
-    win._mapType = 'chapter';
     win._chapterId = chapterId;
 
     try {
@@ -240,7 +270,7 @@ export class Desktop {
     const term = new Terminal();
     this.windows.create({
       id: 'terminal',
-      title: '⌨️ ' + t('desktop_terminal'),
+      title: '⌨️ Терминал',
       content: term.render(),
       onMount: (body) => term.mount(body),
       width: 640,
@@ -315,6 +345,7 @@ export class Desktop {
 
     let tasks = [];
     let chapterComplete = false;
+    let chapterPerfect = false;
     try {
       const idxUrl = import.meta.env.BASE_URL + 'tasks/' + chapterId + '/index.json';
       const res = await fetch(idxUrl);
@@ -324,6 +355,7 @@ export class Desktop {
       const solvedList = progress.getSolved();
       const solved = ids.filter((id) => solvedList.includes(id));
       chapterComplete = ids.length > 0 && solved.length >= ids.length;
+      chapterPerfect = ids.length > 0 && ids.every((id) => progress.getStars(id) === 4);
     } catch (e) {}
 
     const currentIdx = tasks.indexOf(currentFile);
@@ -331,8 +363,25 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
-    if (chapterComplete) {
-      // Показываем намёк на чит-код
+    // Если папка пройдена идеально — показываем приз
+    if (chapterComplete && chapterPerfect) {
+      const chId = chapterId.split('/').pop();
+      const reward = CHAPTER_REWARDS[chId];
+      if (reward && !rewards.isUnlocked('chapter_' + chId)) {
+        rewards.unlock('chapter_' + chId);
+        // Открываем ачивку
+        if (reward.achievement) {
+          const ach = new Achievements();
+          ach.unlock(reward.achievement);
+        }
+        setTimeout(() => {
+          showRewardPopup(reward, (wpId) => applyWallpaper(wpId));
+        }, 500);
+      }
+    }
+
+    // Если папка пройдена (не идеально) — намёк на чит-код
+    if (chapterComplete && !chapterPerfect) {
       const chId = chapterId.split('/').pop();
       const hint = CHEAT_HINTS[chId];
       if (hint) {
@@ -343,8 +392,8 @@ export class Desktop {
             content: `
               <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
                 <p style="color: var(--warn); font-size: 15px; font-weight: 700;">🗝 НАМЁК НА ЧИТ-КОД</p>
-                <p style="margin-top: 16px;">${hint.text}</p>
-                <p style="margin-top: 16px; color: var(--fg-dim);">Открой <strong>Пуск → 🗝 Чит-коды</strong> и введи этот код.</p>
+                <p style="margin-top: 16px;">${hint}</p>
+                <p style="margin-top: 16px; color: var(--fg-dim);">Открой <strong>Пуск → 🗝 Чит-коды</strong> и введи код.</p>
               </div>
             `,
             width: 440,
@@ -352,12 +401,27 @@ export class Desktop {
           });
         }, 800);
       }
+    }
 
+    // Переход дальше
+    if (chapterComplete) {
       const groupWin = this.windows.windows.get('groupmap-' + worldId);
       if (groupWin) {
         groupWin.style.zIndex = ++this.windows.zIndex;
       } else {
         setTimeout(() => this.openGroupMap(worldId), 300);
+      }
+
+      // Проверяем, завершён ли мир
+      if (worldId === 'junior') {
+        const done = await isJuniorComplete();
+        if (done && !rewards.isUnlocked('junior_finale_shown')) {
+          setTimeout(() => this._showJuniorFinale(), 2000);
+        }
+        // Перерисовываем иконки, чтобы появился MIDDLE
+        if (done) {
+          setTimeout(() => this._rerender(), 2500);
+        }
       }
     } else if (nextFile) {
       const nextPath = '/' + chapterId + '/' + nextFile;
@@ -368,11 +432,11 @@ export class Desktop {
   }
 
   openReadme() {
-    let content = t('readme_title');
+    let content = 'README.txt';
     try { content = window.__fs.readFile('/README.txt'); } catch (e) {}
     this.windows.create({
       id: 'readme',
-      title: '📄 ' + t('desktop_readme'),
+      title: '📄 README.txt',
       content: `<div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg); white-space: pre-wrap;">${content}</div>`,
       width: 480,
       height: 360,
@@ -382,15 +446,15 @@ export class Desktop {
   runGamePy() {
     this.windows.create({
       id: 'gamepy',
-      title: '🐍 ' + t('desktop_gamepy'),
+      title: '🐍 game.py',
       content: `
         <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
           <p class="terminal-success">$ python game.py</p>
-          <p style="margin-top: 16px;">${t('gamepy_title')}</p>
-          <p style="margin-top: 12px;">${t('gamepy_line1')}</p>
-          <p style="margin-top: 12px;">${t('gamepy_line2')}</p>
-          <p style="margin-top: 16px;">${t('gamepy_line3')}</p>
-          <p style="margin-top: 16px;"><button class="taskbar-btn active" id="start-btn">${t('gamepy_start')}</button></p>
+          <p style="margin-top: 16px;">Привет.</p>
+          <p style="margin-top: 12px;">Ты — джун в DS-отделе.</p>
+          <p style="margin-top: 12px;">Цель: пройти junior, получить ключ в middle.</p>
+          <p style="margin-top: 16px;">Начни с карты JUNIOR.</p>
+          <p style="margin-top: 16px;"><button class="taskbar-btn active" id="start-btn">[ НАЧАТЬ → ]</button></p>
         </div>
       `,
       width: 520,
@@ -407,7 +471,7 @@ export class Desktop {
     const progressView = new Progress();
     this.windows.create({
       id: 'progress',
-      title: '📊 ' + t('taskbar_progress'),
+      title: '📊 Прогресс',
       content: progressView.render(),
       onMount: (body) => progressView.mount(body),
       width: 520,
@@ -419,7 +483,7 @@ export class Desktop {
     const ach = new Achievements({ mode: 'achievements' });
     this.windows.create({
       id: 'achievements',
-      title: '🏆 ' + t('taskbar_achievements'),
+      title: '🏆 Ачивки',
       content: ach.render(),
       onMount: (body) => ach.mount(body),
       width: 520,
@@ -431,7 +495,7 @@ export class Desktop {
     const ach = new Achievements({ mode: 'cheats' });
     this.windows.create({
       id: 'cheats',
-      title: '🗝 ' + t('cheats_title'),
+      title: '🗝 Чит-коды',
       content: ach.render(),
       onMount: (body) => ach.mount(body),
       width: 520,
@@ -443,7 +507,7 @@ export class Desktop {
     const settings = new Settings(this);
     this.windows.create({
       id: 'settings',
-      title: '⚙️ ' + t('settings_title'),
+      title: '⚙️ Настройки',
       content: settings.render(),
       onMount: (body) => settings.mount(body),
       width: 480,

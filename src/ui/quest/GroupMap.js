@@ -19,7 +19,7 @@ export class GroupMap {
         const chUrl = import.meta.env.BASE_URL + 'tasks/' + this.worldId + '/' + ch.id + '/index.json';
         const chRes = await fetch(chUrl);
         if (!chRes.ok) {
-          this.chapterStats[ch.id] = { solved: 0, total: 0, stars: 0, maxStars: 0, ids: [] };
+          this.chapterStats[ch.id] = { solved: 0, total: 0, stars: 0, maxStars: 0, ids: [], soon: true };
           continue;
         }
         const chData = await chRes.json();
@@ -29,9 +29,10 @@ export class GroupMap {
         const solved = ids.filter((id) => progress.isSolved(id)).length;
         const stars = progress.sumStars(ids);
         const maxStars = progress.maxStars(ids);
-        this.chapterStats[ch.id] = { solved, total: ids.length, stars, maxStars, ids };
+        const soon = ids.length === 0; // пустая папка = скоро
+        this.chapterStats[ch.id] = { solved, total: ids.length, stars, maxStars, ids, soon };
       } catch (e) {
-        this.chapterStats[ch.id] = { solved: 0, total: 0, stars: 0, maxStars: 0, ids: [] };
+        this.chapterStats[ch.id] = { solved: 0, total: 0, stars: 0, maxStars: 0, ids: [], soon: true };
       }
     }
   }
@@ -47,7 +48,7 @@ export class GroupMap {
   }
 
   render() {
-    if (!this.data) return `<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>`;
+    if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
 
     const totalStars = Object.values(this.chapterStats).reduce((s, c) => s + c.stars, 0);
     const totalMax = Object.values(this.chapterStats).reduce((s, c) => s + c.maxStars, 0);
@@ -68,7 +69,7 @@ export class GroupMap {
 
         <div class="quest-list">
           ${this.data.chapters.map((ch) => {
-            const stats = this.chapterStats[ch.id] || { solved: 0, total: 0, stars: 0, maxStars: 0 };
+            const stats = this.chapterStats[ch.id] || { solved: 0, total: 0, stars: 0, maxStars: 0, soon: true };
             const unlocked = this._isChapterUnlocked(ch);
             const complete = stats.total > 0 && stats.solved >= stats.total;
             const perfect = stats.maxStars > 0 && stats.stars >= stats.maxStars;
@@ -77,7 +78,9 @@ export class GroupMap {
             let cls = 'locked';
             let sub = 'Сначала закрой предыдущую';
 
-            if (!unlocked) {
+            if (stats.soon) {
+              status = '🚧'; cls = 'locked soon'; sub = 'Скоро';
+            } else if (!unlocked) {
               status = '🔒'; cls = 'locked'; sub = 'Сначала закрой предыдущую';
             } else if (perfect) {
               status = '🏆'; cls = 'solved perfect'; sub = `${stats.solved}/${stats.total} · ${stats.stars}/${stats.maxStars} ⭐`;

@@ -1,0 +1,13 @@
+{
+  "id": "senior",
+  "title": "SENIOR",
+  "icon": "👑",
+  "description": "Мир архитектора. Дебаг, продукт, менторство",
+  "chapters": [
+    { "id": "incidents", "title": "Инциденты", "icon": "🚨", "description": "Прод упал — разбирайся", "unlockAfter": null },
+    { "id": "research", "title": "Исследования", "icon": "🔬", "description": "Новые методы", "unlockAfter": "incidents" },
+    { "id": "mentoring", "title": "Менторство", "icon": "👥", "description": "Обучение других", "unlockAfter": "research" },
+    { "id": "architecture", "title": "Архитектура", "icon": "🏗️", "description": "Проектирование систем", "unlockAfter": "mentoring" },
+    { "id": "final", "title": "Финал", "icon": "👑", "description": "Защита проекта", "unlockAfter": "architecture" }
+  ]
+}

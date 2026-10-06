@@ -1,0 +1,14 @@
+{
+  "id": "middle",
+  "title": "MIDDLE",
+  "icon": "🚀",
+  "description": "Мир инженера. Строим пайплайны, обучаем модели",
+  "chapters": [
+    { "id": "pipelines", "title": "Пайплайны", "icon": "🔧", "description": "Автоматизация обработки", "unlockAfter": null },
+    { "id": "features", "title": "Фичи", "icon": "🎨", "description": "Feature engineering", "unlockAfter": "pipelines" },
+    { "id": "models", "title": "Модели", "icon": "🧠", "description": "Обучение и подбор", "unlockAfter": "features" },
+    { "id": "eval", "title": "Метрики", "icon": "📏", "description": "Оценка качества", "unlockAfter": "models" },
+    { "id": "experiments", "title": "Эксперименты", "icon": "🧪", "description": "A/B тесты", "unlockAfter": "eval" },
+    { "id": "bosses", "title": "Боссы", "icon": "👹", "description": "Сложные задачи", "unlockAfter": "experiments" }
+  ]
+}
