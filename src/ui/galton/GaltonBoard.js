@@ -8,16 +8,17 @@ export class GaltonBoard {
     this.bins = [];
     this.pegs = [];
     this.animId = null;
-    this.numPegRows = 9;
-    this.numBins = 10;
-    this.spawnInterval = 100;
+    this.numPegRows = 10;
+    this.numBins = 11;
+    this.spawnInterval = 80;
     this.lastSpawn = 0;
     this.ballRadius = 4;
     this.pegRadius = 3;
     this.color = '#00ff41';
     this.bg = '#000';
     this.totalBalls = 0;
-    this.maxBalls = 400;
+    this.maxBalls = 500;
+    this.pegSpacing = 0;
   }
 
   render() {
@@ -69,7 +70,8 @@ export class GaltonBoard {
     const startY = 60;
     const endY = this.height - 100;
     const rowHeight = (endY - startY) / (this.numPegRows + 1);
-    const pegSpacing = this.width / (this.numPegRows + 1);
+    const pegSpacing = this.width / (this.numPegRows + 2);
+    this.pegSpacing = pegSpacing;
 
     for (let row = 0; row < this.numPegRows; row++) {
       const numPegs = row + 1;
@@ -88,10 +90,10 @@ export class GaltonBoard {
     this.bins = [];
     const binY = this.height - 60;
     const binSpacing = this.width / this.numBins;
-    const binWidth = binSpacing - 6;
+    const binWidth = binSpacing - 4;
     for (let i = 0; i < this.numBins; i++) {
       this.bins.push({
-        x: i * binSpacing + 3,
+        x: i * binSpacing + 2,
         y: binY,
         w: binWidth,
         h: 0,
@@ -115,7 +117,7 @@ export class GaltonBoard {
             const bdx = ball.x - peg.x;
             const bdy = ball.y - peg.y;
             if (bdx * bdx + bdy * bdy < 900) {
-              ball.vx += (Math.random() - 0.5) * 2;
+              ball.vx += (Math.random() - 0.5) * 1.5;
             }
           }
           if (window.__audio) window.__audio.key('normal');
@@ -130,14 +132,15 @@ export class GaltonBoard {
 
   _spawnBall() {
     if (this.balls.length >= this.maxBalls) return;
-    const startX = this.width / 2 + (Math.random() - 0.5) * 4;
+    const startX = this.width / 2 + (Math.random() - 0.5) * 2;
     this.balls.push({
       x: startX,
       y: 20,
-      vx: 0,
-      vy: 1.5 + Math.random() * 0.5,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: 1.5,
       r: this.ballRadius,
       trail: [],
+      lastPeg: null,
     });
     this.totalBalls++;
     const countEl = document.getElementById('galton-count');
@@ -145,39 +148,67 @@ export class GaltonBoard {
   }
 
   _updateBall(ball) {
-    ball.vy += 0.15;
-    ball.vy = Math.min(ball.vy, 6);
-    ball.vx *= 0.98;
+    // Гравитация
+    ball.vy += 0.12;
+    ball.vy = Math.min(ball.vy, 4.5);
+    // Затухание vx
+    ball.vx *= 0.94;
 
+    // Проверка столкновений с колышками
     for (const peg of this.pegs) {
       const dx = ball.x - peg.x;
       const dy = ball.y - peg.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const minDist = peg.r + ball.r + 1;
-      if (dist < minDist && dist > 0) {
+      const distSq = dx * dx + dy * dy;
+      const minDist = peg.r + ball.r;
+      const minDistSq = minDist * minDist;
+
+      if (distSq < minDistSq && distSq > 0 && ball.lastPeg !== peg) {
+        const dist = Math.sqrt(distSq);
         const nx = dx / dist;
         const ny = dy / dist;
+
+        // Отталкивание по нормали
         const overlap = minDist - dist;
         ball.x += nx * overlap;
         ball.y += ny * overlap;
-        const dir = Math.random() < 0.5 ? -1 : 1;
-        ball.vx += dir * (1.5 + Math.random() * 0.8);
-        ball.vy *= 0.7;
+
+        // Отражаем скорость по нормали (с потерей энергии)
+        const dot = ball.vx * nx + ball.vy * ny;
+        ball.vx -= 1.5 * dot * nx;
+        ball.vy -= 1.5 * dot * ny;
+
+        // МАЛЕНЬКОЕ случайное отклонение влево/вправо — вот ключ к нормальному распределению
+        ball.vx += (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.4);
+
+        // Замедление по вертикали при столкновении
+        ball.vy *= 0.65;
+
+        ball.lastPeg = peg;
       }
     }
 
+    // Если шар уже далеко от всех колышек — сбрасываем lastPeg
+    if (ball.lastPeg) {
+      const dx = ball.x - ball.lastPeg.x;
+      const dy = ball.y - ball.lastPeg.y;
+      if (dx * dx + dy * dy > 400) ball.lastPeg = null;
+    }
+
+    // Движение
     ball.x += ball.vx;
     ball.y += ball.vy;
 
-    if (ball.x < ball.r) { ball.x = ball.r; ball.vx = -ball.vx * 0.5; }
-    if (ball.x > this.width - ball.r) { ball.x = this.width - ball.r; ball.vx = -ball.vx * 0.5; }
+    // Границы по X
+    if (ball.x < ball.r) { ball.x = ball.r; ball.vx = Math.abs(ball.vx) * 0.5; }
+    if (ball.x > this.width - ball.r) { ball.x = this.width - ball.r; ball.vx = -Math.abs(ball.vx) * 0.5; }
 
+    // Достигла низа — попадает в бин
     if (ball.y > this.height - 60) {
       const binIndex = Math.floor(ball.x / (this.width / this.numBins));
       if (binIndex >= 0 && binIndex < this.bins.length) {
         const bin = this.bins[binIndex];
         bin.count++;
-        bin.h = Math.min(bin.h + 3, this.height - 120);
+        bin.h = Math.min(bin.h + 2, this.height - 120);
       }
       return false;
     }
@@ -197,6 +228,7 @@ export class GaltonBoard {
     this.ctx.fillStyle = this.bg;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
+    // Колышки
     for (const peg of this.pegs) {
       const brightness = peg.glow > 0 ? 1 : 0.5;
       this.ctx.fillStyle = `rgba(0, 255, 65, ${brightness})`;
@@ -206,6 +238,7 @@ export class GaltonBoard {
       peg.glow *= 0.9;
     }
 
+    // Бины (гистограмма)
     for (const bin of this.bins) {
       const y = bin.y - bin.h;
       this.ctx.fillStyle = 'rgba(0, 255, 65, 0.4)';
@@ -221,9 +254,10 @@ export class GaltonBoard {
       }
     }
 
+    // Шары
     for (const ball of this.balls) {
       ball.trail.push({ x: ball.x, y: ball.y });
-      if (ball.trail.length > 8) ball.trail.shift();
+      if (ball.trail.length > 6) ball.trail.shift();
 
       for (let i = 0; i < ball.trail.length; i++) {
         const t = ball.trail[i];
@@ -239,11 +273,12 @@ export class GaltonBoard {
       this.ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
       this.ctx.fill();
       this.ctx.shadowColor = '#00ff41';
-      this.ctx.shadowBlur = 8;
+      this.ctx.shadowBlur = 6;
       this.ctx.fill();
       this.ctx.shadowBlur = 0;
     }
 
+    // Заголовок
     this.ctx.fillStyle = 'rgba(0, 255, 65, 0.5)';
     this.ctx.font = '12px monospace';
     this.ctx.textAlign = 'center';

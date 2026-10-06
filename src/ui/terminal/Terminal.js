@@ -9,6 +9,7 @@ export class Terminal {
     this._keyboardUnsub = null;
     this._resizeObserver = null;
     this._wasAtBottom = true;
+    this._originalHeight = null;
   }
 
   render() {
@@ -30,21 +31,35 @@ export class Terminal {
       this._wasAtBottom = dist < 30;
     });
 
+    // Слушаем клавиатуру
     if (window.__keyboard) {
       this._keyboardUnsub = window.__keyboard.onKeyboardChange((isOpen, offset) => {
         document.body.classList.toggle('keyboard-open', isOpen);
 
+        const win = body.closest('.window');
+        if (!win) return;
+
         if (isOpen) {
-          const win = body.closest('.window');
-          if (win) {
-            const rect = win.getBoundingClientRect();
-            const vh = window.innerHeight;
-            const taskbarH = 44;
-            const newHeight = vh - offset - rect.top - taskbarH - 4;
-            win.style.height = Math.max(200, newHeight) + 'px';
+          // Сохраняем оригинальную высоту ОДИН раз
+          if (this._originalHeight === null) {
+            this._originalHeight = win.getBoundingClientRect().height;
+          }
+
+          // Уменьшаем окно — низ прижимается к клавиатуре
+          const rect = win.getBoundingClientRect();
+          const vh = window.innerHeight;
+          const taskbarH = 44;
+          const newHeight = vh - offset - rect.top - taskbarH - 4;
+          win.style.height = Math.max(200, newHeight) + 'px';
+        } else {
+          // Восстанавливаем оригинальную высоту
+          if (this._originalHeight !== null) {
+            win.style.height = this._originalHeight + 'px';
+            this._originalHeight = null;
           }
         }
 
+        // Прокрутка
         setTimeout(() => {
           if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
         }, 50);
