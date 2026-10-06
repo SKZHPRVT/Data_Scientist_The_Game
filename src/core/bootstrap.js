@@ -1,4 +1,5 @@
 import { parseCSV } from './virtualdf.js';
+import { ModelsLab } from './models.js';
 
 export async function bootstrapFS() {
   const fs = window.__fs;
@@ -32,6 +33,7 @@ export async function bootstrapFS() {
   fs.mkdir('/baby/columns_rows');
   fs.mkdir('/baby/what_is_ds');
   fs.mkdir('/baby/first_step');
+  fs.mkdir('/models');
   fs.mkdir('/sandbox');
 
   // Загружаем статические файлы
@@ -67,4 +69,17 @@ export async function bootstrapFS() {
   } catch (e) {
     console.warn('[FS] CSV не загружен', e.message);
   }
+}
+
+// Загрузка лаборатории моделей (данные, без UI)
+export async function bootstrapModels() {
+  try {
+    window.__models = await new ModelsLab().load();
+    const familyCount = Object.keys(window.__models.families).length;
+    console.log('[Models] Загружено семейств:', familyCount);
+  } catch (e) {
+    console.warn('[Models] Ошибка загрузки:', e.message);
+    window.__models = null;
+  }
+  return window.__models;
 }

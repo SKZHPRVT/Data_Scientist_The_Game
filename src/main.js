@@ -1,6 +1,6 @@
 import './ui/styles.css';
 import './core/fs.js';
-import { bootstrapFS } from './core/bootstrap.js';
+import { bootstrapFS, bootstrapModels } from './core/bootstrap.js';
 import { Desktop } from './ui/desktop/Desktop.js';
 import { TelegramSDK } from './core/telegram.js';
 import { KeyboardHandler } from './core/keyboard.js';
@@ -39,6 +39,7 @@ window.addEventListener('error', (e) => {
 async function start() {
   showLoading();
   await bootstrapFS();
+  await bootstrapModels();
 
   const tg = new TelegramSDK();
   tg.init();
