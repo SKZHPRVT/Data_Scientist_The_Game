@@ -60,11 +60,29 @@ export class Desktop {
   }
 
   _rerender() {
-    this.windows.windows.forEach((_, id) => this.windows.close(id));
+    this._closeAllMapWindows();
+    this._closeAllTaskWindows();
     this.startMenu?.destroy();
     this.startMenu = null;
     this.root.innerHTML = '';
     this.render();
+  }
+
+  // ============================================
+  // ЗАКРЫТИЕ ВСЕХ КАРТ И ЗАДАЧ
+  // ============================================
+  _closeAllMapWindows() {
+    this.windows.windows.forEach((_, id) => {
+      if (id.startsWith('questmap-') || id.startsWith('groupmap-') || id === 'questmap' || id === 'groupmap') {
+        this.windows.close(id);
+      }
+    });
+  }
+
+  _closeAllTaskWindows() {
+    this.windows.windows.forEach((_, id) => {
+      if (id.startsWith('task-')) this.windows.close(id);
+    });
   }
 
   async render() {
@@ -174,20 +192,43 @@ export class Desktop {
     });
   }
 
+  // ============================================
+  // GATE MIDDLE/SENIOR
+  // ============================================
   async openWorldGate(worldId) {
+    // Обновляем флаги перед проверкой
+    this.juniorDone = isDevUnlockAll() ? true : await isJuniorComplete();
+    this.middleDone = isDevUnlockAll() ? true : await isMiddleComplete();
+    this.seniorDone = isDevUnlockAll() ? true : await isSeniorComplete();
+
     if (isDevUnlockAll()) {
       this.openGroupMap(worldId);
       return;
     }
-    if (worldId === 'middle' && this.juniorDone) {
-      this.openGroupMap('middle');
+
+    // MIDDLE — если junior пройден
+    if (worldId === 'middle') {
+      if (this.juniorDone) {
+        this.openGroupMap('middle');
+      } else {
+        this._showGateTerminal('middle', this._getGateText('middle'));
+      }
       return;
     }
-    if (worldId === 'senior' && this.middleDone) {
-      this.openGroupMap('senior');
+
+    // SENIOR — если middle пройден
+    if (worldId === 'senior') {
+      if (this.middleDone) {
+        this.openGroupMap('senior');
+      } else {
+        this._showGateTerminal('senior', this._getGateText('senior'));
+      }
       return;
     }
-    const text = this._getGateText(worldId);
+  }
+
+  _showGateTerminal(worldId, text) {
+    this._closeAllMapWindows();
     this.windows.create({
       id: 'worldgate-' + worldId,
       title: '⚡ ' + worldId.toUpperCase() + '.gate',
@@ -202,20 +243,7 @@ export class Desktop {
   }
 
   _getGateText(worldId) {
-    const isJuniorDone = this.juniorDone;
-    const isMiddleDone = this.middleDone;
-
     if (worldId === 'middle') {
-      if (isJuniorDone) {
-        return [
-          { type: 'cmd', text: 'cd middle/' },
-          { type: 'ok', text: '✓ Доступ разрешён' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'MIDDLE — мир инженера.' },
-          { type: 'info', text: 'Тут строят пайплайны, обучают модели,' },
-          { type: 'info', text: 'считают метрики и дебажат прод.' },
-        ];
-      }
       return [
         { type: 'cmd', text: 'cd middle/' },
         { type: 'err', text: '✗ Permission denied' },
@@ -230,20 +258,14 @@ export class Desktop {
     }
 
     if (worldId === 'senior') {
-      if (isMiddleDone) {
-        return [
-          { type: 'cmd', text: 'cd senior/' },
-          { type: 'ok', text: '✓ Доступ разрешён' },
-          { type: 'info', text: '' },
-          { type: 'info', text: 'SENIOR — мир архитектора.' },
-        ];
-      }
       return [
         { type: 'cmd', text: 'cd senior/' },
         { type: 'err', text: '✗ Permission denied' },
         { type: 'err', text: 'ACCESS_DENIED: middle_not_complete' },
         { type: 'info', text: '' },
         { type: 'info', text: 'SENIOR — мир архитектора.' },
+        { type: 'info', text: 'Сюда приходят те, кто видел, как падает прод в 3 ночи.' },
+        { type: 'info', text: '' },
         { type: 'warn', text: '🔑 Требуется: пройти MIDDLE полностью.' },
       ];
     }
@@ -316,24 +338,29 @@ export class Desktop {
     setTimeout(printLine, 300);
   }
 
+  // ============================================
+  // КАРТА МИРА — ОДНО ОКНО
+  // ============================================
   async openGroupMap(worldId) {
-    const oldId = 'groupmap-' + worldId;
-    if (this.windows.windows.has(oldId)) {
-      this.windows.close(oldId);
-      await new Promise((r) => setTimeout(r, 100));
-    }
+    // Закрываем все карты
+    this._closeAllMapWindows();
+    await new Promise((r) => setTimeout(r, 60));
+
     const map = new GroupMap(worldId, {
       onOpenChapter: (chapterId) => this.openQuestMap(chapterId),
     });
+
     const win = this.windows.create({
-      id: oldId,
+      id: 'groupmap',
       title: '🎯 ' + (worldId === 'baby' ? 'BABY SCIENTIST' : worldId.toUpperCase()),
       content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
       width: 520,
       height: 660,
     });
+
     win._questMap = map;
     win._worldId = worldId;
+
     try {
       await map.load();
       const bodyEl = win.querySelector('.window-body');
@@ -349,8 +376,9 @@ export class Desktop {
   }
 
   async refreshGroupMap(worldId) {
-    const win = this.windows.windows.get('groupmap-' + worldId);
+    const win = this.windows.windows.get('groupmap');
     if (!win || !win._questMap) return;
+    if (win._worldId !== worldId) return;
     try {
       await win._questMap.load();
       const bodyEl = win.querySelector('.window-body');
@@ -359,24 +387,29 @@ export class Desktop {
     } catch (e) {}
   }
 
+  // ============================================
+  // КАРТА ГЛАВЫ — ОДНО ОКНО
+  // ============================================
   async openQuestMap(chapterId) {
-    const oldId = 'questmap-' + chapterId;
-    if (this.windows.windows.has(oldId)) {
-      this.windows.close(oldId);
-      await new Promise((r) => setTimeout(r, 100));
-    }
+    // Закрываем карту мира и другие карты глав
+    this._closeAllMapWindows();
+    await new Promise((r) => setTimeout(r, 60));
+
     const map = new QuestMap(chapterId, {
       onOpenTask: (path) => this.openTaskByPath(path),
     });
+
     const win = this.windows.create({
-      id: oldId,
+      id: 'questmap',
       title: '🗺 ' + chapterId.split('/').pop(),
       content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
       width: 520,
       height: 660,
     });
+
     win._questMap = map;
     win._chapterId = chapterId;
+
     try {
       await map.load();
       const bodyEl = win.querySelector('.window-body');
@@ -392,8 +425,9 @@ export class Desktop {
   }
 
   async refreshQuestMap(chapterId) {
-    const win = this.windows.windows.get('questmap-' + chapterId);
+    const win = this.windows.windows.get('questmap');
     if (!win || !win._questMap) return;
+    if (win._chapterId !== chapterId) return;
     try {
       await win._questMap.load();
       const bodyEl = win.querySelector('.window-body');
@@ -449,9 +483,7 @@ export class Desktop {
   }
 
   openTask(task) {
-    this.windows.windows.forEach((_, id) => {
-      if (id.startsWith('task-')) this.windows.close(id);
-    });
+    this._closeAllTaskWindows();
     const view = new TaskView(task, {
       onSolved: () => this._onTaskSolved(task._path),
     });
@@ -471,12 +503,11 @@ export class Desktop {
     const chapterId = parts.slice(0, -1).join('/');
     const currentFile = parts[parts.length - 1];
 
-    await this.refreshQuestMap(chapterId);
-    await this.refreshGroupMap(worldId);
+    // Закрываем задачу
+    this._closeAllTaskWindows();
 
-    this.windows.windows.forEach((_, id) => {
-      if (id.startsWith('task-')) this.windows.close(id);
-    });
+    // Обновляем карту главы (если открыта)
+    await this.refreshQuestMap(chapterId);
 
     let tasks = [];
     let chapterComplete = false;
@@ -498,6 +529,7 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
+    // Призы
     if (chapterComplete && chapterPerfect && worldId !== 'baby') {
       const chId = chapterId.split('/').pop();
       const reward = CHAPTER_REWARDS[chId];
@@ -513,6 +545,7 @@ export class Desktop {
       }
     }
 
+    // Намёк
     if (chapterComplete && !chapterPerfect && worldId !== 'baby') {
       const chId = chapterId.split('/').pop();
       const hint = CHEAT_HINTS[chId];
@@ -536,13 +569,10 @@ export class Desktop {
     }
 
     if (chapterComplete) {
-      const groupWin = this.windows.windows.get('groupmap-' + worldId);
-      if (groupWin) {
-        groupWin.style.zIndex = ++this.windows.zIndex;
-      } else {
-        setTimeout(() => this.openGroupMap(worldId), 300);
-      }
+      // Глава пройдена — обновляем карту мира
+      await this.refreshGroupMap(worldId);
 
+      // Обновляем флаги
       if (!isDevUnlockAll()) {
         if (worldId === 'baby') {
           const done = await isBabyComplete();
@@ -562,6 +592,12 @@ export class Desktop {
               setTimeout(() => this.renderIcons(), 500);
             }
           }
+        } else if (worldId === 'middle') {
+          const done = await isMiddleComplete();
+          if (done) {
+            this.middleDone = true;
+            setTimeout(() => this.renderIcons(), 500);
+          }
         } else if (worldId === 'senior') {
           const done = await isSeniorComplete();
           if (done) {
@@ -573,9 +609,11 @@ export class Desktop {
         }
       }
     } else if (nextFile) {
+      // Следующая задача
       const nextPath = '/' + chapterId + '/' + nextFile;
       setTimeout(() => this.openTaskByPath(nextPath), 250);
     } else {
+      // Fallback
       setTimeout(() => this.openQuestMap(chapterId), 300);
     }
   }
@@ -732,44 +770,26 @@ export class Desktop {
       { type: 'info', text: '2 ошибки — 2 звезды.' },
       { type: 'info', text: '3+ ошибки — 1 звезда.' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Собери 4 звезды во всех квестах папки —' },
-      { type: 'info', text: 'получишь награду: обои и ачивку.' },
-      { type: 'info', text: '' },
       { type: 'ok', text: '🔒 ПОСЛЕДОВАТЕЛЬНОСТЬ' },
       { type: 'info', text: 'Квесты открываются по очереди.' },
-      { type: 'info', text: 'Папки тоже — сначала basics, потом cleaning.' },
+      { type: 'info', text: 'Папки тоже.' },
       { type: 'info', text: 'Нельзя прыгнуть в middle, не пройдя junior.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
       { type: 'info', text: 'В каждой папке спрятан чит-код.' },
-      { type: 'info', text: 'Найдёшь — открой Пуск → Чит-коды.' },
       { type: 'info', text: 'Введи слово — получишь ачивку.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '🎲 GALTON BOARD' },
-      { type: 'info', text: 'На рабочем столе есть иконка GALTON.' },
-      { type: 'info', text: 'Открой её — увидишь, как работает случайность.' },
-      { type: 'info', text: 'Это визуализация нормального распределения.' },
+      { type: 'info', text: 'Иконка GALTON — визуализация случая.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '⌨️ ТЕРМИНАЛ' },
-      { type: 'info', text: 'Хочешь писать код по-настоящему —' },
-      { type: 'info', text: 'зайди в Терминал. Там можно ls, cd, cat.' },
-      { type: 'info', text: 'Для остальных — весь геймплей в квестах.' },
+      { type: 'info', text: 'Хочешь писать код — зайди в Терминал.' },
       { type: 'info', text: '' },
       { type: 'warn', text: '─── ЧТО ДАЛЬШЕ ───' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Пройдёшь baby — откроется JUNIOR.' },
-      { type: 'info', text: 'Пройдёшь junior — откроется MIDDLE:' },
-      { type: 'info', text: 'пайплайны, фичи, модели, метрики.' },
-      { type: 'info', text: '' },
-      { type: 'info', text: 'Пройдёшь middle — откроется SENIOR:' },
-      { type: 'info', text: 'инциденты в проде, архитектура, менторство.' },
-      { type: 'info', text: '' },
-      { type: 'info', text: 'Финал — стать Магистром Сигнала.' },
+      { type: 'info', text: 'baby → junior → middle → senior → Магистр.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '─── НАЧНЁМ ───' },
-      { type: 'info', text: '' },
-      { type: 'info', text: 'Открой карту BABY SCIENTIST или JUNIOR.' },
-      { type: 'info', text: 'Первый квест в junior — прочитать CSV.' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Удачи. Она тебе понадобится.' },
       { type: 'info', text: '' },
