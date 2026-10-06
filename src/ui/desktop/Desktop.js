@@ -416,6 +416,20 @@ export class Desktop {
   }
 
   async openGroupMap(worldId) {
+    // Если то же окно уже открыто — обновляем на месте
+    const existing = this.windows.windows.get('groupmap');
+    if (existing && existing._worldId === worldId && existing._questMap) {
+      this.windows.focus('groupmap');
+      try {
+        await existing._questMap.load();
+        const bodyEl = existing.querySelector('.window-body');
+        bodyEl.innerHTML = existing._questMap.render();
+        existing._questMap.mount(bodyEl);
+      } catch (e) {}
+      return;
+    }
+
+    // Иначе — закрываем все map-окна и создаём новое
     this._closeAllMapWindows();
     await new Promise((r) => setTimeout(r, 60));
 
@@ -461,6 +475,20 @@ export class Desktop {
   }
 
   async openQuestMap(chapterId) {
+    // Если открыто то же окно с той же главой — обновляем на месте
+    const existing = this.windows.windows.get('questmap');
+    if (existing && existing._chapterId === chapterId && existing._questMap) {
+      this.windows.focus('questmap');
+      try {
+        await existing._questMap.load();
+        const bodyEl = existing.querySelector('.window-body');
+        bodyEl.innerHTML = existing._questMap.render();
+        existing._questMap.mount(bodyEl);
+      } catch (e) {}
+      return;
+    }
+
+    // Иначе — закрываем предыдущее и создаём новое
     this._closeAllMapWindows();
     await new Promise((r) => setTimeout(r, 60));
 

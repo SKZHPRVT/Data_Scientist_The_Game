@@ -74,11 +74,7 @@ export class Terminal {
     window.addEventListener('resize', this._checkResizeHandler);
     window.addEventListener('orientationchange', this._checkResizeHandler);
 
-    // === МЕХАНИЗМ 4: Периодическая проверка (каждые 300мс) ===
-    // Если клавиатура закрылась, а событие не сработало — восстановим
-    this._checkInterval = setInterval(() => {
-      this._checkViewport();
-    }, 300);
+    // МЕХАНИЗМ 4 удалён — setInterval вызывал ложные _restore()
   }
 
   _saveRect() {
@@ -109,10 +105,13 @@ export class Terminal {
 
   _restore() {
     if (!this._win || !this._savedRect) return;
+
+    // Восстанавливаем только высоту и top — left/width не трогаем,
+    // потому что пользователь мог перетащить окно
     this._win.style.top = this._savedRect.top + 'px';
     this._win.style.height = this._savedRect.height + 'px';
-    if (this._savedRect.left) this._win.style.left = this._savedRect.left;
-    if (this._savedRect.width) this._win.style.width = this._savedRect.width;
+
+    // Сбрасываем сразу — чтобы _checkViewport больше не вызывал _restore
     this._savedRect = null;
   }
 
