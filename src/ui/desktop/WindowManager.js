@@ -7,7 +7,7 @@ export class WindowManager {
     this._safeCache = null;
   }
 
-  // === ЧТЕНИЕ SAFE-AREA (реальные пиксели) ===
+  // === РЕАЛЬНЫЕ ПИКСЕЛИ SAFE-AREA ===
   _getSafeArea() {
     if (this._safeCache) return this._safeCache;
 
@@ -32,8 +32,7 @@ export class WindowManager {
     };
     test.remove();
 
-    // Дополнительный отступ для кнопок Telegram — 52px сверху
-    // (кнопки "закрыть", "свернуть", "меню" в шапке Mini App)
+    // Доп. отступ для кнопок Telegram (закрыть/свернуть/меню) в шапке Mini App
     result.top = Math.max(result.top, 0) + 52;
 
     this._safeCache = result;
@@ -91,18 +90,21 @@ export class WindowManager {
     win.addEventListener('mousedown', () => this.focus(id));
     win.addEventListener('touchstart', () => this.focus(id));
 
-    // === ПЕРЕТАСКИВАНИЕ ЗА ШАПКУ ===
     this._makeDraggable(win, win.querySelector('.window-title'), safe, taskbarH);
 
     const onResize = () => {
-      this._safeCache = null; // сбросить кэш
+      this._safeCache = null;
       this._clampWindow(win, this._getSafeArea(), taskbarH);
     };
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
     win._onResize = onResize;
 
-    if (window.__audio) window.__audio.open();
+    // === ЗВУК ПРИ ОТКРЫТИИ (если не пропущен) ===
+    if (window.__audio && !window.__skipNextOpenSound) {
+      window.__audio.open();
+    }
+    window.__skipNextOpenSound = false;
 
     if (onMount) onMount(win.querySelector('.window-body'));
 
@@ -115,7 +117,6 @@ export class WindowManager {
     const vh = window.innerHeight;
     const rect = win.getBoundingClientRect();
 
-    // Окно не должно вылезать за верхнюю safe-зону
     const minTop = safe.top;
     const maxTop = vh - taskbarH - safe.bottom - 40;
     const minLeft = -rect.width + 80;
@@ -151,14 +152,12 @@ export class WindowManager {
     if (win) win.style.display = win.style.display === 'none' ? 'flex' : 'none';
   }
 
-  // === ПЕРЕТАСКИВАНИЕ ===
   _makeDraggable(win, handle, safe, taskbarH) {
     let offsetX = 0, offsetY = 0, dragging = false, activePointer = null;
 
     const start = (e) => {
-      // Только левая кнопка мыши / основной палец
       if (e.button !== undefined && e.button !== 0) return;
-      if (e.target.closest('.controls')) return; // не тащим за кнопки
+      if (e.target.closest('.controls')) return;
 
       dragging = true;
       const rect = win.getBoundingClientRect();
@@ -182,14 +181,11 @@ export class WindowManager {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const w = win.offsetWidth;
-      const h = win.offsetHeight;
 
       let newLeft = cx - offsetX;
       let newTop = cy - offsetY;
 
-      // Верхняя граница — safe-area + 4 (нельзя под кнопки Telegram)
       newTop = Math.max(safe.top + 4, Math.min(newTop, vh - taskbarH - safe.bottom - 40));
-      // По горизонтали можно частично вылезать
       newLeft = Math.max(-w + 80, Math.min(newLeft, vw - 80));
 
       win.style.left = newLeft + 'px';
@@ -204,12 +200,10 @@ export class WindowManager {
       this._clampWindow(win, safe, taskbarH);
     };
 
-    // Mouse
     handle.addEventListener('mousedown', start);
     document.addEventListener('mousemove', move);
     document.addEventListener('mouseup', end);
 
-    // Touch (iOS + Android)
     handle.addEventListener('touchstart', start, { passive: false });
     document.addEventListener('touchmove', move, { passive: false });
     document.addEventListener('touchend', end);

@@ -38,16 +38,15 @@ export class AudioEngine {
     storage.set('volume', this.volume);
   }
 
-  // === МЕХАНИЧЕСКАЯ КЛАВИША ===
-  // Двойной импульс: down + up, шум через highpass
+  // ============================================
+  // КЛАВИАТУРА — механический «клак»
+  // ============================================
   key(pitch = 'normal') {
     if (!this.enabled) return;
     const ctx = this._ensureContext();
     if (!ctx) return;
-
     const now = ctx.currentTime;
 
-    // Разная «громкость» и «частота» для разных клавиш
     const cfg = {
       normal:    { vol: 0.35, hp: 2000, dur: 0.03 },
       space:     { vol: 0.45, hp: 1500, dur: 0.04 },
@@ -55,13 +54,39 @@ export class AudioEngine {
       backspace: { vol: 0.40, hp: 2200, dur: 0.03 },
     }[pitch] || { vol: 0.35, hp: 2000, dur: 0.03 };
 
-    // Импульс 1: удар
-    this._click(ctx, now, cfg, 1.0);
-    // Импульс 2: отскок (тише, чуть позже)
-    this._click(ctx, now + 0.012, cfg, 0.4);
+    this._noiseClick(ctx, now, cfg, 1.0);
+    this._noiseClick(ctx, now + 0.012, cfg, 0.4);
   }
 
-  _click(ctx, time, cfg, scale) {
+  // ============================================
+  // КЛИК МЫШЬЮ — сухой, короткий, высокий
+  // Для открытия/закрытия окон, папок, файлов
+  // ============================================
+  click(pitch = 'normal') {
+    if (!this.enabled) return;
+    const ctx = this._ensureContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const cfg = {
+      normal: { vol: 0.22, hp: 3500, dur: 0.02 },
+      open:   { vol: 0.25, hp: 3000, dur: 0.025 },
+      close:  { vol: 0.20, hp: 4000, dur: 0.018 },
+      folder: { vol: 0.24, hp: 3200, dur: 0.022 },
+    }[pitch] || { vol: 0.22, hp: 3500, dur: 0.02 };
+
+    this._noiseClick(ctx, now, cfg, 1.0);
+    this._noiseClick(ctx, now + 0.008, cfg, 0.35);
+  }
+
+  // Совместимость — старые вызовы
+  open() { this.click('open'); }
+  close() { this.click('close'); }
+
+  // ============================================
+  // ВНУТРЕННИЙ ГЕНЕРАТОР ЩЕЛЧКА
+  // ============================================
+  _noiseClick(ctx, time, cfg, scale) {
     const src = ctx.createBufferSource();
     src.buffer = this._getNoiseBuffer(ctx);
 
@@ -90,45 +115,9 @@ export class AudioEngine {
     src.stop(time + cfg.dur + 0.01);
   }
 
-  // === СИСТЕМНЫЕ ===
-  open() {
-    if (!this.enabled) return;
-    const ctx = this._ensureContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(300, now);
-    osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(this.volume * 0.12, now + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.15);
-  }
-
-  close() {
-    if (!this.enabled) return;
-    const ctx = this._ensureContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, now);
-    osc.frequency.exponentialRampToValueAtTime(250, now + 0.08);
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(this.volume * 0.1, now + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.12);
-  }
-
+  // ============================================
+  // СИСТЕМНЫЕ ЗВУКИ
+  // ============================================
   success() {
     if (!this.enabled) return;
     const ctx = this._ensureContext();

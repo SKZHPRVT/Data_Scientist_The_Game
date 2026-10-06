@@ -7,6 +7,8 @@ export class Terminal {
     this.historyIdx = -1;
     this.el = null;
     this._keyboardUnsub = null;
+    this._resizeObserver = null;
+    this._wasAtBottom = true;
   }
 
   render() {
@@ -23,23 +25,50 @@ export class Terminal {
       this.el.querySelector('.terminal-input')?.focus();
     });
 
-    // Клавиатура: поднять терминал при открытии
+    this.el.addEventListener('scroll', () => {
+      const dist = this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight;
+      this._wasAtBottom = dist < 30;
+    });
+
     if (window.__keyboard) {
-      this._keyboardUnsub = window.__keyboard.onKeyboardChange((isOpen) => {
+      this._keyboardUnsub = window.__keyboard.onKeyboardChange((isOpen, offset) => {
+        document.body.classList.toggle('keyboard-open', isOpen);
+
         if (isOpen) {
-          document.body.classList.add('keyboard-open');
-          setTimeout(() => {
-            if (this.el) this.el.scrollTop = this.el.scrollHeight;
-          }, 100);
-        } else {
-          document.body.classList.remove('keyboard-open');
+          const win = body.closest('.window');
+          if (win) {
+            const rect = win.getBoundingClientRect();
+            const vh = window.innerHeight;
+            const taskbarH = 44;
+            const newHeight = vh - offset - rect.top - taskbarH - 4;
+            win.style.height = Math.max(200, newHeight) + 'px';
+          }
         }
+
+        setTimeout(() => {
+          if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
+        }, 50);
+        setTimeout(() => {
+          if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
+        }, 200);
       });
+    }
+
+    if (window.visualViewport) {
+      this._resizeObserver = () => {
+        if (!this.el) return;
+        const dist = this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight;
+        if (dist < 30) this.el.scrollTop = this.el.scrollHeight;
+      };
+      window.visualViewport.addEventListener('resize', this._resizeObserver);
     }
   }
 
   destroy() {
     if (this._keyboardUnsub) this._keyboardUnsub();
+    if (this._resizeObserver && window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this._resizeObserver);
+    }
   }
 
   _print(text, cls = '') {
@@ -47,7 +76,7 @@ export class Terminal {
     line.className = 'terminal-line ' + cls;
     line.textContent = text;
     this.el.appendChild(line);
-    this.el.scrollTop = this.el.scrollHeight;
+    if (this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
   }
 
   _prompt() {
@@ -67,12 +96,14 @@ export class Terminal {
 
     input.addEventListener('focus', () => {
       setTimeout(() => {
-        if (this.el) this.el.scrollTop = this.el.scrollHeight;
+        if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
       }, 300);
+      setTimeout(() => {
+        if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
+      }, 500);
     });
 
     input.addEventListener('keydown', (e) => {
-      // Звук клавиши
       if (window.__audio) {
         if (e.key === 'Enter') window.__audio.key('enter');
         else if (e.key === 'Backspace') window.__audio.key('backspace');
@@ -145,7 +176,6 @@ export class Terminal {
           const content = window.__fs.readFile(cmd.slice(4).trim());
           this._print(content);
         } catch (e) {
-          if (window.__audio) window.__audio.error();
           this._print('[ERROR] ' + e.message, 'terminal-error');
         }
         return;
@@ -161,7 +191,6 @@ export class Terminal {
           this._print('$ python ' + file, 'terminal-success');
           this._print(content);
         } catch (e) {
-          if (window.__audio) window.__audio.error();
           this._print('[ERROR] ' + e.message, 'terminal-error');
         }
         return;
@@ -178,7 +207,6 @@ export class Terminal {
         this._print(String(result), 'terminal-success');
       }
     } catch (e) {
-      if (window.__audio) window.__audio.error();
       this._print('[ERROR] ' + e.message, 'terminal-error');
     }
   }

@@ -6,6 +6,7 @@ import { Explorer } from '../explorer/Explorer.js';
 import { Settings } from '../settings/Settings.js';
 import { Achievements } from '../achievements/Achievements.js';
 import { Progress } from '../settings/Progress.js';
+import { storage } from '../../core/storage.js';
 
 export class Desktop {
   constructor(root, tg) {
@@ -14,9 +15,9 @@ export class Desktop {
     this.windows = new WindowManager(root);
     this.startMenu = null;
     this.taskbar = null;
-    this.wallpaper = localStorage.getItem('wallpaper') || 'default';
+    this.wallpaper = storage.get('wallpaper', 'default');
+    if (typeof this.wallpaper !== 'string') this.wallpaper = 'default';
 
-    // Слушаем события от окон
     window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
   }
 
@@ -38,7 +39,11 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    setTimeout(() => this.runGamePy(), 300);
+    // === ПЕРВОЕ ОКНО БЕЗ ЗВУКА ===
+    setTimeout(() => {
+      window.__skipNextOpenSound = true;
+      this.runGamePy();
+    }, 300);
   }
 
   renderIcons() {
@@ -137,11 +142,7 @@ export class Desktop {
 
   openReadme() {
     let content = 'README.txt';
-    try {
-      content = window.__fs.readFile('/README.txt');
-    } catch (e) {
-      content = 'README.txt не найден.';
-    }
+    try { content = window.__fs.readFile('/README.txt'); } catch (e) {}
     this.windows.create({
       id: 'readme',
       title: '📄 README.txt',
