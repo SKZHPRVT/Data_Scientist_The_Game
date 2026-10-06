@@ -3,7 +3,7 @@ import { StartMenu } from './StartMenu.js';
 import { WindowManager } from './WindowManager.js';
 import { Terminal } from '../terminal/Terminal.js';
 import { Explorer } from '../explorer/Explorer.js';
-import { Settings } from '../settings/Settings.js';
+import { Settings, applyWallpaper } from '../settings/Settings.js';
 import { Achievements } from '../achievements/Achievements.js';
 import { Progress } from '../settings/Progress.js';
 import { TaskView } from '../task/TaskView.js';
@@ -19,8 +19,6 @@ export class Desktop {
     this.windows = new WindowManager(root);
     this.startMenu = null;
     this.taskbar = null;
-    this.wallpaper = storage.get('wallpaper', 'default');
-    if (typeof this.wallpaper !== 'string') this.wallpaper = 'default';
 
     window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
     window.addEventListener('open-task', (e) => this.openTaskByPath(e.detail));
@@ -32,6 +30,10 @@ export class Desktop {
         <div class="desktop-icons" id="icons"></div>
       </div>
     `;
+
+    // Применяем сохранённые обои
+    const wpId = storage.get('wallpaper', 'default');
+    applyWallpaper(wpId);
 
     this.renderIcons();
 
@@ -57,7 +59,7 @@ export class Desktop {
     const icons = document.getElementById('icons');
     const items = [
       { icon: '🎯', label: 'JUNIOR', action: () => this.openGroupMap('junior') },
-      { icon: '📁', label: 'SANDBOX', action: () => this.openExplorer('/sandbox') },
+      { icon: '📁', label: 'SANDBOX', action: () => this.openSandbox() },
       { icon: '📄', label: 'README.txt', action: () => this.openReadme() },
       { icon: '🐍', label: 'game.py', action: () => this.runGamePy() },
       { icon: '⌨️', label: 'Терминал', action: () => this.openTerminal() },
@@ -93,6 +95,30 @@ export class Desktop {
     this.startMenu.render();
   }
 
+  // =================== SANDBOX ===================
+  openSandbox() {
+    this.windows.create({
+      id: 'sandbox',
+      title: '🧪 SANDBOX',
+      content: `
+        <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
+          <p style="font-size: 16px; color: var(--accent); font-weight: 700;">🧪 Песочница</p>
+          <p style="margin-top: 16px;">Здесь можно экспериментировать с pandas без заданий и таймера.</p>
+          <p style="margin-top: 12px; color: var(--fg-dim);">
+            Функционал в разработке. Скоро:
+          </p>
+          <p>• Свободный ввод pandas-команд</p>
+          <p>• Свой CSV-датасет</p>
+          <p>• Сохранение скриптов</p>
+          <p>• Графики (plotly)</p>
+          <p style="margin-top: 16px;">А пока — используй <strong>Терминал</strong> для экспериментов.</p>
+        </div>
+      `,
+      width: 480,
+      height: 400,
+    });
+  }
+
   // =================== GROUP MAP ===================
   async openGroupMap(worldId) {
     const oldId = 'groupmap-' + worldId;
@@ -113,7 +139,6 @@ export class Desktop {
       height: 660,
     });
 
-    // Сохраняем ссылку на map, чтобы потом обновлять
     win._questMap = map;
     win._mapType = 'group';
     win._worldId = worldId;
@@ -135,7 +160,6 @@ export class Desktop {
     }
   }
 
-  // Перерисовать уже открытую карту мира, если она есть
   async refreshGroupMap(worldId) {
     const win = this.windows.windows.get('groupmap-' + worldId);
     if (!win || !win._questMap) return;
@@ -144,7 +168,6 @@ export class Desktop {
       const bodyEl = win.querySelector('.window-body');
       bodyEl.innerHTML = win._questMap.render();
       win._questMap.mount(bodyEl);
-      console.log('[refreshGroupMap]', worldId, 'refreshed');
     } catch (e) {
       console.error('[refreshGroupMap] fail', e);
     }
@@ -191,7 +214,6 @@ export class Desktop {
     }
   }
 
-  // Перерисовать уже открытую карту главы, если она есть
   async refreshQuestMap(chapterId) {
     const win = this.windows.windows.get('questmap-' + chapterId);
     if (!win || !win._questMap) return;
@@ -200,7 +222,6 @@ export class Desktop {
       const bodyEl = win.querySelector('.window-body');
       bodyEl.innerHTML = win._questMap.render();
       win._questMap.mount(bodyEl);
-      console.log('[refreshQuestMap]', chapterId, 'refreshed');
     } catch (e) {
       console.error('[refreshQuestMap] fail', e);
     }
@@ -264,13 +285,11 @@ export class Desktop {
   }
 
   openTask(task) {
-    // Закрываем ТОЛЬКО предыдущие задачи, карту не трогаем
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
 
     const view = new TaskView(task, {
-      // ВАЖНО: при решении обновляем карты, а не только переходим
       onSolved: () => this._onTaskSolved(task._path),
     });
     this.windows.create({
@@ -283,27 +302,19 @@ export class Desktop {
     });
   }
 
-  // ВЫЗЫВАЕТСЯ ПРИ КЛИКЕ "Следующий квест →"
   async _onTaskSolved(currentPath) {
-    // currentPath = /junior/basics/task1.json
     const parts = currentPath.split('/').filter(Boolean);
     const worldId = parts[0];
     const chapterId = parts.slice(0, -1).join('/');
     const currentFile = parts[parts.length - 1];
 
-    console.log('[_onTaskSolved]', { worldId, chapterId, currentFile });
-
-    // 1. ОБНОВЛЯЕМ КАРТУ ГЛАВЫ (если открыта)
     await this.refreshQuestMap(chapterId);
-    // 2. ОБНОВЛЯЕМ КАРТУ МИРА (если открыта)
     await this.refreshGroupMap(worldId);
 
-    // 3. ЗАКРЫВАЕМ ЗАДАЧУ
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
 
-    // 4. ПРОВЕРЯЕМ, ЗАКРЫТА ЛИ ГЛАВА
     let tasks = [];
     let chapterComplete = false;
     try {
@@ -316,20 +327,14 @@ export class Desktop {
       const solvedList = progress.getSolved();
       const solved = ids.filter((id) => solvedList.includes(id));
       chapterComplete = ids.length > 0 && solved.length >= ids.length;
-    } catch (e) {
-      console.error('[_onTaskSolved] fail', e);
-    }
+    } catch (e) {}
 
     const currentIdx = tasks.indexOf(currentFile);
     const nextFile = currentIdx >= 0 && currentIdx < tasks.length - 1
       ? tasks[currentIdx + 1]
       : null;
 
-    // 5. ОТКРЫВАЕМ СЛЕДУЮЩЕЕ
     if (chapterComplete) {
-      // Глава закрыта — показываем карту мира (уже обновлена выше)
-      console.log('[_onTaskSolved] chapter complete → group map');
-      // Карта мира обновлена, просто фокусируем её
       const groupWin = this.windows.windows.get('groupmap-' + worldId);
       if (groupWin) {
         groupWin.style.zIndex = ++this.windows.zIndex;
@@ -337,9 +342,7 @@ export class Desktop {
         setTimeout(() => this.openGroupMap(worldId), 300);
       }
     } else if (nextFile) {
-      // Открываем следующую задачу
       const nextPath = '/' + chapterId + '/' + nextFile;
-      console.log('[_onTaskSolved] next task:', nextPath);
       setTimeout(() => this.openTaskByPath(nextPath), 250);
     } else {
       setTimeout(() => this.openQuestMap(chapterId), 300);
@@ -389,8 +392,8 @@ export class Desktop {
       title: '📊 Прогресс',
       content: progressView.render(),
       onMount: (body) => progressView.mount(body),
-      width: 480,
-      height: 480,
+      width: 520,
+      height: 620,
     });
   }
 
@@ -402,7 +405,7 @@ export class Desktop {
       content: ach.render(),
       onMount: (body) => ach.mount(body),
       width: 520,
-      height: 480,
+      height: 600,
     });
   }
 
@@ -414,7 +417,7 @@ export class Desktop {
       content: settings.render(),
       onMount: (body) => settings.mount(body),
       width: 480,
-      height: 520,
+      height: 620,
     });
   }
 }

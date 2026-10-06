@@ -1189,3 +1189,197 @@ textarea {
   letter-spacing: 3px;
   margin: 6px 0;
 }
+
+/* ===== ОКНО ПРОГРЕССА ===== */
+.progress-view {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--fg);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.progress-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  border-bottom: 1px solid var(--fg-dim);
+  padding-bottom: 8px;
+}
+
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 255, 65, 0.05);
+  border-radius: 4px;
+}
+
+.progress-label { color: var(--fg-dim); font-size: 12px; }
+.progress-value { color: var(--accent); font-size: 16px; font-weight: 700; }
+
+.progress-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: rgba(0, 255, 65, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+
+.progress-bar-label {
+  font-size: 11px;
+  color: var(--fg-dim);
+  text-align: right;
+}
+
+.progress-section-title {
+  font-size: 11px;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.progress-world {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0, 255, 65, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid var(--accent);
+}
+
+.progress-world.locked {
+  border-left-color: var(--fg-dim);
+  opacity: 0.5;
+}
+
+.progress-world-stats {
+  color: var(--fg-dim);
+  font-size: 11px;
+}
+
+/* ===== ОКНО ПРОГРЕССА ===== */
+.progress-view {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--fg);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.progress-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  border-bottom: 1px solid var(--fg-dim);
+  padding-bottom: 8px;
+}
+.progress-section { display: flex; flex-direction: column; gap: 8px; }
+.progress-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 255, 65, 0.05);
+  border-radius: 4px;
+}
+.progress-label { color: var(--fg-dim); font-size: 12px; }
+.progress-value { color: var(--accent); font-size: 15px; font-weight: 700; }
+.progress-bar-wrapper { display: flex; flex-direction: column; gap: 4px; }
+.progress-bar {
+  height: 8px;
+  background: rgba(0, 255, 65, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-bar-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+.progress-bar-label { font-size: 11px; color: var(--fg-dim); text-align: right; }
+.progress-section-title {
+  font-size: 11px;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.progress-chapters { display: flex; flex-direction: column; gap: 6px; }
+.progress-chapter {
+  padding: 8px 10px;
+  background: rgba(0, 255, 65, 0.04);
+  border-radius: 4px;
+}
+.progress-chapter-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.progress-chapter-stats { color: var(--fg-dim); font-size: 11px; }
+.progress-chapter-bar {
+  height: 4px;
+  background: rgba(0, 255, 65, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-chapter-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+.progress-world {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0, 255, 65, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid var(--accent);
+}
+.progress-world.locked { border-left-color: var(--fg-dim); opacity: 0.5; }
+.progress-world-stats { color: var(--fg-dim); font-size: 11px; }
+
+/* ===== АЧИВКИ ===== */
+.ach-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border-left: 3px solid var(--border);
+  background: rgba(0, 255, 65, 0.03);
+  transition: all 0.15s;
+}
+.ach-item.unlocked {
+  border-left-color: var(--accent);
+  background: rgba(0, 255, 65, 0.08);
+}
+.ach-item.locked {
+  opacity: 0.4;
+}
+.ach-item.platinum.unlocked {
+  border-left-color: var(--warn);
+  background: rgba(255, 170, 0, 0.08);
+}
+.ach-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 30px;
+  text-align: center;
+}
+.ach-body { flex: 1; min-width: 0; }
+.ach-title { font-size: 13px; font-weight: 700; }
+.ach-desc { font-size: 11px; color: var(--fg-dim); margin-top: 2px; line-height: 1.4; }
