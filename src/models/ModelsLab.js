@@ -23,7 +23,6 @@ export class ModelsLab {
       return;
     }
 
-    // ЗАКРЫВАЕМ старое окно — иначе create() вернёт старое DOM с устаревшими данными
     if (this.windows.windows.has('models-lab')) {
       this.windows.close('models-lab');
     }
@@ -54,7 +53,6 @@ export class ModelsLab {
       return;
     }
 
-    // ЗАКРЫВАЕМ старое окно этого семейства
     const familyWindowId = 'models-family-' + familyId;
     if (this.windows.windows.has(familyWindowId)) {
       this.windows.close(familyWindowId);
@@ -108,9 +106,11 @@ export class ModelsLab {
   }
 
   async _onTaskSolved(task, familyId) {
-    // Закрываем задачу и перезагружаем карту семейства — прогресс обновится
     this._closeAllTaskWindows();
+
+    // ОБНОВЛЯЕМ ОБА ОКНА — и карту семейства, и карту лаборатории
     await this._refreshFamilyMap(familyId);
+    await this._refreshLabMap();
   }
 
   async _refreshFamilyMap(familyId) {
@@ -136,5 +136,40 @@ export class ModelsLab {
       width: 600,
       height: 620,
     });
+  }
+
+  async _refreshLabMap() {
+    // Если окно лаборатории открыто — пересоздаём его с актуальным прогрессом
+    const windowId = 'models-lab';
+    if (!this.windows.windows.has(windowId)) {
+      return; // лаборатория закрыта — не надо обновлять
+    }
+
+    // Запоминаем позицию старого окна, чтобы новое открылось там же
+    const oldWin = this.windows.windows.get(windowId);
+    const oldRect = oldWin?.getBoundingClientRect();
+
+    this.windows.close(windowId);
+
+    const map = new ModelsGroupMap({
+      onOpenChapter: (familyId) => this._openFamily(familyId),
+    });
+
+    await map.load();
+
+    const newWin = this.windows.create({
+      id: windowId,
+      title: '📦 Лаборатория моделей',
+      content: map.render(),
+      onMount: (body) => map.mount(body),
+      width: 600,
+      height: 620,
+    });
+
+    // Возвращаем на прежнее место
+    if (oldRect && newWin) {
+      newWin.style.left = oldRect.left + 'px';
+      newWin.style.top = oldRect.top + 'px';
+    }
   }
 }
