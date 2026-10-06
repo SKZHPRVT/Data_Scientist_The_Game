@@ -1,0 +1,14 @@
+{
+  "id": "features_5_selection",
+  "world": "middle",
+  "level": 3,
+  "title": "Отбор признаков",
+  "question": "У тебя 200 признаков. Как выбрать 10 самых важных по модели Random Forest?",
+  "options": [
+    { "id": "A", "code": "model.feature_importances_.argsort()[-10:]", "correct": true, "explain": "Random Forest даёт feature_importances_. argsort() сортирует, [-10:] берёт топ-10." },
+    { "id": "B", "code": "df.drop(columns=df.columns[:-10])", "correct": false, "explain": "Это удаляет последние 10 колонок по порядку, а не по важности." },
+    { "id": "C", "code": "df.select_dtypes(include='number').columns[:10]", "correct": false, "explain": "Это просто первые 10 числовых колонок, не по важности." },
+    { "id": "D", "code": "df.iloc[:, :10]", "correct": false, "explain": "Это первые 10 колонок по порядку, не по важности." }
+  ],
+  "hint": "У обученной модели RandomForest есть атрибут feature_importances_"
+}

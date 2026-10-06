@@ -1,0 +1,14 @@
+{
+  "id": "eval_2_precision_recall",
+  "world": "middle",
+  "level": 3,
+  "title": "Precision vs Recall",
+  "question": "В задаче поиска мошенничества важнее не пропустить ни одного мошенника. Что максимизировать?",
+  "options": [
+    { "id": "A", "code": "Recall", "correct": true, "explain": "Recall = TP / (TP + FN). Максимизируем, чтобы поймать всех мошенников. Ценой больше ложных срабатываний." },
+    { "id": "B", "code": "Precision", "correct": false, "explain": "Precision = TP / (TP + FP). Даёт меньше ложных срабатываний, но можно пропустить настоящих мошенников." },
+    { "id": "C", "code": "Accuracy", "correct": false, "explain": "Accuracy не работает при дисбалансе (см. предыдущий квест)." },
+    { "id": "D", "code": "RMSE", "correct": false, "explain": "RMSE — метрика регрессии, не классификации." }
+  ],
+  "hint": "Не пропустить ни одного = maximизировать recall"
+}

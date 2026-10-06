@@ -1,0 +1,14 @@
+{
+  "id": "boss1_pipeline",
+  "world": "middle",
+  "level": 5,
+  "title": "👹 БОСС: Пайплайн целиком",
+  "question": "Задача: обучить модель на таблице с числами и категориями, сохранить в прод. Какой правильный порядок?",
+  "options": [
+    { "id": "A", "code": "train_test_split → Pipeline([ColumnTransformer(num: scale, cat: onehot), Model]) → fit на train → joblib.dump", "correct": true, "explain": "Сначала split. Потом Pipeline с ColumnTransformer для разных типов колонок. Fit только на train (без утечки). Сохранение через joblib." },
+    { "id": "B", "code": "scale всё → split → fit модели → save", "correct": false, "explain": "Утечка: scaler видел test. И категориальные не обработаны." },
+    { "id": "C", "code": "fit модели → посмотреть на тест → дообучить → save", "correct": false, "explain": "Подглядывание в тест — утечка. Нельзя дообучать по тесту." },
+    { "id": "D", "code": "split → onehot все колонки → fit → сохранить как dict", "correct": false, "explain": "Нельзя onehot числовые колонки. Сохранение dict — нестандартно, надо joblib." }
+  ],
+  "hint": "Split → Pipeline → fit на train → сохранить"
+}

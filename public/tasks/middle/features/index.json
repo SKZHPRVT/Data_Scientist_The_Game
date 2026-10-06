@@ -1,7 +1,7 @@
 {
   "id": "features",
-  "title": "Скоро",
-  "icon": "🔒",
-  "description": "Контент в разработке",
-  "tasks": []
+  "title": "Feature Engineering",
+  "icon": "🎨",
+  "description": "Создание и отбор признаков",
+  "tasks": ["task1.json", "task2.json", "task3.json", "task4.json", "task5.json"]
 }

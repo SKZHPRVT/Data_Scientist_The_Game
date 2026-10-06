@@ -1,0 +1,14 @@
+{
+  "id": "models_4_gridsearch",
+  "world": "middle",
+  "level": 3,
+  "title": "GridSearchCV",
+  "question": "Как найти лучшие гиперпараметры C для LogisticRegression?",
+  "options": [
+    { "id": "A", "code": "GridSearchCV(LogisticRegression(), {'C': [0.1, 1, 10]}, cv=5).fit(X, y)", "correct": true, "explain": "GridSearchCV перебирает комбинации параметров через кросс-валидацию и находит лучшие." },
+    { "id": "B", "code": "LogisticRegression(C=[0.1, 1, 10]).fit(X, y)", "correct": false, "explain": "Так нельзя — C это одно число, не список." },
+    { "id": "C", "code": "for C in [0.1, 1, 10]: model = LogisticRegression(C=C); model.fit(X, y)", "correct": false, "explain": "Так можно, но вручную. GridSearchCV делает это правильнее — с кросс-валидацией." },
+    { "id": "D", "code": "LogisticRegression.find_best(X, y, C=[0.1, 1, 10])", "correct": false, "explain": "Такого метода нет." }
+  ],
+  "hint": "GridSearchCV перебирает и валидирует"
+}

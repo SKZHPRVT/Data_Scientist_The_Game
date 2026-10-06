@@ -1,0 +1,14 @@
+{
+  "id": "models_2_fit",
+  "world": "middle",
+  "level": 3,
+  "title": "Обучение модели",
+  "question": "Как обучить LogisticRegression на train-данных?",
+  "options": [
+    { "id": "A", "code": "model = LogisticRegression(); model.fit(X_train, y_train)", "correct": true, "explain": "Стандартный API sklearn: создаём объект, вызываем fit с train-данными." },
+    { "id": "B", "code": "model.train(X_train, y_train)", "correct": false, "explain": "У sklearn нет метода train — только fit." },
+    { "id": "C", "code": "LogisticRegression(X_train, y_train)", "correct": false, "explain": "Конструктор принимает гиперпараметры, не данные." },
+    { "id": "D", "code": "model.predict(X_train, y_train)", "correct": false, "explain": "predict делает предсказание, не обучение. И принимает только X." }
+  ],
+  "hint": "В sklearn обучение всегда через .fit()"
+}

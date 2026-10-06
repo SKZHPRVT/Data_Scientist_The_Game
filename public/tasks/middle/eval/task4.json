@@ -1,0 +1,14 @@
+{
+  "id": "eval_4_confusion",
+  "world": "middle",
+  "level": 3,
+  "title": "Confusion Matrix",
+  "question": "Что показывает confusion_matrix(y_true, y_pred)?",
+  "options": [
+    { "id": "A", "code": "Матрицу: TN, FP, FN, TP — сколько каких предсказаний", "correct": true, "explain": "Матрица 2×2 (для бинарной классификации): true negatives, false positives, false negatives, true positives." },
+    { "id": "B", "code": "Точность модели одним числом", "correct": false, "explain": "Точность — одно число. Confusion matrix — это таблица, откуда вычисляются метрики." },
+    { "id": "C", "code": "Список ошибок модели", "correct": false, "explain": "Не список, а сгруппированная таблица по типам ошибок." },
+    { "id": "D", "code": "График важности признаков", "correct": false, "explain": "Это feature_importances_. Confusion matrix — про предсказания." }
+  ],
+  "hint": "Матрица показывает все 4 типа результатов"
+}

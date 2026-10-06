@@ -1,0 +1,14 @@
+{
+  "id": "models_1_split",
+  "world": "middle",
+  "level": 3,
+  "title": "Train/Test Split",
+  "question": "Что делает train_test_split(X, y, test_size=0.2, random_state=42)?",
+  "options": [
+    { "id": "A", "code": "Делит данные на 80% train и 20% test с воспроизводимым разбиением", "correct": true, "explain": "test_size=0.2 — 20% в тест. random_state=42 фиксирует перемешивание, чтобы результат был воспроизводим." },
+    { "id": "B", "code": "Обучает модель на 80% и тестирует на 20%", "correct": false, "explain": "Функция только делит данные. Обучение — отдельный шаг (model.fit)." },
+    { "id": "C", "code": "Создаёт 42 новых признака", "correct": false, "explain": "random_state — это seed для генератора случайных чисел, а не количество признаков." },
+    { "id": "D", "code": "Берёт 20% случайных строк и удаляет их", "correct": false, "explain": "Ничего не удаляется — данные возвращаются двумя наборами." }
+  ],
+  "hint": "random_state — это seed, не количество"
+}

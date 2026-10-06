@@ -1,0 +1,14 @@
+{
+  "id": "eval_3_f1",
+  "world": "middle",
+  "level": 3,
+  "title": "F1-мера",
+  "question": "Что такое F1-score?",
+  "options": [
+    { "id": "A", "code": "Гармоническое среднее precision и recall", "correct": true, "explain": "F1 = 2 * (precision * recall) / (precision + recall). Балансирует обе метрики, штрафует за перекос в одну сторону." },
+    { "id": "B", "code": "Среднее арифметическое precision и recall", "correct": false, "explain": "Среднее арифметическое — это другая метрика (её почти не используют)." },
+    { "id": "C", "code": "Сумма precision и recall", "correct": false, "explain": "Не сумма. F1 всегда между 0 и 1." },
+    { "id": "D", "code": "Accuracy / 2", "correct": false, "explain": "Это не имеет смысла. F1 — про precision и recall." }
+  ],
+  "hint": "F1 — гармоническое среднее"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "features_1_create",
+  "world": "middle",
+  "level": 2,
+  "title": "Создай признак",
+  "question": "Есть колонки price и quantity. Как создать колонку total = price × quantity?",
+  "options": [
+    { "id": "A", "code": "df['total'] = df['price'] * df['quantity']", "correct": true, "explain": "Векторное умножение колонок — стандартный способ создания нового признака в pandas." },
+    { "id": "B", "code": "df['total'] = df.apply(price * quantity)", "correct": false, "explain": "apply требует функцию. И не работает так с колонками напрямую." },
+    { "id": "C", "code": "df.total = price * quantity", "correct": false, "explain": "Через точку можно, но price и quantity — это переменные, а не df['price']." },
+    { "id": "D", "code": "df = df['price'] * df['quantity']", "correct": false, "explain": "Это заменит df на Series, а не создаст новую колонку." }
+  ],
+  "hint": "В pandas операции с колонками — это векторные операции"
+}

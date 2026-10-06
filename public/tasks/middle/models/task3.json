@@ -1,0 +1,14 @@
+{
+  "id": "models_3_predict",
+  "world": "middle",
+  "level": 3,
+  "title": "Предсказание",
+  "question": "Модель обучена. Как получить предсказания на test?",
+  "options": [
+    { "id": "A", "code": "y_pred = model.predict(X_test)", "correct": true, "explain": "predict принимает только признаки X_test и возвращает предсказания. y_test не нужен — он для оценки." },
+    { "id": "B", "code": "y_pred = model.predict(X_test, y_test)", "correct": false, "explain": "predict не принимает y. Он предсказывает, а не подглядывает в правильные ответы." },
+    { "id": "C", "code": "y_pred = model.fit(X_test)", "correct": false, "explain": "fit обучает. Для предсказания — predict." },
+    { "id": "D", "code": "y_pred = X_test.predict(model)", "correct": false, "explain": "Порядок обратный — метод вызывается у модели, не у данных." }
+  ],
+  "hint": "predict — только X, без y"
+}

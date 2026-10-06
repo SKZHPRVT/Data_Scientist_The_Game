@@ -1,21 +1,45 @@
 import { t } from '../../i18n/index.js';
 
 const ACHIEVEMENTS = [
-  { id: 'DIVIDE', title: 'Разделяй и понимай', titleEn: 'Divide and understand', icon: '⚖️', desc: 'Разделил данные на train и test. И не подглядывал.', descEn: 'Split data into train and test. And did not peek.', code: 'DIVIDE' },
-  { id: 'CLEAN', title: 'Чистюля', titleEn: 'Cleaner', icon: '🧼', desc: 'Удалил дубликаты, заполнил пропуски, не потерял важное.', descEn: 'Removed duplicates, filled gaps, kept what matters.', code: 'CLEAN' },
-  { id: 'FILTER', title: 'Первое знамение', titleEn: 'First signal', icon: '🔍', desc: 'Отсеял шум и увидел сигнал.', descEn: 'Filtered noise and saw the signal.', code: 'FILTER' },
-  { id: 'FEATURES', title: 'Архитектор признаков', titleEn: 'Feature architect', icon: '🏗️', desc: 'Из 200 признаков оставил 10 решающих.', descEn: 'Left 10 decisive features out of 200.', code: 'FEATURES' },
-  { id: 'CONNECT', title: 'Связующий', titleEn: 'Connector', icon: '🔗', desc: 'Нашёл зависимости там, где другие видели случайность.', descEn: 'Found dependencies where others saw randomness.', code: 'CONNECT' },
+  // === JUNIOR ===
+  { id: 'DIVIDE', title: 'Разделяй и понимай', titleEn: 'Divide and understand', icon: '⚖️', desc: 'Разделил данные на train и test. И не подглядывал.', descEn: 'Split data into train and test. Did not peek.', code: 'DIVIDE' },
+  { id: 'CLEAN', title: 'Чистюля', titleEn: 'Cleaner', icon: '🧼', desc: 'Удалил дубликаты, заполнил пропуски, не потерял важное.', descEn: 'Removed duplicates, filled gaps.', code: 'CLEAN' },
+  { id: 'FILTER', title: 'Первое знамение', titleEn: 'First signal', icon: '🔍', desc: 'Отсеял шум и увидел сигнал.', descEn: 'Filtered noise, saw the signal.', code: 'FILTER' },
+  { id: 'FEATURES', title: 'Архитектор признаков', titleEn: 'Feature architect', icon: '🏗️', desc: 'Из 200 признаков оставил 10 решающих.', descEn: 'Left 10 decisive features.', code: 'FEATURES' },
+  { id: 'CONNECT', title: 'Связующий', titleEn: 'Connector', icon: '🔗', desc: 'Нашёл зависимости там, где другие видели случайность.', descEn: 'Found dependencies in randomness.', code: 'CONNECT' },
   { id: 'MODEL', title: 'Обучил — сохранил', titleEn: 'Trained and saved', icon: '💾', desc: 'pickle.dump() — модель готова к бою.', descEn: 'pickle.dump() — model is ready.', code: 'MODEL' },
   { id: 'SIGNAL', title: 'Хранитель Сигнала', titleEn: 'Signal keeper', icon: '📡', desc: 'Финальная ачивка. Ты прошёл путь от шума до смысла.', descEn: 'Final achievement. From noise to meaning.', code: 'SIGNAL' },
 
+  // === JUNIOR (юмор) ===
   { id: 'NAN', title: 'NaN-невидимка', titleEn: 'NaN-invisible', icon: '👻', desc: 'Пропустил 30% данных — и всё равно победил.', descEn: 'Skipped 30% of data — and still won.', code: 'NAN', secret: true },
-  { id: 'OVERFIT', title: 'Идеальный на трейне', titleEn: 'Perfect on train', icon: '📉', desc: 'Модель знала ответы наизусть. Реальный мир её сломал.', descEn: 'Model knew answers by heart. Real world broke it.', code: 'OVERFIT', secret: true },
-  { id: 'PANIC', title: 'Stack Overflow', titleEn: 'Stack Overflow', icon: '🚨', desc: 'Не знал что делать — и пошёл гуглить. Это тоже навык.', descEn: 'Did not know what to do — and googled. Also a skill.', code: 'PANIC', secret: true },
-  { id: 'TITANIC', title: 'Классика жанра', titleEn: 'Classic', icon: '🚢', desc: 'Обучил модель на датасете Титаника. Как и все.', descEn: 'Trained model on Titanic dataset. Like everyone.', code: 'TITANIC', secret: true },
-  { id: 'COFFEE', title: 'Ночной дожор', titleEn: 'Night owl', icon: '☕', desc: 'Чистил данные до 3 ночи. Датасет не оценил.', descEn: 'Cleaned data until 3 AM. Dataset did not care.', code: 'COFFEE', secret: true },
+  { id: 'OVERFIT', title: 'Идеальный на трейне', titleEn: 'Perfect on train', icon: '📉', desc: 'Модель знала ответы наизусть. Реальный мир её сломал.', descEn: 'Model knew answers by heart.', code: 'OVERFIT', secret: true },
+  { id: 'PANIC', title: 'Stack Overflow', titleEn: 'Stack Overflow', icon: '🚨', desc: 'Не знал что делать — и пошёл гуглить. Это тоже навык.', descEn: 'Googled it. Also a skill.', code: 'PANIC', secret: true },
+  { id: 'TITANIC', title: 'Классика жанра', titleEn: 'Classic', icon: '🚢', desc: 'Обучил модель на датасете Титаника. Как и все.', descEn: 'Trained on Titanic. Like everyone.', code: 'TITANIC', secret: true },
+  { id: 'COFFEE', title: 'Ночной дожор', titleEn: 'Night owl', icon: '☕', desc: 'Чистил данные до 3 ночи. Датасет не оценил.', descEn: 'Cleaned data until 3 AM.', code: 'COFFEE', secret: true },
+
+  // === MIDDLE ===
+  { id: 'PIPELINE', title: 'Конвейер', titleEn: 'Pipeline', icon: '🔧', desc: 'Автоматизировал то, что делал руками. Теперь ты свободен.', descEn: 'Automated what you did by hand.', code: 'PIPELINE' },
+  { id: 'FEATURES_MASTER', title: 'Мастер фич', titleEn: 'Features master', icon: '🎨', desc: 'Понял, что хорошие признаки важнее сложной модели.', descEn: 'Good features beat complex models.', code: 'FEATURES_MASTER' },
+  { id: 'MODEL_MASTER', title: 'Модельер', titleEn: 'Model master', icon: '🧠', desc: 'Обучил, сохранил, переиспользовал. Профи.', descEn: 'Trained, saved, reused. Pro.', code: 'MODEL_MASTER' },
+  { id: 'EVAL_MASTER', title: 'Метрик-мастер', titleEn: 'Metrics master', icon: '📏', desc: 'Accuracy не врёт только когда данные сбалансированы.', descEn: 'Accuracy only tells truth with balanced data.', code: 'EVAL_MASTER' },
+  { id: 'AB_MASTER', title: 'A/B-мастер', titleEn: 'A/B master', icon: '🧪', desc: 'Ты не веришь без доказательств. Ты веришь экспериментам.', descEn: 'You trust experiments, not opinions.', code: 'AB_MASTER' },
+
+  // === MIDDLE (юмор) ===
+  { id: 'LEAKAGE', title: 'Утечка', titleEn: 'Leakage', icon: '💧', desc: 'Случайно заглянул в test. Никто не заметил. Но ты знаешь.', descEn: 'Peeked at test. Nobody saw. But you know.', code: 'LEAKAGE', secret: true },
+  { id: 'PEEKING', title: 'Подглядывающий', titleEn: 'Peeker', icon: '👀', desc: 'Остановил A/B тест на третий день. Смело.', descEn: 'Stopped A/B on day 3. Bold.', code: 'PEEKING', secret: true },
+
+  // === SENIOR (задел) ===
+  { id: 'INCIDENT', title: 'Ночной инцидент', titleEn: 'Night incident', icon: '🚨', desc: 'Прод упал в 3 ночи. Ты поднял.', descEn: 'Prod went down at 3 AM. You fixed it.', code: 'INCIDENT' },
+  { id: 'RESEARCH', title: 'Исследователь', titleEn: 'Researcher', icon: '🔬', desc: 'Читал статьи, а не только туториалы.', descEn: 'Read papers, not just tutorials.', code: 'RESEARCH' },
+  { id: 'MENTOR', title: 'Ментор', titleEn: 'Mentor', icon: '👥', desc: 'Объяснил джуну то, что сам недавно не понимал.', descEn: 'Explained to a junior what you just learned.', code: 'MENTOR' },
+  { id: 'ARCHITECT', title: 'Архитектор', titleEn: 'Architect', icon: '🏗️', desc: 'Сначала схема — потом код.', descEn: 'Diagram first, code after.', code: 'ARCHITECT' },
+  { id: 'MASTER_SIGNAL', title: 'Магистр Сигнала', titleEn: 'Master of Signal', icon: '👑', desc: 'Ты разделил, выстроил, связал. Путь пройден целиком.', descEn: 'You divided, built, connected. The path is complete.', code: 'MASTER_SIGNAL' },
+
+  // === Секретная ===
   { id: 'ILLUMINATI', title: 'Тот, кто читает описания', titleEn: 'One who reads descriptions', icon: '👁', desc: 'Нашёл то, чего не должно было быть. Око видит тебя.', descEn: 'Found what should not be there. The Eye sees you.', code: 'ILLUMINATI', secret: true },
-  { id: 'DIVIDE_ET_IMPERA', title: 'Магистр Сигнала', titleEn: 'Master of Signal', icon: '🏆', desc: 'Ты разделил, выстроил, связал. Ты прошёл путь целиком.', descEn: 'You divided, built, connected. You did it all.', code: 'DIVIDE-ET-IMPERA', platinum: true },
+
+  // === Платиновая ===
+  { id: 'DIVIDE_ET_IMPERA', title: 'Divide et Impera', titleEn: 'Divide et Impera', icon: '🏆', desc: 'Ты разделил, выстроил, связал. Ты прошёл путь целиком.', descEn: 'You divided, built, connected. You did it all.', code: 'DIVIDE-ET-IMPERA', platinum: true },
 ];
 
 const ACH_KEY = 'achievements_v1';
@@ -23,7 +47,7 @@ const ACH_KEY = 'achievements_v1';
 export class Achievements {
   constructor(options = {}) {
     this.unlocked = this._load();
-    this.mode = options.mode || 'achievements'; // 'achievements' | 'cheats'
+    this.mode = options.mode || 'achievements';
   }
 
   _load() {
@@ -99,6 +123,8 @@ export class Achievements {
     const btn = body.querySelector('#code-btn');
     const input = body.querySelector('#code-input');
     const result = body.querySelector('#code-result');
+
+    if (!btn || !input) return;
 
     btn.onclick = () => this._tryCode(input.value.trim(), result, body);
     input.addEventListener('keydown', (e) => {

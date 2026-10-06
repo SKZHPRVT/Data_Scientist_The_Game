@@ -1,0 +1,14 @@
+{
+  "id": "features_3_binning",
+  "world": "middle",
+  "level": 2,
+  "title": "Биннинг возраста",
+  "question": "Есть age (число). Как разбить на группы: 'child' (0-17), 'adult' (18-64), 'senior' (65+)?",
+  "options": [
+    { "id": "A", "code": "pd.cut(df['age'], bins=[0, 17, 64, 100], labels=['child', 'adult', 'senior'])", "correct": true, "explain": "pd.cut разбивает числовые значения на интервалы и присваивает метки." },
+    { "id": "B", "code": "df['age'].split([0, 17, 64, 100])", "correct": false, "explain": "split работает со строками, не с числами." },
+    { "id": "C", "code": "df['age'].groupby([0, 17, 64, 100])", "correct": false, "explain": "groupby группирует существующие значения, а не создаёт интервалы." },
+    { "id": "D", "code": "df['age'].replace([0, 17, 64, 100], ['child', 'adult', 'senior'])", "correct": false, "explain": "replace меняет конкретные значения, а не диапазоны." }
+  ],
+  "hint": "pd.cut для интервалов, pd.qcut для квантилей"
+}

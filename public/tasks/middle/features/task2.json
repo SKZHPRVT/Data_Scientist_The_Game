@@ -1,0 +1,14 @@
+{
+  "id": "features_2_datetime",
+  "world": "middle",
+  "level": 2,
+  "title": "Признак из даты",
+  "question": "Есть колонка date (datetime). Как создать признак 'день недели'?",
+  "options": [
+    { "id": "A", "code": "df['weekday'] = df['date'].dt.dayofweek", "correct": true, "explain": ".dt.dayofweek даёт номер дня недели (0=понедельник). Это стандартный признак для временных рядов." },
+    { "id": "B", "code": "df['weekday'] = df['date'].dayofweek", "correct": false, "explain": "Без .dt не сработает — pandas не понимает date как datetime без аксессора." },
+    { "id": "C", "code": "df['weekday'] = df['date'].split()[0]", "correct": false, "explain": "split работает со строками, не с datetime." },
+    { "id": "D", "code": "df['weekday'] = dayofweek(df['date'])", "correct": false, "explain": "Нет такой функции. Работаем через .dt." }
+  ],
+  "hint": "У datetime-серии есть аксессор .dt"
+}

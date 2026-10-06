@@ -1,0 +1,14 @@
+{
+  "id": "boss2_imbalance",
+  "world": "middle",
+  "level": 5,
+  "title": "👹 БОСС: Дисбаланс",
+  "question": "Fraud detection: 0.1% мошенников. Модель должна ЛОВИТЬ их, жертвуя точностью. Что делать?",
+  "options": [
+    { "id": "A", "code": "class_weight='balanced' или oversample minority, метрика — recall/F1, не accuracy", "correct": true, "explain": "Взвешивание классов или пересэмплирование + правильная метрика (recall, F1). Accuracy на дисбалансе врёт." },
+    { "id": "B", "code": "Обучить обычную модель, accuracy покажет качество", "correct": false, "explain": "Accuracy 99.9% — но модель не поймает ни одного мошенника." },
+    { "id": "C", "code": "Удалить класс 0, обучать только на мошенниках", "correct": false, "explain": "Нужны оба класса для обучения. Иначе модель не научится отличать." },
+    { "id": "D", "code": "Собрать больше данных о нон-мошенниках", "correct": false, "explain": "Дисбаланс станет хуже. Нужна работа с minority." }
+  ],
+  "hint": "Дисбаланс → class_weight + правильная метрика"
+}
