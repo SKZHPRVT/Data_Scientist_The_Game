@@ -3,14 +3,20 @@ import { getLang } from '../../i18n/index.js';
 export class SeniorFinale {
   constructor({ onClose } = {}) {
     this.onClose = onClose;
+    this.el = null;
   }
 
-  render() {
+  // Теперь рендерит fullscreen overlay — не окно
+  show() {
     const lang = getLang();
     const isEn = lang === 'en';
 
-    return `
-      <div class="senior-finale">
+    this.el = document.createElement('div');
+    this.el.className = 'finale-fullscreen';
+    this.el.innerHTML = `
+      <div class="finale-fs-content">
+        <div class="finale-fs-glow"></div>
+
         <div class="finale-eyes">👁</div>
         <div class="finale-crown-big">👑</div>
 
@@ -21,14 +27,14 @@ export class SeniorFinale {
         <div class="finale-divider">═══════════════════════════</div>
 
         <div class="finale-body">
-          <p style="font-size: 15px; color: var(--accent); font-weight: 700; text-align: center;">
+          <p style="font-size: 16px; color: var(--accent); font-weight: 700; text-align: center;">
             Divide et Impera
           </p>
-          <p style="text-align: center; color: var(--fg-dim); font-size: 11px; margin-top: 2px;">
+          <p style="text-align: center; color: var(--fg-dim); font-size: 12px; margin-top: 4px;">
             ${isEn ? 'Noise → Signal' : 'Шум → Сигнал'}
           </p>
 
-          <p style="margin-top: 20px;">
+          <p style="margin-top: 24px;">
             ${isEn
               ? 'You walked the path from noise to signal.'
               : 'Ты прошёл путь от шума к сигналу.'
@@ -49,14 +55,14 @@ export class SeniorFinale {
             }
           </p>
 
-          <p style="margin-top: 20px; color: var(--warn); font-weight: 700;">
+          <p style="margin-top: 24px; color: var(--warn); font-weight: 700; font-size: 14px; text-align: center;">
             ${isEn
               ? 'Now you see what is hidden from the profane.'
               : 'Теперь ты видишь то, что скрыто от профанов.'
             }
           </p>
 
-          <p style="margin-top: 16px; font-style: italic; color: var(--fg-dim);">
+          <p style="margin-top: 20px; font-style: italic; color: var(--fg-dim); font-size: 12px; text-align: center;">
             ${isEn
               ? '"There, where a layman sees chaos, a data scientist sees structure."'
               : '«Там, где профан видит хаос, Data Scientist видит структуру.»'
@@ -68,22 +74,23 @@ export class SeniorFinale {
 
         <div class="finale-achievements">
           <p style="color: var(--accent); font-weight: 700; text-align: center; margin-bottom: 12px;">
-            ${isEn ? 'Your achievements:' : 'Твои достижения:'}
+            ${isEn ? 'Your path:' : 'Твой путь:'}
           </p>
-          <div style="text-align: center; font-size: 13px; line-height: 1.8;">
+          <div style="text-align: center; font-size: 14px; line-height: 2;">
+            🍼 BABY · ✅<br>
             🎯 JUNIOR · ✅<br>
             🚀 MIDDLE · ✅<br>
             👑 SENIOR · ✅
           </div>
         </div>
 
-        <div style="margin-top: 24px; width: 100%;">
-          <button class="task-btn task-btn-next" id="finale-close" style="width: 100%;">
-            ${isEn ? '→ Continue' : '→ Продолжить'}
+        <div style="margin-top: 28px; width: 100%;">
+          <button class="task-btn task-btn-next finale-fs-btn" id="finale-close">
+            ${isEn ? '→ Continue' : '→ Продолжить путь'}
           </button>
         </div>
 
-        <p style="margin-top: 16px; font-size: 10px; color: var(--fg-dim); text-align: center;">
+        <p style="margin-top: 18px; font-size: 11px; color: var(--fg-dim); text-align: center; font-style: italic;">
           ${isEn
             ? 'This is not the end. This is the beginning.'
             : 'Это не конец. Это начало.'
@@ -91,17 +98,36 @@ export class SeniorFinale {
         </p>
       </div>
     `;
-  }
+    document.body.appendChild(this.el);
 
-  mount(body) {
+    // Анимация появления
+    requestAnimationFrame(() => this.el.classList.add('visible'));
+
+    // Звук
     if (window.__audio) {
       try { window.__audio.success(); } catch (e) {}
     }
-    const btn = body.querySelector('#finale-close');
-    if (btn) {
-      btn.onclick = () => {
-        if (this.onClose) this.onClose();
-      };
-    }
+
+    // Кнопка
+    const btn = this.el.querySelector('#finale-close');
+    btn.onclick = () => this.close();
+
+    // Возвращаем el наружу для совместимости
+    return this.el;
   }
+
+  close() {
+    if (this.el) {
+      this.el.classList.remove('visible');
+      setTimeout(() => {
+        this.el?.remove();
+        this.el = null;
+      }, 400);
+    }
+    if (this.onClose) this.onClose();
+  }
+
+  // Совместимость со старым API
+  render() { return ''; }
+  mount() {}
 }

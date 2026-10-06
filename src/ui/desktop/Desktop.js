@@ -22,7 +22,6 @@ import { CHAPTER_REWARDS } from '../../core/rewards.js';
 import { DEV_UNLOCK_ALL } from '../../core/dev.js';
 
 const CHEAT_HINTS = {
-  // JUNIOR
   basics: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER',
   cleaning: 'Ты чистюля. И слово подходящее. Код: CLEAN',
   grouping: 'Связующий — тот, кто соединяет. Код: CONNECT',
@@ -30,13 +29,11 @@ const CHEAT_HINTS = {
   datetime: 'Даты и время... до 3 ночи... Код: COFFEE',
   strings: 'Тексты и пропуски. Слово из 3 букв. Код: NAN',
   bosses: 'Идеальный на трейне — но не на тесте. Код: OVERFIT',
-  // MIDDLE
   pipelines: 'Весь путь в одном объекте. Код: PIPELINE',
   features: 'Создай признаки — выиграй соревнование. Код: FEATURES_MASTER',
   models: 'Обучи, сохрани, переиспользуй. Код: MODEL_MASTER',
   eval: 'Accuracy врёт при дисбалансе. Код: EVAL_MASTER',
   experiments: 'A/B — не гадай, а проверяй. Код: AB_MASTER',
-  // SENIOR
   incidents: 'Прод упал в 3 ночи — собери логи. Код: INCIDENT',
   research: 'Читай статьи, а не только туториалы. Код: RESEARCH',
   mentoring: 'Объясни джуну то, что сам знаешь. Код: MENTOR',
@@ -215,8 +212,6 @@ export class Desktop {
           { type: 'ok', text: '✓ Доступ разрешён' },
           { type: 'info', text: '' },
           { type: 'info', text: 'MIDDLE — мир инженера.' },
-          { type: 'info', text: 'Тут строят пайплайны, обучают модели,' },
-          { type: 'info', text: 'считают метрики и дебажат прод.' },
         ];
       }
       return [
@@ -225,9 +220,6 @@ export class Desktop {
         { type: 'err', text: 'ACCESS_DENIED: junior_not_complete' },
         { type: 'info', text: '' },
         { type: 'info', text: 'MIDDLE — мир инженера.' },
-        { type: 'info', text: 'Здесь начинают строить настоящие пайплайны:' },
-        { type: 'info', text: 'clean → features → train → eval → deploy.' },
-        { type: 'info', text: '' },
         { type: 'warn', text: '🔑 Требуется: пройти JUNIOR полностью.' },
       ];
     }
@@ -239,8 +231,6 @@ export class Desktop {
           { type: 'ok', text: '✓ Доступ разрешён' },
           { type: 'info', text: '' },
           { type: 'info', text: 'SENIOR — мир архитектора.' },
-          { type: 'info', text: 'Тут падает прод. Горят дедлайны.' },
-          { type: 'info', text: 'Это не про код. Это про решения.' },
         ];
       }
       return [
@@ -249,8 +239,6 @@ export class Desktop {
         { type: 'err', text: 'ACCESS_DENIED: middle_not_complete' },
         { type: 'info', text: '' },
         { type: 'info', text: 'SENIOR — мир архитектора.' },
-        { type: 'info', text: 'Сюда приходят те, кто видел, как падает прод в 3 ночи.' },
-        { type: 'info', text: '' },
         { type: 'warn', text: '🔑 Требуется: пройти MIDDLE полностью.' },
       ];
     }
@@ -632,25 +620,19 @@ export class Desktop {
     });
   }
 
+  // FULLSCREEN SENIOR FINALE
   _showSeniorFinale() {
     rewards.unlock('senior_finale_shown');
     this.seniorDone = true;
+
     const ach = new Achievements();
     ach.unlock('MASTER_SIGNAL');
     ach.unlock('DIVIDE_ET_IMPERA');
+
     const finale = new SeniorFinale({
-      onClose: () => {
-        this.windows.close('senior-finale');
-      },
+      onClose: () => {},
     });
-    this.windows.create({
-      id: 'senior-finale',
-      title: '👑 Магистр Сигнала',
-      content: finale.render(),
-      onMount: (body) => finale.mount(body),
-      width: 520,
-      height: 720,
-    });
+    finale.show();
   }
 
   openSandbox() {
@@ -681,9 +663,6 @@ export class Desktop {
     });
   }
 
-  // ============================================
-  // БОЛЬШОЕ ИНТРО game.py — все секции
-  // ============================================
   runGamePy() {
     const lines = [
       { type: 'cmd', text: 'python game.py' },
@@ -693,7 +672,6 @@ export class Desktop {
       { type: 'info', text: 'Если ты это читаешь — значит ты в DS-отделе.' },
       { type: 'info', text: 'Добро пожаловать.' },
       { type: 'info', text: '' },
-
       { type: 'warn', text: '─── КТО ТЫ ───' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Ты — джун. Тебе дали доступ к сырым данным.' },
@@ -701,7 +679,6 @@ export class Desktop {
       { type: 'info', text: 'Никто не будет проверять твои гипотезы.' },
       { type: 'info', text: 'Только ты и датасет. Как в реальной работе.' },
       { type: 'info', text: '' },
-
       { type: 'warn', text: '─── ЧТО ЭТО ЗА ИГРА ───' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Это симулятор карьеры Data Scientist.' },
@@ -715,7 +692,6 @@ export class Desktop {
       { type: 'info', text: 'Если ты никогда не работал с данными —' },
       { type: 'info', text: 'начни с BABY SCIENTIST (🍼).' },
       { type: 'info', text: '' },
-
       { type: 'warn', text: '─── КАК ИГРАТЬ ───' },
       { type: 'info', text: '' },
       { type: 'ok', text: '⭐ ЗВЁЗДЫ' },
@@ -724,50 +700,25 @@ export class Desktop {
       { type: 'info', text: '2 ошибки — 2 звезды.' },
       { type: 'info', text: '3+ ошибки — 1 звезда.' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Собери 4 звезды во всех квестах папки —' },
-      { type: 'info', text: 'получишь награду: обои и ачивку.' },
-      { type: 'info', text: '' },
-
       { type: 'ok', text: '🔒 ПОСЛЕДОВАТЕЛЬНОСТЬ' },
       { type: 'info', text: 'Квесты открываются по очереди.' },
-      { type: 'info', text: 'Папки тоже — сначала basics, потом cleaning.' },
-      { type: 'info', text: 'Нельзя прыгнуть в middle, не пройдя junior.' },
+      { type: 'info', text: 'Папки тоже.' },
       { type: 'info', text: '' },
-
       { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
       { type: 'info', text: 'В каждой папке спрятан чит-код.' },
-      { type: 'info', text: 'Найдёшь — открой Пуск → Чит-коды.' },
       { type: 'info', text: 'Введи слово — получишь ачивку.' },
       { type: 'info', text: '' },
-
       { type: 'ok', text: '🎲 GALTON BOARD' },
-      { type: 'info', text: 'На рабочем столе есть иконка GALTON.' },
-      { type: 'info', text: 'Открой её — увидишь, как работает случайность.' },
-      { type: 'info', text: 'Это визуализация нормального распределения.' },
+      { type: 'info', text: 'Иконка GALTON — визуализация случая.' },
       { type: 'info', text: '' },
-
       { type: 'ok', text: '⌨️ ТЕРМИНАЛ' },
-      { type: 'info', text: 'Хочешь писать код по-настоящему —' },
-      { type: 'info', text: 'зайди в Терминал. Там можно ls, cd, cat.' },
-      { type: 'info', text: 'Для остальных — весь геймплей в квестах.' },
+      { type: 'info', text: 'Хочешь писать код — зайди в Терминал.' },
       { type: 'info', text: '' },
-
       { type: 'warn', text: '─── ЧТО ДАЛЬШЕ ───' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Пройдёшь baby — откроется JUNIOR.' },
-      { type: 'info', text: 'Пройдёшь junior — откроется MIDDLE:' },
-      { type: 'info', text: 'пайплайны, фичи, модели, метрики.' },
+      { type: 'info', text: 'baby → junior → middle → senior → Магистр.' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Пройдёшь middle — откроется SENIOR:' },
-      { type: 'info', text: 'инциденты в проде, архитектура, менторство.' },
-      { type: 'info', text: '' },
-      { type: 'info', text: 'Финал — стать Магистром Сигнала.' },
-      { type: 'info', text: '' },
-
       { type: 'ok', text: '─── НАЧНЁМ ───' },
-      { type: 'info', text: '' },
-      { type: 'info', text: 'Открой карту BABY или JUNIOR.' },
-      { type: 'info', text: 'Первый квест в junior — прочитать CSV.' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Удачи. Она тебе понадобится.' },
       { type: 'info', text: '' },
