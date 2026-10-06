@@ -1,4 +1,3 @@
-// Загружает ФС и данные при старте
 import { parseCSV } from './virtualdf.js';
 
 export async function bootstrapFS() {
@@ -15,11 +14,10 @@ export async function bootstrapFS() {
   fs.mkdir('/senior');
   fs.mkdir('/sandbox');
 
-  // Загружаем файлы (из public/)
   const files = [
     ['/README.txt', 'data/README.txt'],
     ['/game.py', 'data/game.py'],
-    ['/junior/basics/task1.json', 'tasks/junior/basics/task1.json'],
+    ['/junior/basics/task1_read_csv.json', 'tasks/junior/basics/task1.json'],
   ];
 
   for (const [virtualPath, realPath] of files) {
@@ -34,12 +32,19 @@ export async function bootstrapFS() {
     }
   }
 
-  // Загружаем CSV в память как DataFrame
+  // CSV — грузим и как DataFrame, и монтируем в ФС
   try {
     const url = import.meta.env.BASE_URL + 'data/sales.csv';
     const res = await fetch(url);
     const csv = await res.text();
+
     window.__df = parseCSV(csv);
+    window.__csv_sales = csv;
+
+    // Монтируем во все места, где может искать read_csv
+    fs.mount('/sales.csv', csv);
+    fs.mount('/junior/sales.csv', csv);
+    fs.mount('/junior/basics/sales.csv', csv);
   } catch (e) {
     console.warn('[FS] CSV не загружен', e.message);
   }

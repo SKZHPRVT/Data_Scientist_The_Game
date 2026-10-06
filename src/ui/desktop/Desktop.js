@@ -6,6 +6,7 @@ import { Explorer } from '../explorer/Explorer.js';
 import { Settings } from '../settings/Settings.js';
 import { Achievements } from '../achievements/Achievements.js';
 import { Progress } from '../settings/Progress.js';
+import { TaskView } from '../task/TaskView.js';
 import { storage } from '../../core/storage.js';
 
 export class Desktop {
@@ -19,6 +20,7 @@ export class Desktop {
     if (typeof this.wallpaper !== 'string') this.wallpaper = 'default';
 
     window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
+    window.addEventListener('open-task', (e) => this.openTaskByPath(e.detail));
   }
 
   render() {
@@ -39,7 +41,6 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    // === ПЕРВОЕ ОКНО БЕЗ ЗВУКА ===
     setTimeout(() => {
       window.__skipNextOpenSound = true;
       this.runGamePy();
@@ -57,14 +58,12 @@ export class Desktop {
     ];
 
     icons.innerHTML = items
-      .map(
-        (item, i) => `
+      .map((item, i) => `
         <div class="desktop-icon" data-idx="${i}">
           <div class="icon">${item.icon}</div>
           <div class="label">${item.label}</div>
         </div>
-      `
-      )
+      `)
       .join('');
 
     icons.querySelectorAll('.desktop-icon').forEach((el) => {
@@ -114,30 +113,59 @@ export class Desktop {
       content: explorer.render(),
       onMount: (body) => explorer.mount(body),
       width: 560,
-      height: 400,
+      height: 420,
     });
   }
 
   openFile(file) {
     if (file.endsWith('.py')) this.runGamePy();
     else if (file.endsWith('.txt')) this.openReadme();
-    else if (file.endsWith('.json')) this.openTask(file);
+    else if (file.endsWith('.json')) this.openTaskByPath(file);
   }
 
-  openTask(file) {
-    this.windows.create({
-      id: 'task-' + file,
-      title: '📄 ' + file.split('/').pop(),
-      content: `
-        <div style="font-family: var(--font-mono); font-size: 13px;">
-          <p class="terminal-success">Задача: ${file}</p>
-          <p style="margin-top: 12px;">Открой Терминал и реши её.</p>
-          <p style="margin-top: 12px; color: var(--fg-dim);">Подсказка: help</p>
-        </div>
-      `,
-      width: 480,
-      height: 300,
+  openTaskByPath(path) {
+    try {
+      const raw = window.__fs.readFile(path);
+      const task = JSON.parse(raw);
+      task._path = path;
+      this.openTask(task);
+    } catch (e) {
+      console.error('Не могу открыть задачу', path, e);
+    }
+  }
+
+  openTask(task) {
+    const view = new TaskView(task, {
+      onSolved: (id, stars) => {
+        this._openNextTask(task._path, stars);
+      },
     });
+    this.windows.create({
+      id: 'task-' + task.id,
+      title: '📄 ' + (task.title || task.id),
+      content: view.render(),
+      onMount: (body) => view.mount(body),
+      width: 520,
+      height: 640,
+    });
+  }
+
+  _openNextTask(currentPath, stars) {
+    const dir = currentPath.substring(0, currentPath.lastIndexOf('/'));
+    try {
+      const items = window.__fs.ls(dir).filter((i) => i.type === 'file' && i.name.endsWith('.json'));
+      const current = currentPath.substring(currentPath.lastIndexOf('/') + 1);
+      const idx = items.findIndex((i) => i.name === current);
+
+      if (idx >= 0 && idx < items.length - 1) {
+        const next = dir + '/' + items[idx + 1].name;
+        this.openTaskByPath(next);
+      } else {
+        this.openExplorer(dir);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   openReadme() {
@@ -166,7 +194,7 @@ export class Desktop {
           <p>• Закрой basics, cleaning, grouping</p>
           <p>• Победи 3 боссов</p>
           <p>• Набери 80 звёзд из 120</p>
-          <p style="margin-top: 16px;">Начни с README.txt в basics/.</p>
+          <p style="margin-top: 16px;">Начни с задач в junior/basics/.</p>
           <p style="margin-top: 16px;"><button class="taskbar-btn active" id="start-btn">[ НАЧАТЬ → ]</button></p>
         </div>
       `,

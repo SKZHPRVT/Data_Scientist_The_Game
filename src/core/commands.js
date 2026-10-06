@@ -1,6 +1,5 @@
 // ============================================
 // ВСЕ КОМАНДЫ ИГРЫ В ОДНОМ ФАЙЛЕ
-// Добавляешь команду — она появляется везде
 // ============================================
 
 export const COMMANDS = {
@@ -13,9 +12,29 @@ export const COMMANDS = {
     description: 'Читает CSV-файл в DataFrame',
     example: "pd.read_csv('sales.csv')",
     implemented: (args, fs) => {
-      const path = args[0];
-      const content = fs.readFile(path);
-      return parseCSV(content);
+      const raw = args[0];
+      const path = String(raw ?? '').replace(/['"]/g, '');
+
+      // 1. Пробуем прочитать из виртуальной ФС
+      if (fs) {
+        try {
+          const content = fs.readFile(path);
+          return parseCSV(content);
+        } catch (e) {}
+        // Пробуем с относительным путём от cwd
+        try {
+          const cwd = fs.getCwd ? fs.getCwd() : '/';
+          const abs = (cwd === '/' ? '' : cwd) + '/' + path;
+          const content = fs.readFile(abs);
+          return parseCSV(content);
+        } catch (e) {}
+      }
+
+      // 2. Если это sales — возвращаем уже загруженный DataFrame
+      if (path.includes('sales') && window.__df) return window.__df;
+
+      // 3. Иначе — ошибка
+      throw new Error(`Файл не найден: ${path}`);
     },
     check: (r) => r instanceof VirtualDF,
   },
@@ -50,6 +69,16 @@ export const COMMANDS = {
     description: 'Информация о колонках и типах',
     implemented: (df) => df.info(),
     check: (r) => typeof r === 'object',
+  },
+
+  columns: {
+    world: 'junior',
+    level: 1,
+    category: 'view',
+    signature: 'df.columns',
+    description: 'Список колонок',
+    implemented: (df) => [...df.columns],
+    check: (r) => Array.isArray(r),
   },
 
   // ===== ОЧИСТКА =====
@@ -159,4 +188,26 @@ export function getCommandsByWorld(world) {
   return Object.entries(COMMANDS)
     .filter(([_, cmd]) => cmd.world === world)
     .map(([id, cmd]) => ({ id, ...cmd }));
+}
+
+// Локальный парсер CSV (не тянем из virtualdf, чтобы не было циклов)
+function parseCSV(content) {
+  const lines = content.trim().split('\n');
+  const headers = lines[0].split(',').map((h) => h.trim());
+  const rows = lines.slice(1).map((line) => {
+    const values = line.split(',');
+    const row = {};
+    headers.forEach((h, i) => {
+      const v = values[i]?.trim();
+      row[h] = v === '' || v === 'NaN' || v === 'null' ? null
+             : !isNaN(v) && v !== '' ? Number(v)
+             : v;
+    });
+    return row;
+  });
+  // Импортируем VirtualDF динамически, чтобы избежать циклов
+  const { VirtualDF } = window.__virtualdf || {};
+  if (VirtualDF) return new VirtualDF(rows, headers);
+  // Fallback: если класс не доступен, вернём plain объект
+  return { rows, columns: headers, __plain: true };
 }

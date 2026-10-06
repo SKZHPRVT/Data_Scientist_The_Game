@@ -21,11 +21,19 @@ export class Explorer {
         <div style="color: var(--fg-dim); margin-bottom: 12px;">${this.path}</div>
         ${parent}
         ${items.length === 0 ? '<div style="color: var(--fg-dim);">(пусто)</div>' : ''}
-        ${items.map((i) => `
-          <div class="start-item" data-name="${i.name}" data-type="${i.type}">
-            ${i.type === 'dir' ? '📁' : '📄'} ${i.name}
-          </div>
-        `).join('')}
+        ${items.map((i) => {
+          let stars = '';
+          if (i.type === 'file' && i.name.endsWith('.json')) {
+            const id = i.name.replace('.json', '');
+            const s = +localStorage.getItem(`task_${id}_stars`) || 0;
+            stars = s > 0 ? ' ' + '⭐'.repeat(s) : '';
+          }
+          return `
+            <div class="start-item" data-name="${i.name}" data-type="${i.type}">
+              ${i.type === 'dir' ? '📁' : '📄'} ${i.name}${stars}
+            </div>
+          `;
+        }).join('')}
       </div>
     `;
   }
@@ -43,8 +51,11 @@ export class Explorer {
         const name = el.dataset.name;
         const type = el.dataset.type;
         const fullPath = (this.path === '/' ? '' : this.path) + '/' + name;
+
         if (type === 'dir') {
           window.dispatchEvent(new CustomEvent('open-explorer', { detail: fullPath }));
+        } else if (name.endsWith('.json')) {
+          window.dispatchEvent(new CustomEvent('open-task', { detail: fullPath }));
         } else {
           this.handlers.onOpenFile?.(fullPath);
         }

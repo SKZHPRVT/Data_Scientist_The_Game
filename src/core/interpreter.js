@@ -1,12 +1,12 @@
 import { COMMANDS } from './commands.js';
 import { VirtualDF, GroupBy } from './virtualdf.js';
 
-// ============================================
-// ПАРСЕР И ВЫЧИСЛИТЕЛЬ
-// Поддерживает: df.method(args).method(args)
-// и простые выражения: df.shape, df['col']
-// ============================================
+// Регистрируем классы глобально, чтобы commands.js мог их использовать
+window.__virtualdf = { VirtualDF, GroupBy };
 
+// ============================================
+// ТОКЕНИЗАЦИЯ
+// ============================================
 export function tokenize(code) {
   const tokens = [];
   let i = 0;
@@ -59,21 +59,21 @@ export function tokenize(code) {
   return tokens;
 }
 
+// ============================================
+// ВЫЧИСЛЕНИЕ
+// ============================================
 export function evaluate(code, context) {
-  // context: { df, pd, np, ... }
   const tokens = tokenize(code);
   return parseExpression(tokens, 0, context).value;
 }
 
 function parseExpression(tokens, pos, context) {
-  // Парсим цепочку: ident ( . method ( args ) )*
   let token = tokens[pos];
-  if (!token) throw new Error('Unexpected end');
+  if (!token) throw new Error('Пустое выражение');
 
   let value;
   let i = pos;
 
-  // Начальный идентификатор
   if (token.type === 'ident') {
     const name = token.value;
     if (name in context) {
@@ -96,43 +96,40 @@ function parseExpression(tokens, pos, context) {
     value = token.value;
     i++;
   } else {
-    throw new Error(`Unexpected token: ${token.value}`);
+    throw new Error(`Неожиданный токен: ${token.value}`);
   }
 
-  // Парсим цепочку .method(args)
+  // Парсим цепочку .method(args) / .property / [key] / (args)
   while (i < tokens.length) {
     const t = tokens[i];
     if (t.type === 'punct' && t.value === '.') {
       i++;
       const method = tokens[i];
-      if (method.type !== 'ident') throw new Error('Expected method name');
+      if (!method || method.type !== 'ident') throw new Error('Ожидалось имя метода');
       i++;
       const methodName = method.value;
 
       // Аргументы
       let args = [];
       if (tokens[i]?.value === '(') {
-        i++; // skip (
+        i++;
         while (i < tokens.length && tokens[i].value !== ')') {
           if (tokens[i].value === ',') { i++; continue; }
           const argResult = parseExpression(tokens, i, context);
           args.push(argResult.value);
           i = argResult.pos;
         }
-        i++; // skip )
+        i++;
       }
 
-      // Вызов метода или доступ к свойству
-      value = callMethod(value, methodName, args);
+      value = callMember(value, methodName, args, context);
     } else if (t.type === 'punct' && t.value === '[') {
-      // df['col']
       i++;
       const key = parseExpression(tokens, i, context);
       i = key.pos;
       if (tokens[i]?.value === ']') i++;
       value = getItem(value, key.value);
     } else if (t.type === 'punct' && t.value === '(') {
-      // pd.read_csv(args)
       i++;
       const args = [];
       while (i < tokens.length && tokens[i].value !== ')') {
@@ -151,39 +148,48 @@ function parseExpression(tokens, pos, context) {
   return { value, pos: i };
 }
 
-function callMethod(obj, name, args) {
-  // pd.read_csv — модульный вызов
-  if (obj && obj.__module__ === 'pandas') {
+function callMember(obj, name, args, context) {
+  // pd.read_csv(...) / np.array(...)
+  if (obj && (obj.__module__ === 'pandas' || obj.__module__ === 'numpy')) {
     const cmd = COMMANDS[name];
-    if (!cmd) throw new Error(`Неизвестная функция: pd.${name}`);
-    return cmd.implemented(args, window.__fs);
-  }
-  if (obj && obj.__module__ === 'numpy') {
-    const cmd = COMMANDS[name];
-    if (!cmd) throw new Error(`Неизвестная функция: np.${name}`);
-    return cmd.implemented(args, window.__fs);
+    if (!cmd) throw new Error(`Неизвестная функция: ${name}`);
+    return cmd.implemented(args, window.__fs, context);
   }
 
-  // Обычный метод: df.method(args)
-  if (obj instanceof VirtualDF || obj instanceof GroupBy) {
+  if (obj instanceof VirtualDF || obj instanceof GroupBy || obj?.__plain) {
     const cmd = COMMANDS[name];
-    if (cmd && cmd.implemented) {
-      return cmd.implemented(obj, args);
+
+    // Если args пустой и это свойство (не метод) — возвращаем свойство
+    if (args.length === 0) {
+      if (name === 'shape' && obj.rows && obj.columns) {
+        return [obj.rows.length, obj.columns.length];
+      }
+      if (name === 'columns' && obj.columns) {
+        return [...obj.columns];
+      }
     }
-    // Встроенные методы
+
+    if (cmd && cmd.implemented) {
+      return cmd.implemented(obj, args, context);
+    }
+
     if (typeof obj[name] === 'function') {
       return obj[name](...args);
     }
-    // Свойства
+
     if (name in obj && typeof obj[name] !== 'function') {
       return obj[name];
     }
-    // value_counts и т.п.
-    if (name === 'value_counts') return obj.valueCounts(args[0]);
+
     throw new Error(`Метод не найден: ${name}`);
   }
 
-  throw new Error(`Не могу вызвать метод у ${typeof obj}`);
+  if (typeof obj?.[name] === 'function') {
+    return obj[name](...args);
+  }
+  if (obj && name in obj) return obj[name];
+
+  throw new Error(`Не могу вызвать "${name}" у ${typeof obj}`);
 }
 
 function callFunction(fn, args, context) {
@@ -199,7 +205,6 @@ function callFunction(fn, args, context) {
 
 function getItem(obj, key) {
   if (obj instanceof VirtualDF) {
-    // df['col'] — возвращаем Series-like
     if (typeof key === 'string') {
       return new Series(obj, key);
     }
@@ -213,9 +218,7 @@ export class Series {
     this.df = df;
     this.col = col;
   }
-  value_counts() {
-    return this.df.valueCounts(this.col);
-  }
+  value_counts() { return this.df.valueCounts(this.col); }
   mean() {
     const values = this.df.rows.map((r) => r[this.col]).filter((v) => typeof v === 'number');
     return values.reduce((a, b) => a + b, 0) / values.length;
@@ -224,13 +227,6 @@ export class Series {
     const values = this.df.rows.map((r) => r[this.col]).filter((v) => typeof v === 'number');
     return values.reduce((a, b) => a + b, 0);
   }
-  unique() {
-    return [...new Set(this.df.rows.map((r) => r[this.col]))];
-  }
-  astype(type) {
-    return this.df.cast(this.col, type)[this.col];
-  }
-  __getattr__(name) {
-    return this[name]?.bind(this);
-  }
+  unique() { return [...new Set(this.df.rows.map((r) => r[this.col]))]; }
+  astype(type) { return this.df.cast(this.col, type)[this.col]; }
 }

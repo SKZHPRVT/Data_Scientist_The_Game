@@ -6,6 +6,7 @@
   "dataset": "sales.csv",
   "question": "Прочитай sales.csv и верни shape (размер датасета).",
   "checkMode": "exact",
+  "expectedShape": [9, 3],
   "time": 60,
   "commands": ["read_csv", "shape"],
   "stars": { "1": 60, "2": 40, "3": 20 },
