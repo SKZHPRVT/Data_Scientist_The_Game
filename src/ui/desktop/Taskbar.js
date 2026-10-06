@@ -1,3 +1,5 @@
+import { t } from '../../i18n/index.js';
+
 export class Taskbar {
   constructor(root, handlers) {
     this.root = root;
@@ -7,12 +9,13 @@ export class Taskbar {
   render() {
     const bar = document.createElement('div');
     bar.className = 'taskbar';
+    bar.id = 'taskbar';
     bar.innerHTML = `
-      <button class="taskbar-btn" id="btn-start">🐧 Пуск</button>
-      <button class="taskbar-btn" id="btn-term">⌨️ Терминал</button>
-      <button class="taskbar-btn" id="btn-files">📁 Файлы</button>
-      <button class="taskbar-btn" id="btn-ach">🏆 Ачивки</button>
-      <button class="taskbar-btn" id="btn-prog">📊 Прогресс</button>
+      <button class="taskbar-btn" id="btn-start">${t('taskbar_start')}</button>
+      <button class="taskbar-btn" id="btn-term">${t('taskbar_terminal')}</button>
+      <button class="taskbar-btn" id="btn-files">${t('taskbar_files')}</button>
+      <button class="taskbar-btn" id="btn-ach">${t('taskbar_achievements')}</button>
+      <button class="taskbar-btn" id="btn-prog">${t('taskbar_progress')}</button>
       <div class="taskbar-spacer"></div>
       <div class="taskbar-tray">
         <span id="clock">--:--</span>

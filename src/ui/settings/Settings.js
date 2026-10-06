@@ -1,29 +1,43 @@
 import { storage } from '../../core/storage.js';
+import { t, getLang, setLang } from '../../i18n/index.js';
 
 export const WALLPAPERS = {
   default: {
-    name: 'По умолчанию',
     css: 'radial-gradient(ellipse at top, #0a1a0f 0%, #000 70%)',
   },
   matrix: {
-    name: 'Матрица',
-    css: 'linear-gradient(180deg, #000 0%, #001a00 50%, #000 100%)',
+    css: `repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(0,255,65,0.06) 2px, rgba(0,255,65,0.06) 3px),
+          radial-gradient(ellipse at center, #001a00 0%, #000 80%)`,
   },
   neon: {
-    name: 'Неон',
-    css: 'linear-gradient(135deg, #1a0033 0%, #330066 50%, #1a0033 100%)',
+    css: `radial-gradient(circle at 20% 30%, rgba(255,0,255,0.35) 0%, transparent 45%),
+          radial-gradient(circle at 80% 70%, rgba(0,255,255,0.35) 0%, transparent 45%),
+          linear-gradient(135deg, #1a0033 0%, #330066 50%, #1a0033 100%)`,
   },
   sunset: {
-    name: 'Закат',
-    css: 'linear-gradient(180deg, #1a0033 0%, #660044 50%, #ff6600 100%)',
+    css: `radial-gradient(circle at 50% 95%, #ffcc00 0%, #ff6600 20%, #cc0066 50%, #330066 80%, #000 100%)`,
   },
   ocean: {
-    name: 'Океан',
-    css: 'linear-gradient(180deg, #001a33 0%, #003366 50%, #000 100%)',
+    css: `radial-gradient(circle at 50% 20%, rgba(0,200,255,0.3) 0%, transparent 50%),
+          linear-gradient(180deg, #001a33 0%, #003366 50%, #000 100%)`,
   },
   forest: {
-    name: 'Лес',
-    css: 'radial-gradient(ellipse at bottom, #0a2a0a 0%, #000 70%)',
+    css: `radial-gradient(circle at 20% 20%, rgba(0,255,100,0.25) 0%, transparent 45%),
+          radial-gradient(circle at 80% 80%, rgba(0,150,50,0.2) 0%, transparent 45%),
+          radial-gradient(ellipse at bottom, #0a2a0a 0%, #000 80%)`,
+  },
+  space: {
+    css: `radial-gradient(circle at 20% 20%, rgba(255,255,255,0.7) 0%, transparent 1.5%),
+          radial-gradient(circle at 60% 30%, rgba(255,255,255,0.5) 0%, transparent 1%),
+          radial-gradient(circle at 80% 60%, rgba(255,255,255,0.6) 0%, transparent 1.5%),
+          radial-gradient(circle at 30% 70%, rgba(255,255,255,0.4) 0%, transparent 1%),
+          radial-gradient(circle at 50% 50%, rgba(150,100,255,0.3) 0%, transparent 50%),
+          radial-gradient(ellipse at center, #0a0a1a 0%, #000 100%)`,
+  },
+  cyberpunk: {
+    css: `linear-gradient(0deg, rgba(255,0,150,0.25) 0%, transparent 30%),
+          linear-gradient(180deg, rgba(0,255,255,0.25) 0%, transparent 30%),
+          radial-gradient(ellipse at center, #1a0a1a 0%, #000 100%)`,
   },
 };
 
@@ -45,32 +59,36 @@ export class Settings {
     const current = storage.get('wallpaper', 'default');
     const volume = +storage.get('volume', 0.3) || 0.3;
     const soundOn = storage.get('sound', 'on') !== 'off';
-    const currentLang = storage.get('lang', 'ru');
+    const currentLang = getLang();
+
+    const wpKeys = ['default', 'matrix', 'neon', 'sunset', 'ocean', 'forest', 'space', 'cyberpunk'];
 
     return `
       <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.8;">
-        <p><strong>⚙️ НАСТРОЙКИ</strong></p>
+        <p><strong>⚙️ ${t('settings_title')}</strong></p>
 
-        <p style="margin-top: 16px;">🎨 Обои:</p>
+        <p style="margin-top: 16px;">🎨 ${t('settings_wallpapers')}</p>
         <div id="wallpaper-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px;">
-          ${Object.entries(WALLPAPERS).map(([id, w]) => `
+          ${wpKeys.map((id) => `
             <div class="wallpaper-opt" data-id="${id}"
-                 style="padding: 14px 8px; border: 2px solid ${id === current ? 'var(--accent)' : 'var(--fg-dim)'};
+                 style="padding: 16px 8px; border: 2px solid ${id === current ? 'var(--accent)' : 'var(--fg-dim)'};
                         border-radius: 6px; text-align: center; cursor: pointer; font-size: 11px;
-                        background: ${w.css}; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.9);">
-              ${w.name}
+                        background: ${WALLPAPERS[id].css}; color: #fff;
+                        text-shadow: 0 1px 3px rgba(0,0,0,0.95); min-height: 44px;
+                        display: flex; align-items: center; justify-content: center;">
+              ${t('wp_' + id)}
             </div>
           `).join('')}
         </div>
 
-        <p style="margin-top: 16px;">🔊 Звук:</p>
+        <p style="margin-top: 16px;">🔊 ${t('settings_sound')}</p>
         <label style="display: flex; align-items: center; gap: 8px;">
           <input type="checkbox" id="sound-on" ${soundOn ? 'checked' : ''}>
-          Звуки
+          ${t('settings_sound_on')}
         </label>
 
         <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
-          <span style="font-size: 11px; color: var(--fg-dim);">Громкость:</span>
+          <span style="font-size: 11px; color: var(--fg-dim);">${t('settings_volume')}</span>
           <input type="range" id="volume-range" min="0" max="1" step="0.05"
                  value="${volume}"
                  style="flex: 1; accent-color: var(--accent);">
@@ -79,7 +97,7 @@ export class Settings {
           </span>
         </div>
 
-        <p style="margin-top: 16px;">🌐 Язык / Language:</p>
+        <p style="margin-top: 16px;">🌐 ${t('settings_lang')}</p>
         <div style="display: flex; gap: 8px;">
           <button class="task-btn" data-lang="ru"
                   style="flex: 1; ${currentLang === 'ru' ? 'border-color: var(--accent); background: rgba(0,255,65,0.1);' : ''}">
@@ -91,12 +109,12 @@ export class Settings {
           </button>
         </div>
 
-        <p style="margin-top: 16px; font-size: 11px; color: var(--fg-dim);">
-          Английский пока только для интерфейса настроек — полный перевод в разработке.
+        <p style="margin-top: 12px; font-size: 11px; color: var(--fg-dim);">
+          ${t('settings_lang_note')}
         </p>
 
         <div style="margin-top: 24px;">
-          <button class="taskbar-btn" id="reset-btn" style="color: var(--error);">Сбросить прогресс</button>
+          <button class="taskbar-btn" id="reset-btn" style="color: var(--error);">${t('settings_reset')}</button>
         </div>
       </div>
     `;
@@ -134,17 +152,13 @@ export class Settings {
     body.querySelectorAll('[data-lang]').forEach((btn) => {
       btn.onclick = () => {
         const lang = btn.dataset.lang;
-        storage.set('lang', lang);
-        body.querySelectorAll('[data-lang]').forEach((b) => {
-          b.style.borderColor = b.dataset.lang === lang ? 'var(--accent)' : 'var(--fg-dim)';
-          b.style.background = b.dataset.lang === lang ? 'rgba(0,255,65,0.1)' : '';
-        });
+        setLang(lang);
         if (window.__audio) window.__audio.click('normal');
       };
     });
 
     body.querySelector('#reset-btn').onclick = () => {
-      if (confirm('Точно сбросить весь прогресс?')) {
+      if (confirm(t('settings_reset_confirm'))) {
         localStorage.clear();
         location.reload();
       }

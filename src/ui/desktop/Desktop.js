@@ -11,6 +11,17 @@ import { QuestMap } from '../quest/QuestMap.js';
 import { GroupMap } from '../quest/GroupMap.js';
 import { storage } from '../../core/storage.js';
 import { progress } from '../../core/progress.js';
+import { t } from '../../i18n/index.js';
+
+const CHEAT_HINTS = {
+  basics: { code: 'FILTER', text: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER' },
+  cleaning: { code: 'CLEAN', text: 'Ты чистюля. И слово подходящее. Код: CLEAN' },
+  grouping: { code: 'CONNECT', text: 'Связующий — тот, кто соединяет. Код: CONNECT' },
+  merging: { code: 'DIVIDE', text: 'Разделяй — и понимай. Код: DIVIDE' },
+  datetime: { code: 'COFFEE', text: 'Даты и время... до 3 ночи... Код: COFFEE' },
+  strings: { code: 'NAN', text: 'Тексты и пропуски. Слово из 3 букв. Код: NAN' },
+  bosses: { code: 'OVERFIT', text: 'Идеальный на трейне — но не на тесте. Код: OVERFIT' },
+};
 
 export class Desktop {
   constructor(root, tg) {
@@ -22,6 +33,19 @@ export class Desktop {
 
     window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
     window.addEventListener('open-task', (e) => this.openTaskByPath(e.detail));
+    window.addEventListener('lang-change', () => {
+      // Перерисовываем рабочий стол
+      this._rerender();
+    });
+  }
+
+  _rerender() {
+    // Закрываем все окна
+    this.windows.windows.forEach((_, id) => this.windows.close(id));
+    this.startMenu?.destroy();
+    this.startMenu = null;
+    this.root.innerHTML = '';
+    this.render();
   }
 
   render() {
@@ -31,7 +55,6 @@ export class Desktop {
       </div>
     `;
 
-    // Применяем сохранённые обои
     const wpId = storage.get('wallpaper', 'default');
     applyWallpaper(wpId);
 
@@ -58,11 +81,11 @@ export class Desktop {
   renderIcons() {
     const icons = document.getElementById('icons');
     const items = [
-      { icon: '🎯', label: 'JUNIOR', action: () => this.openGroupMap('junior') },
-      { icon: '📁', label: 'SANDBOX', action: () => this.openSandbox() },
-      { icon: '📄', label: 'README.txt', action: () => this.openReadme() },
-      { icon: '🐍', label: 'game.py', action: () => this.runGamePy() },
-      { icon: '⌨️', label: 'Терминал', action: () => this.openTerminal() },
+      { icon: '🎯', label: t('desktop_junior'), action: () => this.openGroupMap('junior') },
+      { icon: '📁', label: t('desktop_sandbox'), action: () => this.openSandbox() },
+      { icon: '📄', label: t('desktop_readme'), action: () => this.openReadme() },
+      { icon: '🐍', label: t('desktop_gamepy'), action: () => this.runGamePy() },
+      { icon: '⌨️', label: t('desktop_terminal'), action: () => this.openTerminal() },
     ];
 
     icons.innerHTML = items
@@ -90,28 +113,26 @@ export class Desktop {
       onExplorer: () => { this.openExplorer('/'); this.startMenu?.destroy(); this.startMenu = null; },
       onProgress: () => { this.openProgress(); this.startMenu?.destroy(); this.startMenu = null; },
       onAchievements: () => { this.openAchievements(); this.startMenu?.destroy(); this.startMenu = null; },
+      onCheats: () => { this.openCheats(); this.startMenu?.destroy(); this.startMenu = null; },
       onSettings: () => { this.openSettings(); this.startMenu?.destroy(); this.startMenu = null; },
     });
     this.startMenu.render();
   }
 
-  // =================== SANDBOX ===================
   openSandbox() {
     this.windows.create({
       id: 'sandbox',
-      title: '🧪 SANDBOX',
+      title: '🧪 ' + t('desktop_sandbox'),
       content: `
         <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
-          <p style="font-size: 16px; color: var(--accent); font-weight: 700;">🧪 Песочница</p>
-          <p style="margin-top: 16px;">Здесь можно экспериментировать с pandas без заданий и таймера.</p>
-          <p style="margin-top: 12px; color: var(--fg-dim);">
-            Функционал в разработке. Скоро:
-          </p>
-          <p>• Свободный ввод pandas-команд</p>
-          <p>• Свой CSV-датасет</p>
-          <p>• Сохранение скриптов</p>
-          <p>• Графики (plotly)</p>
-          <p style="margin-top: 16px;">А пока — используй <strong>Терминал</strong> для экспериментов.</p>
+          <p style="font-size: 16px; color: var(--accent); font-weight: 700;">${t('sandbox_title')}</p>
+          <p style="margin-top: 16px;">${t('sandbox_desc')}</p>
+          <p style="margin-top: 12px; color: var(--fg-dim);">${t('sandbox_soon')}</p>
+          <p>${t('sandbox_item1')}</p>
+          <p>${t('sandbox_item2')}</p>
+          <p>${t('sandbox_item3')}</p>
+          <p>${t('sandbox_item4')}</p>
+          <p style="margin-top: 16px;">${t('sandbox_use_terminal')}</p>
         </div>
       `,
       width: 480,
@@ -119,7 +140,6 @@ export class Desktop {
     });
   }
 
-  // =================== GROUP MAP ===================
   async openGroupMap(worldId) {
     const oldId = 'groupmap-' + worldId;
     if (this.windows.windows.has(oldId)) {
@@ -134,7 +154,7 @@ export class Desktop {
     const win = this.windows.create({
       id: oldId,
       title: '🎯 ' + worldId.toUpperCase(),
-      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
+      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">${t('progress_loading')}</div>`,
       width: 520,
       height: 660,
     });
@@ -151,12 +171,9 @@ export class Desktop {
     } catch (e) {
       console.error('[GroupMap]', e);
       const bodyEl = win.querySelector('.window-body');
-      bodyEl.innerHTML = `
-        <div style="color: var(--error); font-family: var(--font-mono); font-size: 12px;">
-          <div>❌ Не могу загрузить мир</div>
-          <pre style="margin-top: 8px; white-space: pre-wrap;">${e.message}</pre>
-        </div>
-      `;
+      bodyEl.innerHTML = `<div style="color: var(--error); font-family: var(--font-mono); font-size: 12px;">
+        <div>❌ ${e.message}</div>
+      </div>`;
     }
   }
 
@@ -168,12 +185,9 @@ export class Desktop {
       const bodyEl = win.querySelector('.window-body');
       bodyEl.innerHTML = win._questMap.render();
       win._questMap.mount(bodyEl);
-    } catch (e) {
-      console.error('[refreshGroupMap] fail', e);
-    }
+    } catch (e) {}
   }
 
-  // =================== QUEST MAP ===================
   async openQuestMap(chapterId) {
     const oldId = 'questmap-' + chapterId;
     if (this.windows.windows.has(oldId)) {
@@ -188,7 +202,7 @@ export class Desktop {
     const win = this.windows.create({
       id: oldId,
       title: '🗺 ' + chapterId.split('/').pop(),
-      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
+      content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">${t('progress_loading')}</div>`,
       width: 520,
       height: 660,
     });
@@ -205,12 +219,9 @@ export class Desktop {
     } catch (e) {
       console.error('[QuestMap]', e);
       const bodyEl = win.querySelector('.window-body');
-      bodyEl.innerHTML = `
-        <div style="color: var(--error); font-family: var(--font-mono); font-size: 12px;">
-          <div>❌ Не могу загрузить квесты</div>
-          <pre style="margin-top: 8px; white-space: pre-wrap;">${e.message}</pre>
-        </div>
-      `;
+      bodyEl.innerHTML = `<div style="color: var(--error); font-family: var(--font-mono); font-size: 12px;">
+        <div>❌ ${e.message}</div>
+      </div>`;
     }
   }
 
@@ -222,17 +233,14 @@ export class Desktop {
       const bodyEl = win.querySelector('.window-body');
       bodyEl.innerHTML = win._questMap.render();
       win._questMap.mount(bodyEl);
-    } catch (e) {
-      console.error('[refreshQuestMap] fail', e);
-    }
+    } catch (e) {}
   }
 
-  // =================== TERMINAL / EXPLORER ===================
   openTerminal() {
     const term = new Terminal();
     this.windows.create({
       id: 'terminal',
-      title: '⌨️ Терминал',
+      title: '⌨️ ' + t('desktop_terminal'),
       content: term.render(),
       onMount: (body) => term.mount(body),
       width: 640,
@@ -271,16 +279,6 @@ export class Desktop {
       this.openTask(task);
     } catch (e) {
       console.error('[openTaskByPath] fail', path, e);
-      this.windows.create({
-        id: 'task-error',
-        title: '⚠ Ошибка задачи',
-        content: `<div style="font-family: var(--font-mono); color: var(--error);">
-          <div>Не могу открыть: <code>${path}</code></div>
-          <pre style="margin-top: 8px; white-space: pre-wrap; color: var(--fg-dim);">${e.message}</pre>
-        </div>`,
-        width: 480,
-        height: 240,
-      });
     }
   }
 
@@ -322,8 +320,7 @@ export class Desktop {
       const res = await fetch(idxUrl);
       const idx = await res.json();
       tasks = idx.tasks || [];
-
-      const ids = tasks.map((t) => progress.makeId(chapterId + '/' + t));
+      const ids = tasks.map((x) => progress.makeId(chapterId + '/' + x));
       const solvedList = progress.getSolved();
       const solved = ids.filter((id) => solvedList.includes(id));
       chapterComplete = ids.length > 0 && solved.length >= ids.length;
@@ -335,6 +332,27 @@ export class Desktop {
       : null;
 
     if (chapterComplete) {
+      // Показываем намёк на чит-код
+      const chId = chapterId.split('/').pop();
+      const hint = CHEAT_HINTS[chId];
+      if (hint) {
+        setTimeout(() => {
+          this.windows.create({
+            id: 'cheat-hint-' + chId,
+            title: '🗝 Намёк на чит-код',
+            content: `
+              <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
+                <p style="color: var(--warn); font-size: 15px; font-weight: 700;">🗝 НАМЁК НА ЧИТ-КОД</p>
+                <p style="margin-top: 16px;">${hint.text}</p>
+                <p style="margin-top: 16px; color: var(--fg-dim);">Открой <strong>Пуск → 🗝 Чит-коды</strong> и введи этот код.</p>
+              </div>
+            `,
+            width: 440,
+            height: 280,
+          });
+        }, 800);
+      }
+
       const groupWin = this.windows.windows.get('groupmap-' + worldId);
       if (groupWin) {
         groupWin.style.zIndex = ++this.windows.zIndex;
@@ -350,11 +368,11 @@ export class Desktop {
   }
 
   openReadme() {
-    let content = 'README.txt';
+    let content = t('readme_title');
     try { content = window.__fs.readFile('/README.txt'); } catch (e) {}
     this.windows.create({
       id: 'readme',
-      title: '📄 README.txt',
+      title: '📄 ' + t('desktop_readme'),
       content: `<div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg); white-space: pre-wrap;">${content}</div>`,
       width: 480,
       height: 360,
@@ -364,15 +382,15 @@ export class Desktop {
   runGamePy() {
     this.windows.create({
       id: 'gamepy',
-      title: '🐍 game.py',
+      title: '🐍 ' + t('desktop_gamepy'),
       content: `
         <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
           <p class="terminal-success">$ python game.py</p>
-          <p style="margin-top: 16px;">Привет.</p>
-          <p style="margin-top: 12px;">Ты — джун в DS-отделе.</p>
-          <p style="margin-top: 12px;">Цель: пройти junior, получить ключ в middle.</p>
-          <p style="margin-top: 16px;">Начни с карты JUNIOR.</p>
-          <p style="margin-top: 16px;"><button class="taskbar-btn active" id="start-btn">[ НАЧАТЬ → ]</button></p>
+          <p style="margin-top: 16px;">${t('gamepy_title')}</p>
+          <p style="margin-top: 12px;">${t('gamepy_line1')}</p>
+          <p style="margin-top: 12px;">${t('gamepy_line2')}</p>
+          <p style="margin-top: 16px;">${t('gamepy_line3')}</p>
+          <p style="margin-top: 16px;"><button class="taskbar-btn active" id="start-btn">${t('gamepy_start')}</button></p>
         </div>
       `,
       width: 520,
@@ -389,7 +407,7 @@ export class Desktop {
     const progressView = new Progress();
     this.windows.create({
       id: 'progress',
-      title: '📊 Прогресс',
+      title: '📊 ' + t('taskbar_progress'),
       content: progressView.render(),
       onMount: (body) => progressView.mount(body),
       width: 520,
@@ -398,10 +416,22 @@ export class Desktop {
   }
 
   openAchievements() {
-    const ach = new Achievements();
+    const ach = new Achievements({ mode: 'achievements' });
     this.windows.create({
       id: 'achievements',
-      title: '🏆 Ачивки',
+      title: '🏆 ' + t('taskbar_achievements'),
+      content: ach.render(),
+      onMount: (body) => ach.mount(body),
+      width: 520,
+      height: 600,
+    });
+  }
+
+  openCheats() {
+    const ach = new Achievements({ mode: 'cheats' });
+    this.windows.create({
+      id: 'cheats',
+      title: '🗝 ' + t('cheats_title'),
       content: ach.render(),
       onMount: (body) => ach.mount(body),
       width: 520,
@@ -413,7 +443,7 @@ export class Desktop {
     const settings = new Settings(this);
     this.windows.create({
       id: 'settings',
-      title: '⚙️ Настройки',
+      title: '⚙️ ' + t('settings_title'),
       content: settings.render(),
       onMount: (body) => settings.mount(body),
       width: 480,

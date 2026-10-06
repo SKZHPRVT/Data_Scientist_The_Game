@@ -1,4 +1,5 @@
 import { progress } from '../../core/progress.js';
+import { t } from '../../i18n/index.js';
 
 export class TaskView {
   constructor(task, { onSolved } = {}) {
@@ -8,10 +9,8 @@ export class TaskView {
     this.startTime = Date.now();
     this.answered = false;
     this.wrongTries = 0;
-
     this.fileId = this._computeFileId();
     this.shuffledOptions = this._shuffleOptions(task.options || []);
-    console.log('[TaskView] fileId:', this.fileId);
   }
 
   _computeFileId() {
@@ -40,33 +39,25 @@ export class TaskView {
     return Math.abs(h);
   }
 
-  // Логика звёзд:
-  // 0 ошибок → 4 ⭐
-  // 1 ошибка  → 3 ⭐
-  // 2 ошибки  → 2 ⭐
-  // 3+ ошибок → 1 ⭐
   _calculateStars() {
-    const w = this.wrongTries;
-    const stars = Math.max(1, 4 - w);
-    console.log('[TaskView] stars calc: wrongTries=', w, '→ stars=', stars);
-    return stars;
+    return Math.max(1, 4 - this.wrongTries);
   }
 
   render() {
-    const t = this.task;
+    const t2 = this.task;
     return `
       <div class="task-view">
         <div class="task-header">
-          <div class="task-title">${t.title || t.id}</div>
-          <div class="task-meta">${t.world || 'junior'} · уровень ${t.level || 1}</div>
+          <div class="task-title">${t2.title || t2.id}</div>
+          <div class="task-meta">${t2.world || 'junior'} · ${t2.level || 1}</div>
         </div>
 
         <div class="task-body">
-          <div class="task-question">${t.question}</div>
+          <div class="task-question">${t2.question}</div>
 
-          ${t.dataset ? `
+          ${t2.dataset ? `
             <div class="task-dataset">
-              <div class="task-dataset-title">📊 ${t.dataset}</div>
+              <div class="task-dataset-title">📊 ${t2.dataset}</div>
               <pre class="task-dataset-preview">${this._previewDataset()}</pre>
             </div>
           ` : ''}
@@ -148,14 +139,14 @@ export class TaskView {
 
     progress.markSolved(this.fileId);
     progress.setStars(this.fileId, stars);
-    console.log('[TaskView] SAVED', this.fileId, '=', stars, 'stars');
 
     resultEl.innerHTML = `
       <div class="task-result-success">
-        <div class="task-result-title">✅ Верно!</div>
+        <div class="task-result-title">✅ ${t('task_correct')}</div>
         <div class="task-result-stars">${starsStr} (${stars}/4)</div>
         <div class="task-result-expl">${opt.explain}</div>
-        <button class="task-btn task-btn-next" id="task-next" type="button">Следующий квест →</button>
+        ${this.task.cheatHint ? `<div class="task-cheat-hint">🗝 ${this.task.cheatHint}</div>` : ''}
+        <button class="task-btn task-btn-next" id="task-next" type="button">${t('btn_next')}</button>
       </div>
     `;
     if (window.__audio) window.__audio.success();
@@ -174,19 +165,17 @@ export class TaskView {
     btn.disabled = true;
     if (window.__audio) window.__audio.error();
 
-    const remaining = 4 - this.wrongTries;
     const nextReward = Math.max(1, 4 - this.wrongTries);
-    const rewardNow = Math.max(1, 4 - (this.wrongTries - 1));
 
     resultEl.innerHTML = `
       <div class="task-result-error">
-        <div class="task-result-title">❌ Не то (ошибок: ${this.wrongTries})</div>
+        <div class="task-result-title">❌ ${t('task_wrong')} (${t('task_errors')}: ${this.wrongTries})</div>
         <div class="task-result-code">${this._esc(opt.code)}</div>
         <div class="task-result-expl">${opt.explain}</div>
         <div class="task-result-hint">
           ${this.wrongTries <= 3
-            ? `Сейчас решишь → ⭐ ${nextReward}/4. Если ошибёшься ещё — останется минимум.`
-            : `Ошибок ${this.wrongTries}. Минимум — ⭐ 1/4.`
+            ? `${t('task_will_get')} ⭐ ${nextReward}/4 ${t('task_stars')}.`
+            : t('task_minimum')
           }
         </div>
       </div>

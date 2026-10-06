@@ -1,4 +1,5 @@
 import { progress } from '../../core/progress.js';
+import { t } from '../../i18n/index.js';
 
 export class QuestMap {
   constructor(chapterId, { onOpenTask } = {}) {
@@ -15,22 +16,19 @@ export class QuestMap {
   }
 
   render() {
-    if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
+    if (!this.data) return `<div style="color: var(--fg-dim); font-family: var(--font-mono);">${t('progress_loading')}</div>`;
 
     const tasks = this.data.tasks || [];
-    const taskIds = tasks.map((t) => progress.makeId(this.chapterId + '/' + t));
-
-    // Звёзды: сумма / максимум
+    const taskIds = tasks.map((x) => progress.makeId(this.chapterId + '/' + x));
     const sumStars = progress.sumStars(taskIds);
     const maxStars = progress.maxStars(taskIds);
     const percent = maxStars > 0 ? Math.round((sumStars / maxStars) * 100) : 0;
-
     const perfect = progress.isChapterPerfect(taskIds);
 
     return `
       <div class="quest-map">
         <div class="quest-map-header">
-          <div class="quest-map-title">${this.data.icon || '📚'} ${this.data.title || 'Квесты'}${perfect ? ' 🏆' : ''}</div>
+          <div class="quest-map-title">${this.data.icon || '📚'} ${this.data.title || 'Quests'}${perfect ? ' 🏆' : ''}</div>
           <div class="quest-map-desc">${this.data.description || ''}</div>
           <div class="quest-map-progress">
             <div class="quest-map-bar">
@@ -49,27 +47,25 @@ export class QuestMap {
 
             let status = '🔒';
             let cls = 'locked';
-            let sub = 'Сначала пройди предыдущий';
+            let sub = t('quest_locked');
 
             if (solved) {
               status = stars === 4 ? '🌟' : '✅';
               cls = stars === 4 ? 'solved perfect' : 'solved';
-              sub = 'Пройдено';
+              sub = t('quest_solved');
             } else if (unlocked) {
               status = '▶️';
               cls = 'active';
-              sub = 'Нажми, чтобы начать';
+              sub = t('quest_active');
             }
 
-            const starsStr = solved
-              ? '⭐'.repeat(stars) + '☆'.repeat(4 - stars)
-              : '';
+            const starsStr = solved ? '⭐'.repeat(stars) + '☆'.repeat(4 - stars) : '';
 
             return `
               <div class="quest-item ${cls}" data-file="${fileName}">
                 <div class="quest-item-status">${status}</div>
                 <div class="quest-item-body">
-                  <div class="quest-item-title">Квест ${i + 1}</div>
+                  <div class="quest-item-title">${t('quest_number')} ${i + 1}</div>
                   <div class="quest-item-sub">${sub}</div>
                 </div>
                 ${solved ? `<div class="quest-item-stars">${starsStr}</div>` : ''}

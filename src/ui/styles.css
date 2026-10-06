@@ -1383,3 +1383,15 @@ textarea {
 .ach-body { flex: 1; min-width: 0; }
 .ach-title { font-size: 13px; font-weight: 700; }
 .ach-desc { font-size: 11px; color: var(--fg-dim); margin-top: 2px; line-height: 1.4; }
+
+/* ===== Намёк на чит-код в задаче ===== */
+.task-cheat-hint {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 170, 0, 0.08);
+  border-left: 3px solid var(--warn);
+  font-size: 12px;
+  color: var(--warn);
+  border-radius: 4px;
+  line-height: 1.5;
+}

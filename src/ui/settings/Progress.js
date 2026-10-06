@@ -1,4 +1,5 @@
 import { progress } from '../../core/progress.js';
+import { t, getLang } from '../../i18n/index.js';
 
 export class Progress {
   constructor() {
@@ -7,7 +8,6 @@ export class Progress {
   }
 
   async loadWorldStats() {
-    // Загружаем прогресс по всем папкам junior
     const stats = { junior: { chapters: [], totalStars: 0, maxStars: 0, solved: 0, totalTasks: 0 } };
 
     try {
@@ -21,7 +21,7 @@ export class Progress {
           const chRes = await fetch(chUrl);
           if (!chRes.ok) continue;
           const chData = await chRes.json();
-          const ids = (chData.tasks || []).map((t) => progress.makeId('junior/' + ch.id + '/' + t));
+          const ids = (chData.tasks || []).map((x) => progress.makeId('junior/' + ch.id + '/' + x));
           const solved = ids.filter((id) => progress.isSolved(id)).length;
           const stars = progress.sumStars(ids);
           const maxStars = progress.maxStars(ids);
@@ -30,21 +30,15 @@ export class Progress {
             id: ch.id,
             title: ch.title,
             icon: ch.icon || '📁',
-            solved,
-            total: ids.length,
-            stars,
-            maxStars,
+            solved, total: ids.length, stars, maxStars,
           });
-
           stats.junior.totalStars += stars;
           stats.junior.maxStars += maxStars;
           stats.junior.solved += solved;
           stats.junior.totalTasks += ids.length;
         } catch (e) {}
       }
-    } catch (e) {
-      console.warn('[Progress] не могу загрузить junior', e);
-    }
+    } catch (e) {}
 
     this.worldStats = stats;
   }
@@ -56,15 +50,15 @@ export class Progress {
 
     return `
       <div class="progress-view">
-        <div class="progress-title">📊 ТВОЙ ПРОГРЕСС</div>
+        <div class="progress-title">📊 ${t('progress_title')}</div>
 
         <div class="progress-section">
           <div class="progress-stat">
-            <div class="progress-label">Решено задач</div>
+            <div class="progress-label">${t('progress_solved')}</div>
             <div class="progress-value">${j.solved} / ${j.totalTasks}</div>
           </div>
           <div class="progress-stat">
-            <div class="progress-label">Звёзд всего</div>
+            <div class="progress-label">${t('progress_stars')}</div>
             <div class="progress-value">⭐ ${j.totalStars} / ${j.maxStars}</div>
           </div>
         </div>
@@ -74,14 +68,14 @@ export class Progress {
             <div class="progress-bar">
               <div class="progress-bar-fill" style="width: ${percent}%"></div>
             </div>
-            <div class="progress-bar-label">${percent}% ${perfect ? '🏆 ИДЕАЛЬНО' : 'от идеала'}</div>
+            <div class="progress-bar-label">${percent}% ${perfect ? '🏆 ' + t('progress_perfect') : t('progress_ideal')}</div>
           </div>
         </div>
 
         <div class="progress-section">
-          <div class="progress-section-title">🎯 JUNIOR</div>
+          <div class="progress-section-title">🎯 ${t('progress_junior')}</div>
           <div class="progress-chapters">
-            ${j.chapters.length === 0 ? '<div style="color: var(--fg-dim); font-size: 11px;">Загрузка...</div>' : ''}
+            ${j.chapters.length === 0 ? `<div style="color: var(--fg-dim); font-size: 11px;">${t('progress_loading')}</div>` : ''}
             ${j.chapters.map((ch) => {
               const chPercent = ch.maxStars > 0 ? Math.round((ch.stars / ch.maxStars) * 100) : 0;
               const chPerfect = ch.maxStars > 0 && ch.stars >= ch.maxStars;
@@ -101,24 +95,24 @@ export class Progress {
         </div>
 
         <div class="progress-section">
-          <div class="progress-section-title">🌍 МИРЫ</div>
+          <div class="progress-section-title">🌍 ${t('progress_worlds')}</div>
           <div class="progress-world">
             <div>🎯 <strong>JUNIOR</strong></div>
             <div class="progress-world-stats">${percent}%</div>
           </div>
           <div class="progress-world locked">
             <div>🔒 <strong>MIDDLE</strong></div>
-            <div class="progress-world-stats">Скоро</div>
+            <div class="progress-world-stats">${t('progress_soon')}</div>
           </div>
           <div class="progress-world locked">
             <div>🔒 <strong>SENIOR</strong></div>
-            <div class="progress-world-stats">Скоро</div>
+            <div class="progress-world-stats">${t('progress_soon')}</div>
           </div>
         </div>
 
         <div class="progress-section">
           <button class="task-btn" id="reset-progress-btn" style="color: var(--error); width: 100%;" type="button">
-            Сбросить весь прогресс
+            ${t('progress_reset')}
           </button>
         </div>
       </div>
@@ -127,15 +121,13 @@ export class Progress {
 
   async mount(body) {
     this.el = body.querySelector('.progress-view');
-
-    // Загружаем статистику и перерисовываем
     await this.loadWorldStats();
     body.innerHTML = this.render();
 
     const resetBtn = body.querySelector('#reset-progress-btn');
     if (resetBtn) {
       resetBtn.onclick = () => {
-        if (confirm('Точно сбросить весь прогресс?')) {
+        if (confirm(t('settings_reset_confirm'))) {
           progress.reset();
           localStorage.clear();
           location.reload();
