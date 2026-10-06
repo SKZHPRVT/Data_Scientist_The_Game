@@ -3,7 +3,8 @@ import { COMMANDS } from '../../core/commands.js';
 import { progress, rewards } from '../../core/progress.js';
 
 export class Terminal {
-  constructor() {
+  constructor(options = {}) {
+    this.onOpenLab = options.onOpenLab || null;
     this.history = [];
     this.historyIdx = -1;
     this.el = null;
@@ -264,42 +265,19 @@ export class Terminal {
     const args = parts.slice(1);
 
     try {
-      if (name === 'solved') {
-        const solved = JSON.parse(localStorage.getItem('tasks_solved_v9') || '[]');
-        const models = solved.filter((id) => id.startsWith('models/'));
-        this._print('Всего решено: ' + solved.length, 'terminal-success');
-        this._print('Из них моделей: ' + models.length, 'terminal-success');
-        models.forEach((id) => this._print('  ' + id));
-        return;
-      }
-      if (name === 'stars') {
-        const keys = Object.keys(localStorage).filter((k) => k.startsWith('task_models'));
-        this._print('Звёзд моделей: ' + keys.length, 'terminal-success');
-        keys.forEach((k) => this._print('  ' + k + ' = ' + localStorage.getItem(k)));
-        return;
-      }
-      if (name === 'unlocked') {
-        const arr = JSON.parse(localStorage.getItem('unlocked_models') || '[]');
-        this._print('Unlocked models: ' + arr.length, 'terminal-success');
-        arr.forEach((m) => this._print('  ' + m));
-        return;
-      }
-      if (name === 'keys') {
-        const all = Object.keys(localStorage);
-        this._print('Всего ключей в localStorage: ' + all.length, 'terminal-success');
-        all.filter((k) => k.includes('models')).forEach((k) => this._print('  ' + k));
-        return;
-      }
       if (name === 'models') {
-        const lab = window.__models;
-        if (!lab) { this._print('[ERROR] Лаборатория не загружена', 'terminal-error'); return; }
-        const p2 = lab.getProgress();
-        this._print('МОДЕЛИ: ' + p2.unlocked + ' / ' + p2.total, 'terminal-success');
-        this._print('');
-        lab.listAll().forEach((fam) => {
-          this._print(fam.icon + ' ' + fam.family, 'terminal-warn');
-          fam.models.forEach((m) => this._print('  ' + (m.unlocked ? '[+]' : '[ ]') + ' ' + m.name));
-        });
+        this._cmdModels(args);
+        return;
+      }
+
+      if (name === 'lab') {
+        // Открываем лабораторию моделей прямо из терминала
+        if (this.onOpenLab) {
+          this.onOpenLab();
+          this._print('📦 Открываю лабораторию...', 'terminal-success');
+        } else {
+          this._print('Открой MODELS 📦 на рабочем столе', 'terminal-warn');
+        }
         return;
       }
       if (name === 'help') {
@@ -312,6 +290,7 @@ export class Terminal {
         this._print('  ИГРА', 'terminal-success');
         this._print('═══════════════════════════════', 'terminal-success');
         this._print('  quests, world, stats, achievements');
+        this._print('  models [name], lab — лаборатория моделей');
         this._print('');
         this._print('═══════════════════════════════', 'terminal-success');
         this._print('  ПАСХАЛКИ', 'terminal-success');
@@ -503,6 +482,91 @@ export class Terminal {
     } catch (e) {
       this._print('[ERROR] ' + e.message, 'terminal-error');
       this._print('Введи help.', 'terminal-warn');
+    }
+  }
+
+  _cmdModels(args) {
+    const lab = window.__models;
+    if (!lab) {
+      this._print('[ERROR] Лаборатория не загружена', 'terminal-error');
+      return;
+    }
+
+    // Если указано имя модели — показываем карточку
+    if (args && args.length > 0) {
+      const query = args.join(' ').toLowerCase();
+      const found = this._findModel(query);
+      if (!found) {
+        this._print(`Модель "${args.join(' ')}" не найдена`, 'terminal-warn');
+        this._print('Введи "models" чтобы увидеть все.', 'terminal-warn');
+        return;
+      }
+      this._printModelCard(found);
+      return;
+    }
+
+    // Иначе — обзор
+    const p = lab.getProgress();
+    this._print('═══════════════════════════════', 'terminal-success');
+    this._print('  📦 ЛАБОРАТОРИЯ МОДЕЛЕЙ', 'terminal-success');
+    this._print('═══════════════════════════════', 'terminal-success');
+    this._print(`  Прогресс: ${p.unlocked} / ${p.total} моделей`);
+    this._print('');
+
+    lab.listAll().forEach((fam) => {
+      const total = fam.models.length;
+      const unlockedCount = fam.models.filter((m) => m.unlocked).length;
+      const status = unlockedCount === total ? '✅' : (unlockedCount > 0 ? '▶️' : '🔒');
+      const bar = '█'.repeat(Math.round((unlockedCount / total) * 10)) + '░'.repeat(10 - Math.round((unlockedCount / total) * 10));
+      this._print(`${status} ${fam.icon} ${fam.family}`, 'terminal-warn');
+      this._print(`     ${bar}  ${unlockedCount} / ${total}`);
+    });
+
+    this._print('');
+    this._print('  👁 ФИНАЛЬНЫЙ БОСС: ' + (p.unlocked >= 38 ? 'открыт' : `нужно ${38 - p.unlocked} моделей`), 'terminal-success');
+    this._print('');
+    this._print('Введи "models <name>" — карточка модели', 'terminal-success');
+    this._print('Введи "lab" — открыть лабораторию', 'terminal-success');
+  }
+
+  _findModel(query) {
+    const lab = window.__models;
+    if (!lab) return null;
+    for (const family of lab.index.families) {
+      const familyData = lab.families[family.id];
+      if (!familyData || !familyData.quests) continue;
+      for (const quest of familyData.quests) {
+        const name = (quest.unlocks || quest.title || '').toLowerCase();
+        const id = (quest.id || '').toLowerCase();
+        if (name.includes(query) || id.includes(query)) {
+          return {
+            family: family,
+            familyId: family.id,
+            quest: quest,
+            unlocked: lab.isUnlocked(quest.unlocks),
+          };
+        }
+      }
+    }
+    return null;
+  }
+
+  _printModelCard(found) {
+    const { family, quest, unlocked } = found;
+    this._print('═══════════════════════════════', 'terminal-success');
+    this._print(`  📦 ${quest.unlocks || quest.title}`, 'terminal-success');
+    this._print('═══════════════════════════════', 'terminal-success');
+    this._print(`  Семейство: ${family.icon} ${family.name}`);
+    this._print(`  Статус:    ${unlocked ? '✅ открыта' : '🔒 закрыта'}`);
+    this._print('');
+    if (quest.story) {
+      this._print('  Сценарий:', 'terminal-warn');
+      this._print(`    ${quest.story}`);
+      this._print('');
+    }
+    if (quest.explanation) {
+      this._print('  Объяснение:', 'terminal-warn');
+      this._print(`    ${quest.explanation}`);
     }
   }
 

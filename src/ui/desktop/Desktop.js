@@ -543,7 +543,9 @@ export class Desktop {
   }
 
   openTerminal() {
-    const term = new Terminal();
+    const term = new Terminal({
+      onOpenLab: () => this.openModelsLab(),
+    });
     const win = this.windows.create({
       id: 'terminal',
       title: '⌨️ Терминал',
