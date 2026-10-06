@@ -1,0 +1,34 @@
+{
+  "id": "any_all",
+  "world": "python",
+  "level": 1,
+  "title": "Проверка условий",
+  "question": "Есть список флагов [True, True, False]. Проверить, что ВСЕ True?",
+  "options": [
+    {
+      "id": "A",
+      "code": "all(flags)",
+      "correct": true,
+      "explain": "all() возвращает True, только если все элементы True."
+    },
+    {
+      "id": "B",
+      "code": "any(flags)",
+      "correct": false,
+      "explain": "any() — хотя бы один True. Здесь тоже True, но логика другая."
+    },
+    {
+      "id": "C",
+      "code": "every(flags)",
+      "correct": false,
+      "explain": "every() не существует."
+    },
+    {
+      "id": "D",
+      "code": "sum(flags) == len(flags)",
+      "correct": false,
+      "explain": "Работает, но переусложнено. Есть all()."
+    }
+  ],
+  "hint": "all() — все True? any() — хотя бы один?"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "help_doc",
+  "world": "python",
+  "level": 1,
+  "title": "Справка",
+  "question": "Забыл, что делает функция. Как посмотреть документацию?",
+  "options": [
+    {
+      "id": "A",
+      "code": "help(print)",
+      "correct": true,
+      "explain": "help() показывает docstring функции."
+    },
+    {
+      "id": "B",
+      "code": "print.help()",
+      "correct": false,
+      "explain": "Такого метода нет."
+    },
+    {
+      "id": "C",
+      "code": "doc(print)",
+      "correct": false,
+      "explain": "doc() не существует."
+    },
+    {
+      "id": "D",
+      "code": "info(print)",
+      "correct": false,
+      "explain": "info() не существует (есть у logging)."
+    }
+  ],
+  "hint": "help(obj) — документация"
+}

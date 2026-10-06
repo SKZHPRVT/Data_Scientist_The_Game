@@ -1,0 +1,34 @@
+{
+  "id": "int_cast",
+  "world": "python",
+  "level": 1,
+  "title": "Строка → число",
+  "question": "Ты получил '42' из input(). Как превратить это в число?",
+  "options": [
+    {
+      "id": "A",
+      "code": "n = int('42')",
+      "correct": true,
+      "explain": "int() превращает строку в целое число."
+    },
+    {
+      "id": "B",
+      "code": "n = str('42')",
+      "correct": false,
+      "explain": "str() наоборот — превращает в строку."
+    },
+    {
+      "id": "C",
+      "code": "n = num('42')",
+      "correct": false,
+      "explain": "num() не существует."
+    },
+    {
+      "id": "D",
+      "code": "n = parse('42')",
+      "correct": false,
+      "explain": "parse() не существует в built-in."
+    }
+  ],
+  "hint": "int('42') → 42"
+}

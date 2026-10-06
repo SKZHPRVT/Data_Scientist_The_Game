@@ -1,0 +1,34 @@
+{
+  "id": "format_string",
+  "world": "python",
+  "level": 1,
+  "title": "Подстановка в текст",
+  "question": "Нужно вывести 'Привет, Аня! Тебе 25 лет.' из переменных name и age. Что используешь?",
+  "options": [
+    {
+      "id": "A",
+      "code": "print(f'Привет, {name}! Тебе {age} лет.')",
+      "correct": true,
+      "explain": "f-строки — современный способ подстановки. Внутри {} — переменные."
+    },
+    {
+      "id": "B",
+      "code": "print('Привет, name! Тебе age лет.')",
+      "correct": false,
+      "explain": "Так выведет буквально слова 'name' и 'age'."
+    },
+    {
+      "id": "C",
+      "code": "print('Привет, ' + name + '!')",
+      "correct": true,
+      "explain": "Тоже верно, но громоздко. f-строки удобнее."
+    },
+    {
+      "id": "D",
+      "code": "print(name.format(age))",
+      "correct": false,
+      "explain": "Не так работает — format на шаблоне, не на переменной."
+    }
+  ],
+  "hint": "f'...{переменная}...' — современный способ"
+}

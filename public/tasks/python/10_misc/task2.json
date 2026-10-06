@@ -1,0 +1,34 @@
+{
+  "id": "isinstance_super",
+  "world": "python",
+  "level": 1,
+  "title": "Наследование",
+  "question": "Внутри класса Child нужно вызвать метод родителя. Что используешь?",
+  "options": [
+    {
+      "id": "A",
+      "code": "super().method()",
+      "correct": true,
+      "explain": "super() даёт доступ к родительскому классу."
+    },
+    {
+      "id": "B",
+      "code": "parent.method()",
+      "correct": false,
+      "explain": "parent — не ключевое слово."
+    },
+    {
+      "id": "C",
+      "code": "self.parent.method()",
+      "correct": false,
+      "explain": "Такого атрибута нет."
+    },
+    {
+      "id": "D",
+      "code": "base.method()",
+      "correct": false,
+      "explain": "base — не встроено."
+    }
+  ],
+  "hint": "super() — доступ к родителю"
+}

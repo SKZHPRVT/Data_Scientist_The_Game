@@ -156,6 +156,7 @@ export class Desktop {
       { icon: '🎯', label: 'JUNIOR', action: () => this.openGroupMap('junior') },
       { icon: '🚀', label: 'MIDDLE', action: () => this.openWorldGate('middle') },
       { icon: '👑', label: 'SENIOR', action: () => this.openWorldGate('senior') },
+      { icon: '📚', label: 'PYTHON', action: () => this.openGroupMap('python') },
       { icon: '📁', label: 'SANDBOX', action: () => this.openSandbox() },
       { icon: '📦', label: 'MODELS', action: () => this.openModelsLab() },
       { icon: '🎲', label: 'GALTON', action: () => this.openGalton() },
@@ -439,7 +440,12 @@ export class Desktop {
 
     const win = this.windows.create({
       id: 'groupmap',
-      title: '🎯 ' + (worldId === 'baby' ? 'BABY SCIENTIST' : worldId.toUpperCase()),
+      title: (() => {
+        const icons = { baby: '🍼', junior: '🎯', middle: '🚀', senior: '👑', python: '📚', plots: '📈' };
+        const icon = icons[worldId] || '📁';
+        const name = worldId === 'baby' ? 'BABY SCIENTIST' : worldId.toUpperCase();
+        return icon + ' ' + name;
+      })(),
       content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
       width: 520,
       height: 660,

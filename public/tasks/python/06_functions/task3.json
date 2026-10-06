@@ -1,0 +1,34 @@
+{
+  "id": "max_min",
+  "world": "python",
+  "level": 1,
+  "title": "Максимум и минимум",
+  "question": "Есть список чисел. Как найти наибольшее?",
+  "options": [
+    {
+      "id": "A",
+      "code": "max(numbers)",
+      "correct": true,
+      "explain": "max() возвращает наибольший элемент."
+    },
+    {
+      "id": "B",
+      "code": "numbers.max()",
+      "correct": false,
+      "explain": "max() — не метод list."
+    },
+    {
+      "id": "C",
+      "code": "biggest(numbers)",
+      "correct": false,
+      "explain": "biggest() не существует."
+    },
+    {
+      "id": "D",
+      "code": "sort(numbers)[-1]",
+      "correct": false,
+      "explain": "sort() меняет список, не возвращает."
+    }
+  ],
+  "hint": "max() и min() работают на iterable"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "zip_pair",
+  "world": "python",
+  "level": 1,
+  "title": "Спарь списки",
+  "question": "Есть имена ['Аня', 'Боря'] и возрасты [25, 30]. Как пройти по парам?",
+  "options": [
+    {
+      "id": "A",
+      "code": "for name, age in zip(names, ages):",
+      "correct": true,
+      "explain": "zip() объединяет два итерируемых в пары."
+    },
+    {
+      "id": "B",
+      "code": "for name, age in names + ages:",
+      "correct": false,
+      "explain": "Ошибка — сложение списков, не пары."
+    },
+    {
+      "id": "C",
+      "code": "for name, age in pair(names, ages):",
+      "correct": false,
+      "explain": "pair() не существует."
+    },
+    {
+      "id": "D",
+      "code": "for i in range(len(names)):",
+      "correct": false,
+      "explain": "Работает, но менее питонично. zip проще."
+    }
+  ],
+  "hint": "zip(a, b) → (a[i], b[i])"
+}

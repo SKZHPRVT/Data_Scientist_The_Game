@@ -1,0 +1,34 @@
+{
+  "id": "print_first",
+  "world": "python",
+  "level": 1,
+  "title": "Первый вывод",
+  "question": "Ты проснулся в тёмной комнате. Голос: 'Скажи что-нибудь'. Какой функцией вывести текст?",
+  "options": [
+    {
+      "id": "A",
+      "code": "print('Я живой')",
+      "correct": true,
+      "explain": "print() выводит текст в консоль. Первая функция Python."
+    },
+    {
+      "id": "B",
+      "code": "input('Я живой')",
+      "correct": false,
+      "explain": "input() читает ввод, а не выводит."
+    },
+    {
+      "id": "C",
+      "code": "echo('Я живой')",
+      "correct": false,
+      "explain": "echo — это shell, не Python."
+    },
+    {
+      "id": "D",
+      "code": "say('Я живой')",
+      "correct": false,
+      "explain": "Такой функции в Python нет."
+    }
+  ],
+  "hint": "print() — первая функция Python"
+}

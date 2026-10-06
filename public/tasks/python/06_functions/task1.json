@@ -1,0 +1,34 @@
+{
+  "id": "len_length",
+  "world": "python",
+  "level": 1,
+  "title": "Длина",
+  "question": "Есть список items. Как узнать, сколько там элементов?",
+  "options": [
+    {
+      "id": "A",
+      "code": "len(items)",
+      "correct": true,
+      "explain": "len() возвращает длину строки, списка, словаря."
+    },
+    {
+      "id": "B",
+      "code": "items.length",
+      "correct": false,
+      "explain": "Такого атрибута нет. Есть len()."
+    },
+    {
+      "id": "C",
+      "code": "count(items)",
+      "correct": false,
+      "explain": "count() — метод списка, требует аргумент."
+    },
+    {
+      "id": "D",
+      "code": "size(items)",
+      "correct": false,
+      "explain": "size — из numpy, не built-in."
+    }
+  ],
+  "hint": "len() — универсальная длина"
+}

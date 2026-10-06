@@ -1,0 +1,34 @@
+{
+  "id": "eval_parse",
+  "world": "python",
+  "level": 1,
+  "title": "Вычисли строку",
+  "question": "Есть строка '2 + 2'. Как получить результат?",
+  "options": [
+    {
+      "id": "A",
+      "code": "eval('2 + 2')",
+      "correct": true,
+      "explain": "eval() выполняет код из строки. Осторожно: опасно для недоверенного ввода."
+    },
+    {
+      "id": "B",
+      "code": "int('2 + 2')",
+      "correct": false,
+      "explain": "int() не умеет вычислять, ошибка."
+    },
+    {
+      "id": "C",
+      "code": "exec('2 + 2')",
+      "correct": false,
+      "explain": "exec() выполняет, но не возвращает результат."
+    },
+    {
+      "id": "D",
+      "code": "calc('2 + 2')",
+      "correct": false,
+      "explain": "calc() не существует."
+    }
+  ],
+  "hint": "eval() выполняет выражение из строки"
+}

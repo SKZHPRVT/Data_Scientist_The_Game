@@ -1,0 +1,34 @@
+{
+  "id": "abs_distance",
+  "world": "python",
+  "level": 1,
+  "title": "Расстояние",
+  "question": "Игрок на позиции -5, цель на позиции 3. Как найти расстояние без знака?",
+  "options": [
+    {
+      "id": "A",
+      "code": "abs(-5 - 3)",
+      "correct": true,
+      "explain": "abs() убирает знак. |-8| = 8."
+    },
+    {
+      "id": "B",
+      "code": "-5 - 3",
+      "correct": false,
+      "explain": "Получится -8, отрицательное."
+    },
+    {
+      "id": "C",
+      "code": "abs(-5) + abs(3)",
+      "correct": false,
+      "explain": "5 + 3 = 8 — но это не расстояние между точками."
+    },
+    {
+      "id": "D",
+      "code": "dist(-5, 3)",
+      "correct": false,
+      "explain": "dist() — не built-in."
+    }
+  ],
+  "hint": "abs(x) — модуль числа"
+}

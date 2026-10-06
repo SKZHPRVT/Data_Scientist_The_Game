@@ -1,0 +1,34 @@
+{
+  "id": "isinstance_check",
+  "world": "python",
+  "level": 1,
+  "title": "Проверка типа",
+  "question": "Нужно проверить: является ли x числом (int)?",
+  "options": [
+    {
+      "id": "A",
+      "code": "isinstance(x, int)",
+      "correct": true,
+      "explain": "isinstance() проверяет тип. Возвращает True/False."
+    },
+    {
+      "id": "B",
+      "code": "type(x) == int",
+      "correct": true,
+      "explain": "Тоже верно, но isinstance лучше работает с наследованием."
+    },
+    {
+      "id": "C",
+      "code": "x is int",
+      "correct": false,
+      "explain": "is сравнивает объекты, не типы."
+    },
+    {
+      "id": "D",
+      "code": "isint(x)",
+      "correct": false,
+      "explain": "isint() не существует."
+    }
+  ],
+  "hint": "isinstance(x, Type) → True/False"
+}

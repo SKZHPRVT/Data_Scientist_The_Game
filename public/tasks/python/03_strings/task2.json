@@ -1,0 +1,34 @@
+{
+  "id": "ord_chr",
+  "world": "python",
+  "level": 1,
+  "title": "Код символа",
+  "question": "Нужно узнать код буквы 'A' (ASCII/Unicode). Что используешь?",
+  "options": [
+    {
+      "id": "A",
+      "code": "ord('A')",
+      "correct": true,
+      "explain": "ord() возвращает код символа. ord('A') = 65."
+    },
+    {
+      "id": "B",
+      "code": "chr('A')",
+      "correct": false,
+      "explain": "chr() наоборот — код → символ."
+    },
+    {
+      "id": "C",
+      "code": "code('A')",
+      "correct": false,
+      "explain": "code() не существует."
+    },
+    {
+      "id": "D",
+      "code": "ascii('A')",
+      "correct": false,
+      "explain": "ascii() возвращает repr-представление, не код."
+    }
+  ],
+  "hint": "ord() — символ → код"
+}

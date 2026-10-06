@@ -1,0 +1,34 @@
+{
+  "id": "hasattr_check",
+  "world": "python",
+  "level": 1,
+  "title": "Есть ли атрибут?",
+  "question": "Проверить, есть ли у объекта атрибут 'shape'?",
+  "options": [
+    {
+      "id": "A",
+      "code": "hasattr(obj, 'shape')",
+      "correct": true,
+      "explain": "hasattr() проверяет наличие атрибута."
+    },
+    {
+      "id": "B",
+      "code": "obj.has('shape')",
+      "correct": false,
+      "explain": "Такого метода нет."
+    },
+    {
+      "id": "C",
+      "code": "'shape' in obj",
+      "correct": false,
+      "explain": "in — для коллекций, не атрибутов."
+    },
+    {
+      "id": "D",
+      "code": "if obj.shape:",
+      "correct": false,
+      "explain": "Так ты получишь ошибку если атрибута нет."
+    }
+  ],
+  "hint": "hasattr(obj, 'name') → True/False"
+}

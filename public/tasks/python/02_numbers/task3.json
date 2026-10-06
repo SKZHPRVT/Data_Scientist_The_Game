@@ -1,0 +1,34 @@
+{
+  "id": "round_price",
+  "world": "python",
+  "level": 1,
+  "title": "Округление",
+  "question": "Цена 19.99. Округли до целого (до рублей).",
+  "options": [
+    {
+      "id": "A",
+      "code": "round(19.99)",
+      "correct": true,
+      "explain": "round() округляет до ближайшего целого → 20."
+    },
+    {
+      "id": "B",
+      "code": "int(19.99)",
+      "correct": false,
+      "explain": "int() обрезает — получится 19, не округление."
+    },
+    {
+      "id": "C",
+      "code": "ceil(19.99)",
+      "correct": false,
+      "explain": "ceil() — из math, не built-in."
+    },
+    {
+      "id": "D",
+      "code": "abs(19.99)",
+      "correct": false,
+      "explain": "abs() — модуль числа, не округление."
+    }
+  ],
+  "hint": "round() округляет к ближайшему"
+}

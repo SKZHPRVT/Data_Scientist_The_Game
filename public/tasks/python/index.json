@@ -1,0 +1,78 @@
+{
+  "id": "python",
+  "title": "PYTHON",
+  "icon": "📚",
+  "description": "72 встроенные функции Python. База, без которой никуда.",
+  "chapters": [
+    {
+      "id": "01_io",
+      "title": "Ввод-вывод",
+      "icon": "💬",
+      "description": "print и input",
+      "unlockAfter": null
+    },
+    {
+      "id": "02_numbers",
+      "title": "Числа",
+      "icon": "🔢",
+      "description": "int, float, abs, round, pow",
+      "unlockAfter": "01_io"
+    },
+    {
+      "id": "03_strings",
+      "title": "Строки",
+      "icon": "📝",
+      "description": "str, chr, ord, format",
+      "unlockAfter": "02_numbers"
+    },
+    {
+      "id": "04_collections",
+      "title": "Коллекции",
+      "icon": "📦",
+      "description": "list, tuple, dict, set",
+      "unlockAfter": "03_strings"
+    },
+    {
+      "id": "05_iteration",
+      "title": "Итерация",
+      "icon": "🔁",
+      "description": "range, enumerate, zip, iter",
+      "unlockAfter": "04_collections"
+    },
+    {
+      "id": "06_functions",
+      "title": "Функции",
+      "icon": "⚙️",
+      "description": "map, filter, sum, len, any, all",
+      "unlockAfter": "05_iteration"
+    },
+    {
+      "id": "07_types",
+      "title": "Типы",
+      "icon": "🏷️",
+      "description": "type, isinstance, bool",
+      "unlockAfter": "06_functions"
+    },
+    {
+      "id": "08_attributes",
+      "title": "Атрибуты",
+      "icon": "🔧",
+      "description": "getattr, setattr, dir, vars",
+      "unlockAfter": "07_types"
+    },
+    {
+      "id": "09_meta",
+      "title": "Мета",
+      "icon": "👁",
+      "description": "eval, exec, compile, help",
+      "unlockAfter": "08_attributes"
+    },
+    {
+      "id": "10_misc",
+      "title": "Разное",
+      "icon": "🎲",
+      "description": "open, bytes, object, super",
+      "unlockAfter": "09_meta"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "enumerate_index",
+  "world": "python",
+  "level": 1,
+  "title": "С индексом",
+  "question": "Проходишь по списку и нужен номер каждого элемента. Что используешь?",
+  "options": [
+    {
+      "id": "A",
+      "code": "for i, item in enumerate(items):",
+      "correct": true,
+      "explain": "enumerate() даёт пару (индекс, элемент)."
+    },
+    {
+      "id": "B",
+      "code": "for item in items:",
+      "correct": false,
+      "explain": "Без индекса. Придётся вручную считать."
+    },
+    {
+      "id": "C",
+      "code": "for i in range(items):",
+      "correct": false,
+      "explain": "Ошибка — range ожидает число."
+    },
+    {
+      "id": "D",
+      "code": "for i, item in items.index():",
+      "correct": false,
+      "explain": "items.index() — метод для поиска."
+    }
+  ],
+  "hint": "enumerate() → (индекс, элемент)"
+}

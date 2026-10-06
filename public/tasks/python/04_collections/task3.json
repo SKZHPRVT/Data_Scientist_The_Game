@@ -1,0 +1,34 @@
+{
+  "id": "set_unique",
+  "world": "python",
+  "level": 1,
+  "title": "Уникальные",
+  "question": "Список городов с дублями: ['Москва', 'СПб', 'Москва', 'Казань']. Как убрать дубликаты?",
+  "options": [
+    {
+      "id": "A",
+      "code": "unique = set(cities)",
+      "correct": true,
+      "explain": "set() убирает дубликаты автоматически. Порядок не сохраняется."
+    },
+    {
+      "id": "B",
+      "code": "unique = list(cities)",
+      "correct": false,
+      "explain": "Просто копия — дубликаты останутся."
+    },
+    {
+      "id": "C",
+      "code": "unique = dict(cities)",
+      "correct": false,
+      "explain": "Ошибка — dict ожидает пары."
+    },
+    {
+      "id": "D",
+      "code": "unique = cities.unique()",
+      "correct": false,
+      "explain": "unique() — метод pandas, не list."
+    }
+  ],
+  "hint": "set() хранит только уникальные"
+}

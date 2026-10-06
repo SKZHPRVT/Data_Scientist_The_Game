@@ -1,0 +1,34 @@
+{
+  "id": "chr_symbol",
+  "world": "python",
+  "level": 1,
+  "title": "Код → символ",
+  "question": "Есть код 65. Как получить символ?",
+  "options": [
+    {
+      "id": "A",
+      "code": "chr(65)",
+      "correct": true,
+      "explain": "chr() возвращает символ по коду. chr(65) = 'A'."
+    },
+    {
+      "id": "B",
+      "code": "ord(65)",
+      "correct": false,
+      "explain": "ord() работает наоборот — ошибка, нужно передать символ."
+    },
+    {
+      "id": "C",
+      "code": "symbol(65)",
+      "correct": false,
+      "explain": "symbol() не существует."
+    },
+    {
+      "id": "D",
+      "code": "char(65)",
+      "correct": false,
+      "explain": "char() нет в Python (есть в C)."
+    }
+  ],
+  "hint": "chr() — код → символ"
+}

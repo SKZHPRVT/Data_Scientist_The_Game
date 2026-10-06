@@ -1,0 +1,34 @@
+{
+  "id": "float_cast",
+  "world": "python",
+  "level": 1,
+  "title": "Дробное число",
+  "question": "Цена товара '19.99'. Как превратить в число с плавающей точкой?",
+  "options": [
+    {
+      "id": "A",
+      "code": "price = float('19.99')",
+      "correct": true,
+      "explain": "float() — для чисел с точкой."
+    },
+    {
+      "id": "B",
+      "code": "price = int('19.99')",
+      "correct": false,
+      "explain": "int() выбросит ошибку на точке."
+    },
+    {
+      "id": "C",
+      "code": "price = decimal('19.99')",
+      "correct": false,
+      "explain": "decimal — из модуля decimal, не built-in."
+    },
+    {
+      "id": "D",
+      "code": "price = num('19.99')",
+      "correct": false,
+      "explain": "num() не существует."
+    }
+  ],
+  "hint": "float() для дробных"
+}

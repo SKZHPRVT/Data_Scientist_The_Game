@@ -1,0 +1,34 @@
+{
+  "id": "input_read",
+  "world": "python",
+  "level": 1,
+  "title": "Прочитай имя",
+  "question": "NPC спрашивает твоё имя. Какой функцией прочитать ввод пользователя?",
+  "options": [
+    {
+      "id": "A",
+      "code": "name = input('Как тебя зовут? ')",
+      "correct": true,
+      "explain": "input() показывает подсказку и читает строку, которую ввёл пользователь."
+    },
+    {
+      "id": "B",
+      "code": "name = print('Как тебя зовут? ')",
+      "correct": false,
+      "explain": "print() возвращает None, а не ввод."
+    },
+    {
+      "id": "C",
+      "code": "name = read('Как тебя зовут? ')",
+      "correct": false,
+      "explain": "read() в Python нет (это метод файлов)."
+    },
+    {
+      "id": "D",
+      "code": "name = get('Как тебя зовут? ')",
+      "correct": false,
+      "explain": "get() — метод словаря, не функция ввода."
+    }
+  ],
+  "hint": "input() возвращает строку"
+}

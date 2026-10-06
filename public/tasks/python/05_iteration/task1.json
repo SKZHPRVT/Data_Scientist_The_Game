@@ -1,0 +1,34 @@
+{
+  "id": "range_loop",
+  "world": "python",
+  "level": 1,
+  "title": "Повтори 10 раз",
+  "question": "Нужно выполнить действие 10 раз. Что используешь?",
+  "options": [
+    {
+      "id": "A",
+      "code": "for i in range(10):",
+      "correct": true,
+      "explain": "range(10) даёт числа 0..9 — 10 итераций."
+    },
+    {
+      "id": "B",
+      "code": "for i in list(10):",
+      "correct": false,
+      "explain": "list(10) — ошибка. list() ожидает iterable."
+    },
+    {
+      "id": "C",
+      "code": "for i in count(10):",
+      "correct": false,
+      "explain": "count() из itertools — не built-in."
+    },
+    {
+      "id": "D",
+      "code": "for i in 10:",
+      "correct": false,
+      "explain": "Нельзя итерироваться по числу."
+    }
+  ],
+  "hint": "range(n) даёт 0..n-1"
+}

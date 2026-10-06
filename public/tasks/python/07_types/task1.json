@@ -1,0 +1,34 @@
+{
+  "id": "type_check",
+  "world": "python",
+  "level": 1,
+  "title": "Что за тип?",
+  "question": "Получил переменную x. Как узнать её тип?",
+  "options": [
+    {
+      "id": "A",
+      "code": "type(x)",
+      "correct": true,
+      "explain": "type() возвращает класс объекта. Например, <class 'int'>."
+    },
+    {
+      "id": "B",
+      "code": "x.type",
+      "correct": false,
+      "explain": "Такого атрибута нет."
+    },
+    {
+      "id": "C",
+      "code": "typeof(x)",
+      "correct": false,
+      "explain": "typeof — из JavaScript, не Python."
+    },
+    {
+      "id": "D",
+      "code": "class(x)",
+      "correct": false,
+      "explain": "class — ключевое слово, не функция."
+    }
+  ],
+  "hint": "type(x) → <class 'int'>"
+}

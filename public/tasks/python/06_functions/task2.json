@@ -1,0 +1,34 @@
+{
+  "id": "sum_total",
+  "world": "python",
+  "level": 1,
+  "title": "Сумма",
+  "question": "Есть список чисел prices. Как найти сумму?",
+  "options": [
+    {
+      "id": "A",
+      "code": "sum(prices)",
+      "correct": true,
+      "explain": "sum() складывает все элементы."
+    },
+    {
+      "id": "B",
+      "code": "total(prices)",
+      "correct": false,
+      "explain": "total() не существует."
+    },
+    {
+      "id": "C",
+      "code": "prices.sum()",
+      "correct": false,
+      "explain": "sum() на list — AttributeError."
+    },
+    {
+      "id": "D",
+      "code": "add(prices)",
+      "correct": false,
+      "explain": "add() — из operator."
+    }
+  ],
+  "hint": "sum([1,2,3]) → 6"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "map_transform",
+  "world": "python",
+  "level": 1,
+  "title": "Преобразуй все",
+  "question": "Есть список строк ['1', '2', '3']. Как превратить в числа?",
+  "options": [
+    {
+      "id": "A",
+      "code": "list(map(int, strings))",
+      "correct": true,
+      "explain": "map() применяет int() к каждому элементу."
+    },
+    {
+      "id": "B",
+      "code": "int(strings)",
+      "correct": false,
+      "explain": "int() не работает на списке."
+    },
+    {
+      "id": "C",
+      "code": "for s in strings: int(s)",
+      "correct": false,
+      "explain": "Результат не сохраняется."
+    },
+    {
+      "id": "D",
+      "code": "strings.to_int()",
+      "correct": false,
+      "explain": "Такого метода нет."
+    }
+  ],
+  "hint": "map(функция, iterable)"
+}

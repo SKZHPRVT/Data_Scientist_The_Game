@@ -1,0 +1,34 @@
+{
+  "id": "dir_explore",
+  "world": "python",
+  "level": 1,
+  "title": "Осмотреть объект",
+  "question": "Какие атрибуты есть у объекта? Что использовать?",
+  "options": [
+    {
+      "id": "A",
+      "code": "dir(obj)",
+      "correct": true,
+      "explain": "dir() возвращает список всех атрибутов и методов."
+    },
+    {
+      "id": "B",
+      "code": "obj.list()",
+      "correct": false,
+      "explain": "Такого метода нет."
+    },
+    {
+      "id": "C",
+      "code": "attrs(obj)",
+      "correct": false,
+      "explain": "attrs — из библиотеки attrs, не built-in."
+    },
+    {
+      "id": "D",
+      "code": "list(obj)",
+      "correct": false,
+      "explain": "list() пробует итерировать, не покажет атрибуты."
+    }
+  ],
+  "hint": "dir(obj) — все атрибуты и методы"
+}

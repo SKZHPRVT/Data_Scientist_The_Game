@@ -1,0 +1,34 @@
+{
+  "id": "open_file",
+  "world": "python",
+  "level": 1,
+  "title": "Открой файл",
+  "question": "Как открыть файл 'data.txt' для чтения?",
+  "options": [
+    {
+      "id": "A",
+      "code": "with open('data.txt', 'r') as f:",
+      "correct": true,
+      "explain": "open() открывает файл. with закрывает автоматически."
+    },
+    {
+      "id": "B",
+      "code": "file('data.txt')",
+      "correct": false,
+      "explain": "file() — старый Python 2, удалён."
+    },
+    {
+      "id": "C",
+      "code": "read('data.txt')",
+      "correct": false,
+      "explain": "read() не существует как built-in."
+    },
+    {
+      "id": "D",
+      "code": "load('data.txt')",
+      "correct": false,
+      "explain": "load() — из numpy/pickle."
+    }
+  ],
+  "hint": "open(path, mode) → файл"
+}

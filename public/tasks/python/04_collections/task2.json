@@ -1,0 +1,34 @@
+{
+  "id": "dict_stats",
+  "world": "python",
+  "level": 1,
+  "title": "Характеристики",
+  "question": "У игрока есть HP, MP, уровень. Как связать значения с названиями?",
+  "options": [
+    {
+      "id": "A",
+      "code": "stats = {'hp': 100, 'mp': 50, 'lvl': 5}",
+      "correct": true,
+      "explain": "dict — пары ключ-значение. Идеально для характеристик."
+    },
+    {
+      "id": "B",
+      "code": "stats = [100, 50, 5]",
+      "correct": false,
+      "explain": "Не понятно, что за числа. Лучше dict."
+    },
+    {
+      "id": "C",
+      "code": "stats = (100, 50, 5)",
+      "correct": false,
+      "explain": "Tuple — неизменяемый. Ок, но без имён."
+    },
+    {
+      "id": "D",
+      "code": "stats = {100, 50, 5}",
+      "correct": false,
+      "explain": "Set — только значения без ключей."
+    }
+  ],
+  "hint": "dict = {ключ: значение}"
+}

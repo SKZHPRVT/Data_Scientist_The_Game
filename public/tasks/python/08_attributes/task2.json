@@ -1,0 +1,34 @@
+{
+  "id": "getattr_dynamic",
+  "world": "python",
+  "level": 1,
+  "title": "Получить атрибут",
+  "question": "Имя атрибута в переменной attr_name. Как получить значение?",
+  "options": [
+    {
+      "id": "A",
+      "code": "getattr(obj, attr_name)",
+      "correct": true,
+      "explain": "getattr() получает атрибут по имени из строки."
+    },
+    {
+      "id": "B",
+      "code": "obj.attr_name",
+      "correct": false,
+      "explain": "Так ищется буквально 'attr_name', не значение переменной."
+    },
+    {
+      "id": "C",
+      "code": "obj[attr_name]",
+      "correct": false,
+      "explain": "Работает для dict, не для атрибутов."
+    },
+    {
+      "id": "D",
+      "code": "get(obj, attr_name)",
+      "correct": false,
+      "explain": "get() — метод dict."
+    }
+  ],
+  "hint": "getattr(obj, 'name') = obj.name"
+}
