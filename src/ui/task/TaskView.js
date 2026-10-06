@@ -12,7 +12,6 @@ export class TaskView {
 
   render() {
     const t = this.task;
-
     return `
       <div class="task-view">
         <div class="task-header">
@@ -30,8 +29,8 @@ export class TaskView {
             </div>
           ` : ''}
 
-          <div class="task-options" id="task-options">
-            ${t.options.map((opt) => `
+          <div class="task-options">
+            ${(t.options || []).map((opt) => `
               <button class="task-option" data-id="${opt.id}">
                 <div class="task-option-code">${this._esc(opt.code)}</div>
               </button>
@@ -46,7 +45,7 @@ export class TaskView {
 
   _esc(s) {
     return String(s).replace(/[&<>"']/g, (c) => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
     }[c]));
   }
 
@@ -74,12 +73,10 @@ export class TaskView {
     if (this.answered) return;
 
     const optId = btn.dataset.id;
-    const opt = this.task.options.find((o) => o.id === optId);
+    const opt = (this.task.options || []).find((o) => o.id === optId);
     if (!opt) return;
 
-    if (window.__audio) {
-      window.__audio.click('normal');
-    }
+    if (window.__audio) window.__audio.click('normal');
 
     if (opt.correct) {
       this.answered = true;
@@ -92,18 +89,12 @@ export class TaskView {
 
   _onCorrect(btn, opt, resultEl) {
     const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-
-    // Звёзды: 3 если с первой попытки и быстро
     let stars = 3;
     if (this.wrongTries > 0) stars = Math.max(1, 3 - this.wrongTries);
     if (elapsed > 60) stars = Math.max(1, stars - 1);
-
     const starsStr = '⭐'.repeat(stars);
 
-    // Подсветка
     btn.classList.add('correct');
-
-    // Блокируем все остальные
     this.el.querySelectorAll('.task-option').forEach((b) => {
       b.style.pointerEvents = 'none';
       if (b !== btn) b.style.opacity = '0.4';
@@ -126,13 +117,9 @@ export class TaskView {
     resultEl.querySelector('#task-next').onclick = () => {
       if (this.onSolved) this.onSolved(this.task.id, stars);
     };
-
-    // Авто-скролл вниз
-    setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
   }
 
   _onWrong(btn, opt, resultEl) {
-    // Подсветка неверного варианта
     btn.classList.add('wrong');
     btn.disabled = true;
 
@@ -146,7 +133,5 @@ export class TaskView {
         <div class="task-result-hint">Попробуй другой вариант.</div>
       </div>
     `;
-
-    setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
   }
 }

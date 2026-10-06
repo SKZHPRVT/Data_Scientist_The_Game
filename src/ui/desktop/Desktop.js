@@ -23,7 +23,6 @@ export class Desktop {
 
     window.addEventListener('open-explorer', (e) => this.openExplorer(e.detail));
     window.addEventListener('open-task', (e) => this.openTaskByPath(e.detail));
-    window.addEventListener('open-questmap', (e) => this.openQuestMap(e.detail));
   }
 
   render() {
@@ -56,7 +55,6 @@ export class Desktop {
   renderIcons() {
     const icons = document.getElementById('icons');
     const items = [
-      // JUNIOR — открывает карту квестов, а не Explorer
       { icon: '🎯', label: 'JUNIOR', action: () => this.openQuestMap('junior/basics') },
       { icon: '📁', label: 'SANDBOX', action: () => this.openExplorer('/sandbox') },
       { icon: '📄', label: 'README.txt', action: () => this.openReadme() },
@@ -83,11 +81,7 @@ export class Desktop {
 
   toggleStartMenu() {
     this.tg.haptic('light');
-    if (this.startMenu) {
-      this.startMenu.destroy();
-      this.startMenu = null;
-      return;
-    }
+    if (this.startMenu) { this.startMenu.destroy(); this.startMenu = null; return; }
     this.startMenu = new StartMenu(this.root, {
       onTerminal: () => { this.openTerminal(); this.startMenu?.destroy(); this.startMenu = null; },
       onExplorer: () => { this.openExplorer('/'); this.startMenu?.destroy(); this.startMenu = null; },
@@ -103,10 +97,9 @@ export class Desktop {
       onOpenTask: (path) => this.openTaskByPath(path),
     });
 
-    // Открываем окно сразу с "Загрузка..."
     const win = this.windows.create({
       id: 'questmap-' + chapterId,
-      title: '🗺 ' + (chapterId.split('/').pop()),
+      title: '🗺 ' + chapterId.split('/').pop(),
       content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
       width: 520,
       height: 640,
@@ -114,15 +107,22 @@ export class Desktop {
 
     try {
       await map.load();
-      // Обновляем содержимое окна
       const bodyEl = win.querySelector('.window-body');
       bodyEl.innerHTML = map.render();
       map.mount(bodyEl);
     } catch (e) {
+      console.error('[QuestMap]', e);
       const bodyEl = win.querySelector('.window-body');
-      bodyEl.innerHTML = `<div style="color: var(--error); font-family: var(--font-mono);">
-        Не могу загрузить квесты: ${e.message}
-      </div>`;
+      bodyEl.innerHTML = `
+        <div style="color: var(--error); font-family: var(--font-mono); font-size: 12px;">
+          <div>❌ Не могу загрузить квесты</div>
+          <pre style="margin-top: 8px; white-space: pre-wrap;">${e.message}</pre>
+          <button onclick="localStorage.clear(); location.reload();" 
+                  style="margin-top: 12px; padding: 8px 12px; background: var(--error); color: #fff; border: none; cursor: pointer; font-family: inherit; border-radius: 4px;">
+            Сбросить и перезагрузить
+          </button>
+        </div>
+      `;
     }
   }
 
@@ -130,7 +130,7 @@ export class Desktop {
     const term = new Terminal();
     this.windows.create({
       id: 'terminal',
-      title: '⌨️ Терминал (хардкор)',
+      title: '⌨️ Терминал',
       content: term.render(),
       onMount: (body) => term.mount(body),
       width: 640,
@@ -160,37 +160,35 @@ export class Desktop {
 
   async openTaskByPath(path) {
     try {
-      let raw = null;
-
-      try { raw = window.__fs.readFile(path); } catch (e) {}
-
-      let isStub = false;
-      if (raw) {
-        try {
-          const test = JSON.parse(raw);
-          if (test._stub || test.id === undefined) isStub = true;
-        } catch (e) { isStub = true; }
-      }
-
-      if (!raw || isStub) {
-        const url = import.meta.env.BASE_URL + 'tasks' + path;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        raw = await res.text();
-        try { window.__fs.mount(path, raw); } catch (e) {}
-      }
-
-      const task = JSON.parse(raw);
+      const url = import.meta.env.BASE_URL + 'tasks' + path;
+      console.log('[openTask]', url);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const task = await res.json();
       task._path = path;
       this.openTask(task);
     } catch (e) {
-      console.error('Не могу открыть задачу', path, e);
+      console.error('[openTask] fail', path, e);
+      // Показываем ошибку
+      this.windows.create({
+        id: 'task-error',
+        title: '⚠ Ошибка задачи',
+        content: `<div style="font-family: var(--font-mono); color: var(--error);">
+          <div>Не могу открыть: <code>${path}</code></div>
+          <pre style="margin-top: 8px; white-space: pre-wrap; color: var(--fg-dim);">${e.message}</pre>
+        </div>`,
+        width: 480,
+        height: 240,
+      });
     }
   }
 
   openTask(task) {
+    // Закрываем старые задачи и карту — не нужны
     this.windows.windows.forEach((_, id) => {
-      if (id.startsWith('task-')) this.windows.close(id);
+      if (id.startsWith('task-') || id.startsWith('questmap-')) {
+        this.windows.close(id);
+      }
     });
 
     const view = new TaskView(task, {
@@ -202,21 +200,20 @@ export class Desktop {
       content: view.render(),
       onMount: (body) => view.mount(body),
       width: 540,
-      height: 660,
+      height: 700,
     });
   }
 
   _openNextTask(currentPath) {
-    // currentPath: /junior/basics/task1.json
-    const parts = currentPath.split('/').filter(Boolean); // ["junior", "basics", "task1.json"]
-    const chapterId = parts.slice(0, -1).join('/'); // "junior/basics"
+    // currentPath = /junior/basics/task1.json → chapter = junior/basics
+    const parts = currentPath.split('/').filter(Boolean);
+    const chapterId = parts.slice(0, -1).join('/');
 
-    // Закрываем окно задачи
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
 
-    // Открываем карту квестов заново — она покажет обновлённый прогресс
+    // Открываем карту заново — она покажет обновлённый прогресс
     setTimeout(() => this.openQuestMap(chapterId), 200);
   }
 

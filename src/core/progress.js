@@ -1,16 +1,9 @@
-// ============================================
-// ПРОГРЕСС ИГРОКА: какие задачи решены, какие открыты
-// ============================================
-
-const STORAGE_KEY_SOLVED = 'tasks_solved';
+const KEY = 'tasks_solved';
 
 export const progress = {
   getSolved() {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY_SOLVED) || '[]');
-    } catch {
-      return [];
-    }
+    try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+    catch { return []; }
   },
 
   isSolved(taskId) {
@@ -18,10 +11,10 @@ export const progress = {
   },
 
   markSolved(taskId) {
-    const solved = this.getSolved();
-    if (!solved.includes(taskId)) {
-      solved.push(taskId);
-      localStorage.setItem(STORAGE_KEY_SOLVED, JSON.stringify(solved));
+    const s = this.getSolved();
+    if (!s.includes(taskId)) {
+      s.push(taskId);
+      localStorage.setItem(KEY, JSON.stringify(s));
     }
   },
 
@@ -31,32 +24,21 @@ export const progress = {
 
   setStars(taskId, stars) {
     const best = this.getStars(taskId);
-    if (stars > best) {
-      localStorage.setItem(`task_${taskId}_stars`, stars);
-    }
+    if (stars > best) localStorage.setItem(`task_${taskId}_stars`, stars);
   },
 
-  // === ПОСЛЕДОВАТЕЛЬНАЯ ПРОГРЕССИЯ ===
+  // Первая задача всегда открыта, остальные — если предыдущая решена
   isUnlocked(taskId, allTaskIds) {
     const idx = allTaskIds.indexOf(taskId);
     if (idx === -1) return false;
     if (idx === 0) return true;
-    const prevId = allTaskIds[idx - 1];
-    return this.isSolved(prevId);
-  },
-
-  firstUnsolved(allTaskIds) {
-    for (const id of allTaskIds) {
-      if (!this.isSolved(id)) return id;
-    }
-    return null;
+    return this.isSolved(allTaskIds[idx - 1]);
   },
 
   reset() {
-    localStorage.removeItem(STORAGE_KEY_SOLVED);
-    const keys = Object.keys(localStorage).filter(
-      (k) => k.startsWith('task_') && k.endsWith('_stars')
-    );
-    keys.forEach((k) => localStorage.removeItem(k));
+    localStorage.removeItem(KEY);
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith('task_') && k.endsWith('_stars'))
+      .forEach((k) => localStorage.removeItem(k));
   },
 };
