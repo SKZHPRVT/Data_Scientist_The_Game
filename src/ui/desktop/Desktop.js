@@ -94,8 +94,13 @@ export class Desktop {
   }
 
   async openGroupMap(worldId) {
+    // ЗАКРЫВАЕМ всё, что может мешать
     const oldId = 'groupmap-' + worldId;
-    if (this.windows.windows.has(oldId)) this.windows.close(oldId);
+    if (this.windows.windows.has(oldId)) {
+      this.windows.close(oldId);
+      // Небольшая пауза, чтобы DOM обновился
+      await new Promise((r) => setTimeout(r, 50));
+    }
 
     const map = new GroupMap(worldId, {
       onOpenChapter: (chapterId) => this.openQuestMap(chapterId),
@@ -128,7 +133,10 @@ export class Desktop {
 
   async openQuestMap(chapterId) {
     const oldId = 'questmap-' + chapterId;
-    if (this.windows.windows.has(oldId)) this.windows.close(oldId);
+    if (this.windows.windows.has(oldId)) {
+      this.windows.close(oldId);
+      await new Promise((r) => setTimeout(r, 50));
+    }
 
     const map = new QuestMap(chapterId, {
       onOpenTask: (path) => this.openTaskByPath(path),
@@ -240,28 +248,39 @@ export class Desktop {
     const worldId = parts[0];
     const chapterId = parts.slice(0, -1).join('/');
 
+    // Закрываем окно задачи
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
 
     // Проверяем, закрыта ли глава
+    let chapterComplete = false;
     try {
       const idxUrl = import.meta.env.BASE_URL + 'tasks/' + chapterId + '/index.json';
       const res = await fetch(idxUrl);
       const idx = await res.json();
-      const ids = (idx.tasks || []).map((t) => t.replace('.json', ''));
+      const ids = (idx.tasks || []).map((t) => chapterId + '/' + t.replace('.json', ''));
       const solved = ids.filter((id) => progress.isSolved(id));
-
-      if (ids.length > 0 && solved.length >= ids.length) {
-        // Глава закрыта — открываем карту мира
-        setTimeout(() => this.openGroupMap(worldId), 400);
-      } else {
-        // Ещё есть квесты — открываем карту главы
-        setTimeout(() => this.openQuestMap(chapterId), 400);
-      }
+      chapterComplete = ids.length > 0 && solved.length >= ids.length;
     } catch (e) {
-      setTimeout(() => this.openQuestMap(chapterId), 400);
+      console.error('[nextTask] не могу проверить главу', e);
     }
+
+    // ВАЖНО: закрываем обе карты, чтобы они пересоздались с новыми данными
+    this.windows.windows.forEach((_, id) => {
+      if (id.startsWith('questmap-') || id.startsWith('groupmap-')) {
+        this.windows.close(id);
+      }
+    });
+
+    // Задержка перед открытием — чтобы DOM обновился
+    setTimeout(async () => {
+      if (chapterComplete) {
+        await this.openGroupMap(worldId);
+      } else {
+        await this.openQuestMap(chapterId);
+      }
+    }, 500);
   }
 
   openReadme() {
@@ -284,12 +303,8 @@ export class Desktop {
         <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
           <p class="terminal-success">$ python game.py</p>
           <p style="margin-top: 16px;">Привет.</p>
-          <p style="margin-top: 12px;">Ты — джун в DS-отделе. Тебе дали доступ к сырым данным.</p>
+          <p style="margin-top: 12px;">Ты — джун в DS-отделе.</p>
           <p style="margin-top: 12px;">Цель: пройти junior, получить ключ в middle.</p>
-          <p style="margin-top: 12px;">Условия:</p>
-          <p>• Закрой все папки junior</p>
-          <p>• Победи 1 босса</p>
-          <p>• Набери звёзды</p>
           <p style="margin-top: 16px;">Начни с карты JUNIOR.</p>
           <p style="margin-top: 16px;"><button class="taskbar-btn active" id="start-btn">[ НАЧАТЬ → ]</button></p>
         </div>

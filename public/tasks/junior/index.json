@@ -11,6 +11,6 @@
     { "id": "datetime", "title": "Даты и время", "icon": "📅", "description": "Работа с датами", "unlockAfter": "merging" },
     { "id": "strings", "title": "Тексты", "icon": "📝", "description": "Строковые методы", "unlockAfter": "datetime" },
     { "id": "bosses", "title": "Боссы", "icon": "👹", "description": "Большие задачи на всё сразу", "unlockAfter": "strings" },
-    { "id": "side_quests", "title": "Побочные квесты", "icon": "🎲", "description": "Открываются после боссов", "unlockAfter": "bosses" }
+    { "id": "side_quests", "title": "Побочные квесты", "icon": "🎲", "description": "Награда за прохождение боссов", "unlockAfter": "bosses" }
   ]
 }

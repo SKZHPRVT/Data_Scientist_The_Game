@@ -1,4 +1,4 @@
-const KEY = 'tasks_solved_v3';
+const KEY = 'tasks_solved_v4';
 
 export const progress = {
   getSolved() {
@@ -19,12 +19,12 @@ export const progress = {
   },
 
   getStars(taskId) {
-    return +localStorage.getItem(`task_${taskId}_stars_v3`) || 0;
+    return +localStorage.getItem(`task_${taskId}_stars_v4`) || 0;
   },
 
   setStars(taskId, stars) {
     const best = this.getStars(taskId);
-    if (stars > best) localStorage.setItem(`task_${taskId}_stars_v3`, stars);
+    if (stars > best) localStorage.setItem(`task_${taskId}_stars_v4`, stars);
   },
 
   isUnlocked(taskId, allTaskIds) {
@@ -37,7 +37,7 @@ export const progress = {
   reset() {
     localStorage.removeItem(KEY);
     Object.keys(localStorage)
-      .filter((k) => k.startsWith('task_') && k.endsWith('_stars_v3'))
+      .filter((k) => k.startsWith('task_') && k.endsWith('_stars_v4'))
       .forEach((k) => localStorage.removeItem(k));
   },
 };
