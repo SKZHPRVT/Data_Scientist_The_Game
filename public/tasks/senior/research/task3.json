@@ -1,0 +1,14 @@
+{
+  "id": "research_3_baseline",
+  "world": "senior",
+  "level": 4,
+  "title": "Baseline",
+  "question": "Перед сложной моделью — что нужно сделать обязательно?",
+  "options": [
+    { "id": "A", "code": "Построить простой baseline (например, логистическую регрессию или среднее)", "correct": true, "explain": "Baseline даёт точку отсчёта. Сложная модель должна его побить — иначе она не нужна." },
+    { "id": "B", "code": "Сразу обучить XGBoost/нейросеть", "correct": false, "explain": "Без baseline не понятно, даёт ли сложность пользу." },
+    { "id": "C", "code": "Начать с feature engineering", "correct": false, "explain": "Feature engineering — важно, но baseline обычно идёт раньше." },
+    { "id": "D", "code": "Собрать больше данных", "correct": false, "explain": "Возможно, но не всегда нужно. Baseline — дешевле и понятнее." }
+  ],
+  "hint": "Baseline — минимальная работающая модель"
+}

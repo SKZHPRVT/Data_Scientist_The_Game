@@ -16,7 +16,11 @@ import { progress, rewards, isJuniorComplete } from '../../core/progress.js';
 import { CHAPTER_REWARDS } from '../../core/rewards.js';
 import { DEV_UNLOCK_ALL } from '../../core/dev.js';
 
+// ============================================
+// ЧИТ-ХИНТЫ (показываются после прохождения папки)
+// ============================================
 const CHEAT_HINTS = {
+  // === JUNIOR ===
   basics: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER',
   cleaning: 'Ты чистюля. И слово подходящее. Код: CLEAN',
   grouping: 'Связующий — тот, кто соединяет. Код: CONNECT',
@@ -24,18 +28,20 @@ const CHEAT_HINTS = {
   datetime: 'Даты и время... до 3 ночи... Код: COFFEE',
   strings: 'Тексты и пропуски. Слово из 3 букв. Код: NAN',
   bosses: 'Идеальный на трейне — но не на тесте. Код: OVERFIT',
-  // MIDDLE hints (задел на будущее)
+
+  // === MIDDLE ===
   pipelines: 'Весь путь в одном объекте. Код: PIPELINE',
-  features: 'Создай признаки — выиграй соревнование. Код: FEATURES',
-  models: 'Обучи, сохрани, переиспользуй. Код: MODEL',
-  eval: 'F1 — твой друг при дисбалансе. Код: F1',
-  experiments: 'A/B — не гадай, а проверяй. Код: ABTEST',
-  // SENIOR hints (задел на будущее)
+  features: 'Создай признаки — выиграй соревнование. Код: FEATURES_MASTER',
+  models: 'Обучи, сохрани, переиспользуй. Код: MODEL_MASTER',
+  eval: 'Accuracy врёт при дисбалансе. Код: EVAL_MASTER',
+  experiments: 'A/B — не гадай, а проверяй. Код: AB_MASTER',
+
+  // === SENIOR ===
   incidents: 'Прод упал в 3 ночи — собери логи. Код: INCIDENT',
   research: 'Читай статьи, а не только туториалы. Код: RESEARCH',
   mentoring: 'Объясни джуну то, что сам знаешь. Код: MENTOR',
   architecture: 'Сначала схема — потом код. Код: ARCHITECT',
-  final: 'Divide et Impera. Код: DIVIDE-ET-IMPERA',
+  final: 'Divide et Impera. Код: MASTER_SIGNAL',
 };
 
 export class Desktop {
@@ -83,7 +89,6 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    // В DEV режиме не показываем финал и интро автоматически
     if (!DEV_UNLOCK_ALL) {
       if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
         setTimeout(() => this._showJuniorFinale(), 800);
@@ -142,17 +147,14 @@ export class Desktop {
   }
 
   async openWorldGate(worldId) {
-    // DEV: любой мир открывается сразу
     if (DEV_UNLOCK_ALL) {
       this.openGroupMap(worldId);
       return;
     }
-
     if (worldId === 'middle' && this.juniorDone) {
       this.openGroupMap('middle');
       return;
     }
-
     const text = this._getGateText(worldId);
     this.windows.create({
       id: 'worldgate-' + worldId,
@@ -453,6 +455,7 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
+    // Приз за идеальную папку
     if (chapterComplete && chapterPerfect) {
       const chId = chapterId.split('/').pop();
       const reward = CHAPTER_REWARDS[chId];
@@ -468,6 +471,7 @@ export class Desktop {
       }
     }
 
+    // Намёк на чит-код (если не идеально)
     if (chapterComplete && !chapterPerfect) {
       const chId = chapterId.split('/').pop();
       const hint = CHEAT_HINTS[chId];

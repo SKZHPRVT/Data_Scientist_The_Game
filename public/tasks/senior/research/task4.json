@@ -1,0 +1,14 @@
+{
+  "id": "research_4_ablation",
+  "world": "senior",
+  "level": 5,
+  "title": "Ablation study",
+  "question": "Твоя модель имеет 5 компонентов и даёт +8%. Что показывает ablation study?",
+  "options": [
+    { "id": "A", "code": "Вклад каждого компонента: убираем по одному и смотрим падение метрики", "correct": true, "explain": "Ablation study показывает, какие компоненты реально важны, а какие — нет. Это стандарт для публикаций и продакшна." },
+    { "id": "B", "code": "Скорость обучения", "correct": false, "explain": "Это benchmark, не ablation." },
+    { "id": "C", "code": "Сколько данных нужно для обучения", "correct": false, "explain": "Это learning curve, не ablation." },
+    { "id": "D", "code": "Устойчивость к шуму", "correct": false, "explain": "Это robustness testing, не ablation." }
+  ],
+  "hint": "Ablation — по одному компоненту убираем"
+}

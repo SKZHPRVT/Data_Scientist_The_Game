@@ -1,7 +1,7 @@
 {
   "id": "architecture",
-  "title": "Скоро",
-  "icon": "🔒",
-  "description": "Контент в разработке",
-  "tasks": []
+  "title": "Архитектура",
+  "icon": "🏗️",
+  "description": "Проектирование ML-систем",
+  "tasks": ["task1.json", "task2.json", "task3.json", "task4.json", "task5.json"]
 }

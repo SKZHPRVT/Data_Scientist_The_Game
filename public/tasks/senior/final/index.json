@@ -1,7 +1,7 @@
 {
   "id": "final",
-  "title": "Скоро",
-  "icon": "🔒",
-  "description": "Контент в разработке",
-  "tasks": []
+  "title": "Финал",
+  "icon": "👑",
+  "description": "Защита проекта перед Советом",
+  "tasks": ["boss1.json", "boss2.json", "boss3.json"]
 }

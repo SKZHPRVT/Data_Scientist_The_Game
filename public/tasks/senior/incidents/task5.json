@@ -1,0 +1,14 @@
+{
+  "id": "incidents_5_postmortem",
+  "world": "senior",
+  "level": 4,
+  "title": "Postmortem",
+  "question": "Инцидент закрыли. Что писать в postmortem?",
+  "options": [
+    { "id": "A", "code": "Timeline, root cause, impact, action items — без поиска виноватых", "correct": true, "explain": "Хороший postmortem — blameless. Фокус на системах, а не людях. Timeline, причина, что чинили, что улучшить." },
+    { "id": "B", "code": "Кто виноват и как его наказать", "correct": false, "explain": "Blameless postmortem — золотой стандарт. Наказание убивает культуру открытости." },
+    { "id": "C", "code": "Только краткое описание проблемы", "correct": false, "explain": "Не хватит для обучения команды. Нужен разбор." },
+    { "id": "D", "code": "Ничего не писать — работаем дальше", "correct": false, "explain": "Без postmortem та же ошибка повторится." }
+  ],
+  "hint": "Blameless postmortem — стандарт Google SRE"
+}

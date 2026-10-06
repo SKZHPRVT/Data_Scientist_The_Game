@@ -1,0 +1,14 @@
+{
+  "id": "arch_3_feature_store",
+  "world": "senior",
+  "level": 5,
+  "title": "Feature Store",
+  "question": "Зачем нужен Feature Store (например, Feast)?",
+  "options": [
+    { "id": "A", "code": "Единое хранилище признаков для обучения и прода — одна логика, консистентность", "correct": true, "explain": "Feature Store решает проблему train/serving skew — когда признаки в обучении и в проде считаются по-разному. Единый источник правды для команд." },
+    { "id": "B", "code": "Хранилище обученных моделей", "correct": false, "explain": "Это model registry. Feature store — про признаки." },
+    { "id": "C", "code": "Хранилище датасетов", "correct": false, "explain": "Это data lake или warehouse. Feature store — про фичи." },
+    { "id": "D", "code": "Инструмент для визуализации", "correct": false, "explain": "Не визуализация. Инфраструктура." }
+  ],
+  "hint": "Feature Store = train/serving consistency"
+}

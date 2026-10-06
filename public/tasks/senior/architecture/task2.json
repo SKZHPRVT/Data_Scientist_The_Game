@@ -1,0 +1,14 @@
+{
+  "id": "arch_2_offline_online",
+  "world": "senior",
+  "level": 5,
+  "title": "Offline vs Online",
+  "question": "Разница между offline и online inference в ML-системе?",
+  "options": [
+    { "id": "A", "code": "Offline — batch, раз в час/день. Online — на каждый запрос в реальном времени", "correct": true, "explain": "Offline (batch): предсказания считаются заранее, например, для email-рассылки. Online (real-time): на каждый запрос, например, рекомендации в приложении." },
+    { "id": "B", "code": "Offline — на исторических данных, online — на новых", "correct": false, "explain": "Разница не в данных, а в частоте предсказаний." },
+    { "id": "C", "code": "Это одно и то же", "correct": false, "explain": "Разные архитектуры, разные технологии, разные SLA." },
+    { "id": "D", "code": "Offline быстрее online", "correct": false, "explain": "Не про скорость. Про частоту." }
+  ],
+  "hint": "Batch vs real-time"
+}

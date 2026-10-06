@@ -1,0 +1,14 @@
+{
+  "id": "arch_4_ab_test",
+  "world": "senior",
+  "level": 5,
+  "title": "Тест в проде",
+  "question": "Модель обучена и готова. Как безопасно выкатить в прод?",
+  "options": [
+    { "id": "A", "code": "Shadow mode → Canary 5% → A/B 50/50 → полный rollout", "correct": true, "explain": "Постепенный rollout: shadow (модель работает, но не влияет), canary (5% трафика), A/B (сравнение), полный запуск. Стандартная практика." },
+    { "id": "B", "code": "Сразу 100% трафика", "correct": false, "explain": "Опасно. Если модель плохая — бизнес упадёт." },
+    { "id": "C", "code": "Только A/B тест", "correct": false, "explain": "A/B — часть, но shadow и canary дают дополнительную защиту." },
+    { "id": "D", "code": "Тестировать только на локальных данных", "correct": false, "explain": "Прод ≠ локальная среда. Реальные данные могут отличаться." }
+  ],
+  "hint": "Shadow → Canary → A/B → full"
+}
