@@ -11,6 +11,7 @@ export class TaskView {
 
     this.fileId = this._computeFileId();
     this.shuffledOptions = this._shuffleOptions(task.options || []);
+    console.log('[TaskView] fileId:', this.fileId);
   }
 
   _computeFileId() {
@@ -39,13 +40,16 @@ export class TaskView {
     return Math.abs(h);
   }
 
-  // 0 ошибок → 4, 1 → 3, 2 → 2, 3 → 1, 4+ → 1
+  // Логика звёзд:
+  // 0 ошибок → 4 ⭐
+  // 1 ошибка  → 3 ⭐
+  // 2 ошибки  → 2 ⭐
+  // 3+ ошибок → 1 ⭐
   _calculateStars() {
     const w = this.wrongTries;
-    if (w === 0) return 4;
-    if (w === 1) return 3;
-    if (w === 2) return 2;
-    return 1;
+    const stars = Math.max(1, 4 - w);
+    console.log('[TaskView] stars calc: wrongTries=', w, '→ stars=', stars);
+    return stars;
   }
 
   render() {
@@ -134,6 +138,7 @@ export class TaskView {
 
   _onCorrect(btn, opt, resultEl) {
     const stars = this._calculateStars();
+    const starsStr = '⭐'.repeat(stars) + '☆'.repeat(4 - stars);
 
     btn.classList.add('correct');
     this.el.querySelectorAll('.task-option').forEach((b) => {
@@ -141,11 +146,9 @@ export class TaskView {
       if (b !== btn) b.style.opacity = '0.4';
     });
 
-    // ЗАПИСЬ: markSolved + setStars (максимум)
     progress.markSolved(this.fileId);
     progress.setStars(this.fileId, stars);
-
-    const starsStr = '⭐'.repeat(stars) + '☆'.repeat(4 - stars);
+    console.log('[TaskView] SAVED', this.fileId, '=', stars, 'stars');
 
     resultEl.innerHTML = `
       <div class="task-result-success">
@@ -172,16 +175,18 @@ export class TaskView {
     if (window.__audio) window.__audio.error();
 
     const remaining = 4 - this.wrongTries;
+    const nextReward = Math.max(1, 4 - this.wrongTries);
+    const rewardNow = Math.max(1, 4 - (this.wrongTries - 1));
 
     resultEl.innerHTML = `
       <div class="task-result-error">
-        <div class="task-result-title">❌ Не то</div>
+        <div class="task-result-title">❌ Не то (ошибок: ${this.wrongTries})</div>
         <div class="task-result-code">${this._esc(opt.code)}</div>
         <div class="task-result-expl">${opt.explain}</div>
         <div class="task-result-hint">
-          ${remaining > 0
-            ? `Ошибок: ${this.wrongTries}. Если решишь правильно сейчас — получишь ⭐ ${remaining}/4.`
-            : `Ошибок: ${this.wrongTries}. Ты уже на минимуме ⭐ 1/4.`
+          ${this.wrongTries <= 3
+            ? `Сейчас решишь → ⭐ ${nextReward}/4. Если ошибёшься ещё — останется минимум.`
+            : `Ошибок ${this.wrongTries}. Минимум — ⭐ 1/4.`
           }
         </div>
       </div>

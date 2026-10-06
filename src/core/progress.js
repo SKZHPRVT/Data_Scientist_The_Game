@@ -1,5 +1,5 @@
-const KEY = 'tasks_solved_v7';
-const STAR_KEY = (id) => `task_${id}_stars_v7`;
+const KEY = 'tasks_solved_v8';
+const STAR_KEY = (id) => `task_${id}_stars_v8`;
 const MAX_STARS = 4;
 
 export const progress = {
@@ -28,30 +28,33 @@ export const progress = {
     if (!solved.includes(taskId)) {
       solved.push(taskId);
       localStorage.setItem(KEY, JSON.stringify(solved));
+      console.log('[progress] markSolved:', taskId, '| total:', solved.length);
     }
   },
 
-  // Звёзды за конкретный квест (0–4)
   getStars(taskId) {
     const v = localStorage.getItem(STAR_KEY(taskId));
-    return v ? parseInt(v, 10) : 0;
+    const n = v ? parseInt(v, 10) : 0;
+    return n;
   },
 
-  // Ставим максимум (перепрохождение улучшает)
   setStars(taskId, stars) {
-    const clamped = Math.max(0, Math.min(MAX_STARS, stars));
+    const clamped = Math.max(1, Math.min(MAX_STARS, stars)); // минимум 1
     const current = this.getStars(taskId);
+    console.log('[progress] setStars:', taskId, '| current:', current, '→ new:', clamped);
     if (clamped > current) {
       localStorage.setItem(STAR_KEY(taskId), String(clamped));
+      console.log('[progress] SAVED:', taskId, '=', clamped);
+    } else {
+      console.log('[progress] not saved (current >= new)');
     }
   },
 
-  // Сумма звёзд по всем задачам
   sumStars(taskIds) {
-    return taskIds.reduce((sum, id) => sum + this.getStars(id), 0);
+    const total = taskIds.reduce((sum, id) => sum + this.getStars(id), 0);
+    return total;
   },
 
-  // Максимум звёзд для N задач
   maxStars(taskIds) {
     return taskIds.length * MAX_STARS;
   },
@@ -63,12 +66,10 @@ export const progress = {
     return this.isSolved(allTaskIds[idx - 1]);
   },
 
-  // Папка пройдена (все задачи решены, не обязательно на 4)
   isChapterComplete(taskIds) {
     return taskIds.length > 0 && taskIds.every((id) => this.isSolved(id));
   },
 
-  // Папка идеальна (все задачи на 4 звезды)
   isChapterPerfect(taskIds) {
     return taskIds.length > 0 && taskIds.every((id) => this.getStars(id) === MAX_STARS);
   },
@@ -76,12 +77,15 @@ export const progress = {
   reset() {
     localStorage.removeItem(KEY);
     Object.keys(localStorage)
-      .filter((k) => k.startsWith('task_') && k.endsWith('_stars_v7'))
+      .filter((k) => k.startsWith('task_') && k.endsWith('_stars_v8'))
       .forEach((k) => localStorage.removeItem(k));
   },
 
   debug() {
-    console.log('solved:', this.getSolved());
-    console.log('raw:', localStorage.getItem(KEY));
+    console.log('=== SOLVED ===');
+    console.log(this.getSolved());
+    console.log('=== STARS ===');
+    const starsKeys = Object.keys(localStorage).filter(k => k.includes('stars_v8'));
+    starsKeys.forEach(k => console.log(k, '=', localStorage.getItem(k)));
   },
 };
