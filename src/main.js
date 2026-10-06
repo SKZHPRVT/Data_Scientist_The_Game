@@ -3,8 +3,11 @@ import './core/fs.js';
 import { bootstrapFS } from './core/bootstrap.js';
 import { Desktop } from './ui/desktop/Desktop.js';
 import { TelegramSDK } from './core/telegram.js';
+import { KeyboardHandler } from './core/keyboard.js';
+import { audio } from './core/audio.js';
 
-// === ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ОШИБОК ===
+window.__audio = audio;
+
 window.addEventListener('error', (e) => {
   console.error('[GLOBAL ERROR]', e.error || e.message);
   const app = document.getElementById('app');
@@ -30,16 +33,19 @@ async function start() {
   const tg = new TelegramSDK();
   tg.init();
 
+  const keyboard = new KeyboardHandler();
+  window.__keyboard = keyboard;
+
   document.getElementById('app').innerHTML = '';
   const desktop = new Desktop(document.getElementById('app'), tg);
   desktop.render();
 
-  // === ФИКС РАЗМЕРОВ ПРИ ИЗМЕНЕНИИ ===
   const forceResize = () => {
-    document.documentElement.style.height = window.innerHeight + 'px';
-    document.body.style.height = window.innerHeight + 'px';
+    const h = window.visualViewport?.height ?? window.innerHeight;
+    document.documentElement.style.height = h + 'px';
+    document.body.style.height = h + 'px';
     const app = document.getElementById('app');
-    if (app) app.style.height = window.innerHeight + 'px';
+    if (app) app.style.height = h + 'px';
   };
 
   window.addEventListener('resize', forceResize);

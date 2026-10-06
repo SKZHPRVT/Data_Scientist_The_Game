@@ -6,6 +6,7 @@ export class Terminal {
     this.history = [];
     this.historyIdx = -1;
     this.el = null;
+    this._keyboardUnsub = null;
   }
 
   render() {
@@ -21,6 +22,24 @@ export class Terminal {
     this.el.addEventListener('click', () => {
       this.el.querySelector('.terminal-input')?.focus();
     });
+
+    // Клавиатура: поднять терминал при открытии
+    if (window.__keyboard) {
+      this._keyboardUnsub = window.__keyboard.onKeyboardChange((isOpen) => {
+        if (isOpen) {
+          document.body.classList.add('keyboard-open');
+          setTimeout(() => {
+            if (this.el) this.el.scrollTop = this.el.scrollHeight;
+          }, 100);
+        } else {
+          document.body.classList.remove('keyboard-open');
+        }
+      });
+    }
+  }
+
+  destroy() {
+    if (this._keyboardUnsub) this._keyboardUnsub();
   }
 
   _print(text, cls = '') {
@@ -40,11 +59,27 @@ export class Terminal {
     input.type = 'text';
     input.autocomplete = 'off';
     input.spellcheck = false;
+    input.setAttribute('autocapitalize', 'off');
+    input.setAttribute('autocorrect', 'off');
     line.appendChild(input);
     this.el.appendChild(line);
     input.focus();
 
+    input.addEventListener('focus', () => {
+      setTimeout(() => {
+        if (this.el) this.el.scrollTop = this.el.scrollHeight;
+      }, 300);
+    });
+
     input.addEventListener('keydown', (e) => {
+      // Звук клавиши
+      if (window.__audio) {
+        if (e.key === 'Enter') window.__audio.key('enter');
+        else if (e.key === 'Backspace') window.__audio.key('backspace');
+        else if (e.key === ' ') window.__audio.key('space');
+        else if (e.key.length === 1) window.__audio.key('normal');
+      }
+
       if (e.key === 'Enter') {
         const cmd = input.value.trim();
         if (cmd) {
@@ -76,7 +111,6 @@ export class Terminal {
 
   _execute(cmd) {
     try {
-      // ===== ВСТРОЕННЫЕ КОМАНДЫ =====
       if (cmd === 'help') {
         this._print('Доступные команды:', 'terminal-success');
         this._print('  ls, cd <path>, cat <file>, pwd');
@@ -111,6 +145,7 @@ export class Terminal {
           const content = window.__fs.readFile(cmd.slice(4).trim());
           this._print(content);
         } catch (e) {
+          if (window.__audio) window.__audio.error();
           this._print('[ERROR] ' + e.message, 'terminal-error');
         }
         return;
@@ -126,12 +161,12 @@ export class Terminal {
           this._print('$ python ' + file, 'terminal-success');
           this._print(content);
         } catch (e) {
+          if (window.__audio) window.__audio.error();
           this._print('[ERROR] ' + e.message, 'terminal-error');
         }
         return;
       }
 
-      // ===== PYTHON-ВЫРАЖЕНИЕ =====
       const result = evaluate(cmd, { df: window.__df });
       if (result && result.toJSON) {
         const json = result.toJSON();
@@ -143,6 +178,7 @@ export class Terminal {
         this._print(String(result), 'terminal-success');
       }
     } catch (e) {
+      if (window.__audio) window.__audio.error();
       this._print('[ERROR] ' + e.message, 'terminal-error');
     }
   }

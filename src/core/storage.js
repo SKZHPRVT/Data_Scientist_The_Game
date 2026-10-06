@@ -1,4 +1,3 @@
-// Безопасная обёртка над localStorage
 export const storage = {
   get(key, fallback = null) {
     try {
