@@ -1,3 +1,5 @@
+import { storage } from './storage.js';
+
 export class TelegramSDK {
   constructor() {
     this.tg = window.Telegram?.WebApp;
@@ -11,17 +13,41 @@ export class TelegramSDK {
       this.user = { id: 'local', first_name: 'Аноним', username: 'local' };
       return;
     }
+
+    // === БАЗОВАЯ ИНИЦИАЛИЗАЦИЯ ===
     this.tg.ready();
     this.tg.expand();
+
+    // === ПОЛНЫЙ ЭКРАН (Bot API 8.0+) ===
+    if (typeof this.tg.requestFullscreen === 'function') {
+      try {
+        this.tg.requestFullscreen();
+        console.log('[TG] fullscreen requested');
+      } catch (e) {
+        console.log('[TG] fullscreen failed:', e);
+      }
+    }
+
+    // === БЛОКИРОВКА ЖЕСТОВ ЗАКРЫТИЯ ===
+    if (typeof this.tg.disableVerticalSwipes === 'function') {
+      try {
+        this.tg.disableVerticalSwipes();
+      } catch (e) {}
+    }
+
+    // === ЦВЕТА ПОД ТЕМУ ИГРЫ ===
+    if (this.tg.setHeaderColor) this.tg.setHeaderColor('#000000');
+    if (this.tg.setBackgroundColor) this.tg.setBackgroundColor('#000000');
+    if (this.tg.BackButton) this.tg.BackButton.hide();
+
     this.user = this.tg.initDataUnsafe?.user || { id: 'unknown' };
-    this.tg.setHeaderColor('#0a0a0a');
-    this.tg.setBackgroundColor('#0a0a0a');
+    console.log('[TG] version:', this.tg.version, 'platform:', this.tg.platform);
   }
 
   // Прогресс в облаке Telegram
   async save(key, value) {
     if (!this.isAvailable) {
-      localStorage.setItem(key, JSON.stringify(value));
+      storage.set(key, value);
       return;
     }
     return new Promise((resolve) => {
@@ -31,19 +57,25 @@ export class TelegramSDK {
 
   async load(key) {
     if (!this.isAvailable) {
-      const v = localStorage.getItem(key);
-      return v ? JSON.parse(v) : null;
+      return storage.get(key);
     }
     return new Promise((resolve) => {
       this.tg.CloudStorage.getItem(key, (err, value) => {
-        resolve(value ? JSON.parse(value) : null);
+        if (err || !value) return resolve(null);
+        try {
+          resolve(JSON.parse(value));
+        } catch {
+          resolve(null);
+        }
       });
     });
   }
 
   haptic(type = 'light') {
     if (!this.isAvailable) return;
-    this.tg.HapticFeedback.impactOccurred(type);
+    try {
+      this.tg.HapticFeedback.impactOccurred(type);
+    } catch (e) {}
   }
 
   notify(type, text) {

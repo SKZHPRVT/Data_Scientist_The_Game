@@ -10,33 +10,48 @@
   --error: #ff3333;
   --warn: #ffaa00;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 html, body, #app {
   width: 100%;
   height: 100%;
+  height: 100dvh;
   overflow: hidden;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-mono);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  position: fixed;
+  inset: 0;
+  touch-action: none;
 }
 
 /* ===== РАБОЧИЙ СТОЛ ===== */
 .desktop {
   width: 100%;
   height: 100%;
-  position: relative;
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
-  background-color: #1a1a2e;
+  background-color: #0a0a0a;
+  /* Safe-area: отступы сверху/снизу чтобы не перекрывать системные элементы */
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+  box-sizing: border-box;
 }
 
 .desktop-icons {
   position: absolute;
-  top: 40px;
-  left: 20px;
+  top: calc(40px + var(--safe-top));
+  left: calc(20px + var(--safe-left));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -71,14 +86,17 @@ html, body, #app {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 44px;
+  height: calc(44px + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
   background: var(--panel);
   border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding-left: calc(8px + var(--safe-left));
+  padding-right: calc(8px + var(--safe-right));
   gap: 4px;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 1000;
 }
 
@@ -121,7 +139,10 @@ html, body, #app {
   flex-direction: column;
   overflow: hidden;
   backdrop-filter: blur(10px);
-  min-width: 320px;
+  -webkit-backdrop-filter: blur(10px);
+  min-width: 280px;
+  max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 16px);
+  max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 60px);
 }
 
 .window-title {
@@ -160,6 +181,7 @@ html, body, #app {
   padding: 12px;
   font-size: 13px;
   line-height: 1.5;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ===== ТЕРМИНАЛ ===== */
@@ -173,6 +195,7 @@ html, body, #app {
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
+  -webkit-overflow-scrolling: touch;
 }
 
 .terminal-line { margin-bottom: 4px; }
@@ -195,8 +218,8 @@ html, body, #app {
 /* ===== ПУСК ===== */
 .start-menu {
   position: absolute;
-  bottom: 48px;
-  left: 8px;
+  bottom: calc(48px + var(--safe-bottom));
+  left: calc(8px + var(--safe-left));
   width: 260px;
   background: var(--panel);
   border: 1px solid var(--fg-dim);
