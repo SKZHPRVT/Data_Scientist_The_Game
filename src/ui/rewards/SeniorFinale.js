@@ -6,7 +6,6 @@ export class SeniorFinale {
     this.el = null;
   }
 
-  // Теперь рендерит fullscreen overlay — не окно
   show() {
     const lang = getLang();
     const isEn = lang === 'en';
@@ -35,38 +34,31 @@ export class SeniorFinale {
           </p>
 
           <p style="margin-top: 24px;">
-            ${isEn
-              ? 'You walked the path from noise to signal.'
-              : 'Ты прошёл путь от шума к сигналу.'
-            }
+            ${isEn ? 'You walked the path from noise to signal.' : 'Ты прошёл путь от шума к сигналу.'}
           </p>
 
           <p style="margin-top: 12px;">
             ${isEn
               ? 'You divided the chaos. Built the structure. Connected what seemed unconnected.'
-              : 'Ты разделил хаос. Выстроил структуру. Связал несвязуемое.'
-            }
+              : 'Ты разделил хаос. Выстроил структуру. Связал несвязуемое.'}
           </p>
 
           <p style="margin-top: 12px;">
             ${isEn
               ? 'From junior who read CSV — to senior who designs systems.'
-              : 'От джуна, который читал CSV, — до сеньора, который проектирует системы.'
-            }
+              : 'От джуна, который читал CSV, — до сеньора, который проектирует системы.'}
           </p>
 
           <p style="margin-top: 24px; color: var(--warn); font-weight: 700; font-size: 14px; text-align: center;">
             ${isEn
               ? 'Now you see what is hidden from the profane.'
-              : 'Теперь ты видишь то, что скрыто от профанов.'
-            }
+              : 'Теперь ты видишь то, что скрыто от профанов.'}
           </p>
 
           <p style="margin-top: 20px; font-style: italic; color: var(--fg-dim); font-size: 12px; text-align: center;">
             ${isEn
               ? '"There, where a layman sees chaos, a data scientist sees structure."'
-              : '«Там, где профан видит хаос, Data Scientist видит структуру.»'
-            }
+              : '«Там, где профан видит хаос, Data Scientist видит структуру.»'}
           </p>
         </div>
 
@@ -91,28 +83,21 @@ export class SeniorFinale {
         </div>
 
         <p style="margin-top: 18px; font-size: 11px; color: var(--fg-dim); text-align: center; font-style: italic;">
-          ${isEn
-            ? 'This is not the end. This is the beginning.'
-            : 'Это не конец. Это начало.'
-          }
+          ${isEn ? 'This is not the end. This is the beginning.' : 'Это не конец. Это начало.'}
         </p>
       </div>
     `;
     document.body.appendChild(this.el);
 
-    // Анимация появления
     requestAnimationFrame(() => this.el.classList.add('visible'));
 
-    // Звук
     if (window.__audio) {
       try { window.__audio.success(); } catch (e) {}
     }
 
-    // Кнопка
     const btn = this.el.querySelector('#finale-close');
     btn.onclick = () => this.close();
 
-    // Возвращаем el наружу для совместимости
     return this.el;
   }
 
@@ -127,7 +112,6 @@ export class SeniorFinale {
     if (this.onClose) this.onClose();
   }
 
-  // Совместимость со старым API
   render() { return ''; }
   mount() {}
 }

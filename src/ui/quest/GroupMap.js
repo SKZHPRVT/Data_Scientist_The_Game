@@ -1,5 +1,5 @@
 import { progress } from '../../core/progress.js';
-import { DEV_UNLOCK_ALL } from '../../core/dev.js';
+import { isDevUnlockAll } from '../../core/dev.js';
 
 export class GroupMap {
   constructor(worldId, { onOpenChapter } = {}) {
@@ -39,7 +39,7 @@ export class GroupMap {
   }
 
   _isChapterUnlocked(ch) {
-    if (DEV_UNLOCK_ALL) return true;
+    if (isDevUnlockAll()) return true;
     if (ch.unlockAfter === null || ch.unlockAfter === undefined) {
       const idx = this.data.chapters.findIndex((c) => c.id === ch.id);
       return idx === 0;
@@ -63,9 +63,7 @@ export class GroupMap {
       ? (totalTasks > 0 ? Math.round((totalSolved / totalTasks) * 100) : 0)
       : (totalMax > 0 ? Math.round((totalStars / totalMax) * 100) : 0);
 
-    const progressText = isBaby
-      ? `${totalSolved} / ${totalTasks}`
-      : `⭐ ${totalStars} / ${totalMax}`;
+    const progressText = isBaby ? `${totalSolved} / ${totalTasks}` : `⭐ ${totalStars} / ${totalMax}`;
 
     return `
       <div class="quest-map">

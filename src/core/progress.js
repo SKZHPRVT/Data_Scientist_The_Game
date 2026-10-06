@@ -1,4 +1,4 @@
-import { DEV_UNLOCK_ALL } from './dev.js';
+import { isDevUnlockAll } from './dev.js';
 
 const KEY = 'tasks_solved_v9';
 const STAR_KEY = (id) => `task_${id}_stars_v9`;
@@ -55,7 +55,7 @@ export const progress = {
   },
 
   isUnlocked(taskId, allTaskIds) {
-    if (DEV_UNLOCK_ALL) return true;
+    if (isDevUnlockAll()) return true;
     const idx = allTaskIds.indexOf(taskId);
     if (idx === -1) return false;
     if (idx === 0) return true;
@@ -75,6 +75,14 @@ export const progress = {
     Object.keys(localStorage)
       .filter((k) => k.startsWith('task_') && k.endsWith('_stars_v9'))
       .forEach((k) => localStorage.removeItem(k));
+  },
+
+  // Полезно для отладки
+  resetAll() {
+    this.reset();
+    localStorage.removeItem('rewards_v1');
+    localStorage.removeItem('achievements_v1');
+    localStorage.removeItem('sv_cheats');
   },
 };
 
@@ -99,10 +107,13 @@ export const rewards = {
     }
     return false;
   },
+  reset() {
+    localStorage.removeItem(REWARD_KEY);
+  },
 };
 
 async function checkWorldComplete(worldId) {
-  if (DEV_UNLOCK_ALL) return true;
+  if (isDevUnlockAll()) return true;
   try {
     const base = import.meta.env.BASE_URL + 'tasks/' + worldId + '/';
     const res = await fetch(base + 'index.json');

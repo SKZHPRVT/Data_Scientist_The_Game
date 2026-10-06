@@ -19,7 +19,7 @@ import {
   isBabyComplete, isJuniorComplete, isMiddleComplete, isSeniorComplete,
 } from '../../core/progress.js';
 import { CHAPTER_REWARDS } from '../../core/rewards.js';
-import { DEV_UNLOCK_ALL } from '../../core/dev.js';
+import { isDevUnlockAll } from '../../core/dev.js';
 
 const CHEAT_HINTS = {
   basics: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER',
@@ -68,10 +68,10 @@ export class Desktop {
   }
 
   async render() {
-    this.babyDone = DEV_UNLOCK_ALL ? true : await isBabyComplete();
-    this.juniorDone = DEV_UNLOCK_ALL ? true : await isJuniorComplete();
-    this.middleDone = DEV_UNLOCK_ALL ? true : await isMiddleComplete();
-    this.seniorDone = DEV_UNLOCK_ALL ? true : await isSeniorComplete();
+    this.babyDone = isDevUnlockAll() ? true : await isBabyComplete();
+    this.juniorDone = isDevUnlockAll() ? true : await isJuniorComplete();
+    this.middleDone = isDevUnlockAll() ? true : await isMiddleComplete();
+    this.seniorDone = isDevUnlockAll() ? true : await isSeniorComplete();
 
     this.root.innerHTML = `
       <div class="desktop" id="desktop">
@@ -93,7 +93,8 @@ export class Desktop {
     });
     this.taskbar.render();
 
-    if (!DEV_UNLOCK_ALL) {
+    // Финалы — показываем по одному разу
+    if (!isDevUnlockAll()) {
       if (this.seniorDone && !rewards.isUnlocked('senior_finale_shown')) {
         setTimeout(() => this._showSeniorFinale(), 800);
       } else if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
@@ -101,15 +102,16 @@ export class Desktop {
       } else if (this.babyDone && !rewards.isUnlocked('baby_complete_shown')) {
         setTimeout(() => this._showBabyComplete(), 800);
       }
-
-      setTimeout(() => {
-        const solved = progress.getSolved();
-        if (solved.length === 0) {
-          window.__skipNextOpenSound = true;
-          this.runGamePy();
-        }
-      }, 400);
     }
+
+    // game.py — ВСЕГДА если ничего не решено
+    setTimeout(() => {
+      const solved = progress.getSolved();
+      if (solved.length === 0) {
+        window.__skipNextOpenSound = true;
+        this.runGamePy();
+      }
+    }, 400);
   }
 
   renderIcons() {
@@ -175,7 +177,7 @@ export class Desktop {
   }
 
   async openWorldGate(worldId) {
-    if (DEV_UNLOCK_ALL) {
+    if (isDevUnlockAll()) {
       this.openGroupMap(worldId);
       return;
     }
@@ -212,6 +214,8 @@ export class Desktop {
           { type: 'ok', text: '✓ Доступ разрешён' },
           { type: 'info', text: '' },
           { type: 'info', text: 'MIDDLE — мир инженера.' },
+          { type: 'info', text: 'Тут строят пайплайны, обучают модели,' },
+          { type: 'info', text: 'считают метрики и дебажат прод.' },
         ];
       }
       return [
@@ -220,6 +224,9 @@ export class Desktop {
         { type: 'err', text: 'ACCESS_DENIED: junior_not_complete' },
         { type: 'info', text: '' },
         { type: 'info', text: 'MIDDLE — мир инженера.' },
+        { type: 'info', text: 'Здесь начинают строить настоящие пайплайны:' },
+        { type: 'info', text: 'clean → features → train → eval → deploy.' },
+        { type: 'info', text: '' },
         { type: 'warn', text: '🔑 Требуется: пройти JUNIOR полностью.' },
       ];
     }
@@ -246,11 +253,15 @@ export class Desktop {
     return [{ type: 'info', text: 'Доступ запрещён.' }];
   }
 
+  // ============================================
+  // ПОСИМВОЛЬНАЯ ПЕЧАТЬ (эффект печатной машинки)
+  // ============================================
   _runGateScript(el, lines, onDone) {
     if (!el) return;
-    let i = 0;
-    const typeLine = () => {
-      if (i >= lines.length) {
+    let lineIdx = 0;
+
+    const printLine = () => {
+      if (lineIdx >= lines.length) {
         const cursor = document.createElement('div');
         cursor.className = 'terminal-line';
         cursor.innerHTML = `<span class="terminal-prompt">$ </span><span class="gate-cursor">▊</span>`;
@@ -259,7 +270,8 @@ export class Desktop {
         if (onDone) onDone();
         return;
       }
-      const line = lines[i];
+
+      const line = lines[lineIdx];
       const div = document.createElement('div');
       let cls = '';
       let prefix = '';
@@ -268,21 +280,50 @@ export class Desktop {
       else if (line.type === 'err') { cls = 'terminal-error'; }
       else if (line.type === 'warn') { cls = 'terminal-warn'; }
       div.className = 'terminal-line ' + cls;
-      div.textContent = prefix + line.text;
       el.appendChild(div);
-      el.scrollTop = el.scrollHeight;
-      i++;
-      if (window.__audio && line.text && line.text.length > 0) {
-        try { window.__audio.key('normal'); } catch (e) {}
+
+      const fullText = prefix + line.text;
+      let charIdx = 0;
+
+      // Для пустых строк — просто пропустить без задержки
+      if (fullText.length === 0) {
+        lineIdx++;
+        setTimeout(printLine, 40);
+        return;
       }
-      let delay = 150;
-      if (line.type === 'err') delay = 300;
-      if (line.type === 'cmd') delay = 400;
-      if (line.type === 'warn') delay = 250;
-      if (line.text === '') delay = 40;
-      setTimeout(typeLine, delay);
+
+      // Печать посимвольно
+      const typeChar = () => {
+        if (charIdx >= fullText.length) {
+          // Конец строки
+          lineIdx++;
+          let delay = 150;
+          if (line.type === 'err') delay = 300;
+          if (line.type === 'cmd') delay = 400;
+          if (line.type === 'warn') delay = 250;
+          if (line.text === '') delay = 40;
+          setTimeout(printLine, delay);
+          return;
+        }
+
+        div.textContent = fullText.slice(0, charIdx + 1);
+        el.scrollTop = el.scrollHeight;
+
+        // Звук при каждом символе
+        if (window.__audio && charIdx % 2 === 0) {
+          try { window.__audio.key('normal'); } catch (e) {}
+        }
+
+        charIdx++;
+        // Быстрая печать — 15-30мс на символ
+        const charDelay = 15 + Math.random() * 15;
+        setTimeout(typeChar, charDelay);
+      };
+
+      typeChar();
     };
-    setTimeout(typeLine, 300);
+
+    setTimeout(printLine, 300);
   }
 
   async openGroupMap(worldId) {
@@ -512,7 +553,7 @@ export class Desktop {
         setTimeout(() => this.openGroupMap(worldId), 300);
       }
 
-      if (!DEV_UNLOCK_ALL) {
+      if (!isDevUnlockAll()) {
         if (worldId === 'baby') {
           const done = await isBabyComplete();
           if (done) {
@@ -620,7 +661,6 @@ export class Desktop {
     });
   }
 
-  // FULLSCREEN SENIOR FINALE
   _showSeniorFinale() {
     rewards.unlock('senior_finale_shown');
     this.seniorDone = true;
@@ -700,25 +740,44 @@ export class Desktop {
       { type: 'info', text: '2 ошибки — 2 звезды.' },
       { type: 'info', text: '3+ ошибки — 1 звезда.' },
       { type: 'info', text: '' },
+      { type: 'info', text: 'Собери 4 звезды во всех квестах папки —' },
+      { type: 'info', text: 'получишь награду: обои и ачивку.' },
+      { type: 'info', text: '' },
       { type: 'ok', text: '🔒 ПОСЛЕДОВАТЕЛЬНОСТЬ' },
       { type: 'info', text: 'Квесты открываются по очереди.' },
-      { type: 'info', text: 'Папки тоже.' },
+      { type: 'info', text: 'Папки тоже — сначала basics, потом cleaning.' },
+      { type: 'info', text: 'Нельзя прыгнуть в middle, не пройдя junior.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
       { type: 'info', text: 'В каждой папке спрятан чит-код.' },
+      { type: 'info', text: 'Найдёшь — открой Пуск → Чит-коды.' },
       { type: 'info', text: 'Введи слово — получишь ачивку.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '🎲 GALTON BOARD' },
-      { type: 'info', text: 'Иконка GALTON — визуализация случая.' },
+      { type: 'info', text: 'На рабочем столе есть иконка GALTON.' },
+      { type: 'info', text: 'Открой её — увидишь, как работает случайность.' },
+      { type: 'info', text: 'Это визуализация нормального распределения.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '⌨️ ТЕРМИНАЛ' },
-      { type: 'info', text: 'Хочешь писать код — зайди в Терминал.' },
+      { type: 'info', text: 'Хочешь писать код по-настоящему —' },
+      { type: 'info', text: 'зайди в Терминал. Там можно ls, cd, cat.' },
+      { type: 'info', text: 'Для остальных — весь геймплей в квестах.' },
       { type: 'info', text: '' },
       { type: 'warn', text: '─── ЧТО ДАЛЬШЕ ───' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'baby → junior → middle → senior → Магистр.' },
+      { type: 'info', text: 'Пройдёшь baby — откроется JUNIOR.' },
+      { type: 'info', text: 'Пройдёшь junior — откроется MIDDLE:' },
+      { type: 'info', text: 'пайплайны, фичи, модели, метрики.' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Пройдёшь middle — откроется SENIOR:' },
+      { type: 'info', text: 'инциденты в проде, архитектура, менторство.' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Финал — стать Магистром Сигнала.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '─── НАЧНЁМ ───' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Открой карту BABY или JUNIOR.' },
+      { type: 'info', text: 'Первый квест в junior — прочитать CSV.' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Удачи. Она тебе понадобится.' },
       { type: 'info', text: '' },
