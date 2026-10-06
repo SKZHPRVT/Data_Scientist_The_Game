@@ -1,0 +1,13 @@
+{
+  "id": "task1_read_csv",
+  "world": "junior",
+  "level": 1,
+  "title": "Прочитай датасет",
+  "dataset": "sales.csv",
+  "question": "Прочитай sales.csv и верни shape (размер датасета).",
+  "checkMode": "exact",
+  "time": 60,
+  "commands": ["read_csv", "shape"],
+  "stars": { "1": 60, "2": 40, "3": 20 },
+  "explanation": "pd.read_csv() читает CSV в DataFrame. .shape возвращает [строки, колонки]."
+}

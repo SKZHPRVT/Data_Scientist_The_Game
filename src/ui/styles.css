@@ -1,0 +1,242 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0a;
+  --fg: #00ff41;
+  --fg-dim: #008833;
+  --panel: rgba(10, 10, 10, 0.92);
+  --border: #1a1a1a;
+  --accent: #00ff41;
+  --error: #ff3333;
+  --warn: #ffaa00;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+}
+
+html, body, #app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== РАБОЧИЙ СТОЛ ===== */
+.desktop {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-color: #1a1a2e;
+}
+
+.desktop-icons {
+  position: absolute;
+  top: 40px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  width: 80px;
+}
+
+.desktop-icon:hover { background: rgba(0, 255, 65, 0.1); }
+.desktop-icon:active { background: rgba(0, 255, 65, 0.2); }
+.desktop-icon .icon { font-size: 32px; }
+.desktop-icon .label {
+  font-size: 11px;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  text-align: center;
+  word-break: break-word;
+}
+
+/* ===== ПАНЕЛЬ ЗАДАЧ ===== */
+.taskbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 4px;
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+}
+
+.taskbar-btn {
+  height: 36px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.taskbar-btn:hover { background: rgba(0, 255, 65, 0.1); border-color: var(--fg-dim); }
+.taskbar-btn.active { background: rgba(0, 255, 65, 0.15); border-color: var(--accent); }
+
+.taskbar-spacer { flex: 1; }
+
+.taskbar-tray {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fg-dim);
+  font-size: 12px;
+}
+
+/* ===== ОКНА ===== */
+.window {
+  position: absolute;
+  background: var(--panel);
+  border: 1px solid var(--fg-dim);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  min-width: 320px;
+}
+
+.window-title {
+  height: 32px;
+  background: rgba(0, 255, 65, 0.08);
+  border-bottom: 1px solid var(--fg-dim);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--fg);
+  cursor: move;
+  user-select: none;
+}
+
+.window-title .controls {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.window-title .controls span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid var(--fg-dim);
+}
+
+.window-title .controls .close:hover { background: var(--error); }
+.window-title .controls .minimize:hover { background: var(--warn); }
+
+.window-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ===== ТЕРМИНАЛ ===== */
+.terminal {
+  background: #000;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 12px;
+  height: 100%;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-line { margin-bottom: 4px; }
+.terminal-prompt { color: var(--accent); }
+.terminal-error { color: var(--error); }
+.terminal-success { color: var(--accent); }
+.terminal-warn { color: var(--warn); }
+
+.terminal-input {
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+  width: calc(100% - 20px);
+  caret-color: var(--accent);
+}
+
+/* ===== ПУСК ===== */
+.start-menu {
+  position: absolute;
+  bottom: 48px;
+  left: 8px;
+  width: 260px;
+  background: var(--panel);
+  border: 1px solid var(--fg-dim);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
+  padding: 8px 0;
+  z-index: 1001;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.start-item {
+  padding: 8px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fg);
+}
+
+.start-item:hover { background: rgba(0, 255, 65, 0.1); }
+.start-divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+/* ===== ЗАГРУЗКА ===== */
+.loading {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: var(--font-mono);
+  color: var(--fg);
+  font-size: 24px;
+  letter-spacing: 8px;
+}
+
+.loading-digits {
+  font-size: 32px;
+  letter-spacing: 12px;
+}
