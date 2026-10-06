@@ -30,14 +30,26 @@ export class Terminal {
     this._print('');
     this._prompt();
 
-    this.el.addEventListener('click', () => {
-      this.el.querySelector('.terminal-input')?.focus();
-    });
-
     this.el.addEventListener('scroll', () => {
       const dist = this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight;
       this._wasAtBottom = dist < 30;
     });
+
+    // ЕДИНЫЙ обработчик тапа на ВСЁ окно терминала
+    if (this._win) {
+      this._win.addEventListener('click', (e) => {
+        const input = e.target.closest('.terminal-input');
+        if (input) {
+          // Тап по полю ввода — фокус, клавиатура открывается
+          input.focus();
+        } else {
+          // Тап по пустому месту — снимаем фокус, клавиатура закрывается
+          if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+          }
+        }
+      });
+    }
 
     // === МЕХАНИЗМ 1: KeyboardHandler от main.js ===
     if (window.__keyboard) {
