@@ -120,6 +120,7 @@ async function checkWorldComplete(worldId) {
   } catch (e) { return false; }
 }
 
+export function isBabyComplete() { return checkWorldComplete('baby'); }
 export function isJuniorComplete() { return checkWorldComplete('junior'); }
 export function isMiddleComplete() { return checkWorldComplete('middle'); }
 export function isSeniorComplete() { return checkWorldComplete('senior'); }

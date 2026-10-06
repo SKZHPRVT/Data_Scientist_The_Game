@@ -52,9 +52,20 @@ export class GroupMap {
   render() {
     if (!this.data) return '<div style="color: var(--fg-dim); font-family: var(--font-mono);">Загрузка...</div>';
 
+    const isBaby = this.worldId === 'baby';
+
     const totalStars = Object.values(this.chapterStats).reduce((s, c) => s + c.stars, 0);
     const totalMax = Object.values(this.chapterStats).reduce((s, c) => s + c.maxStars, 0);
-    const percent = totalMax > 0 ? Math.round((totalStars / totalMax) * 100) : 0;
+    const totalSolved = Object.values(this.chapterStats).reduce((s, c) => s + c.solved, 0);
+    const totalTasks = Object.values(this.chapterStats).reduce((s, c) => s + c.total, 0);
+
+    const percent = isBaby
+      ? (totalTasks > 0 ? Math.round((totalSolved / totalTasks) * 100) : 0)
+      : (totalMax > 0 ? Math.round((totalStars / totalMax) * 100) : 0);
+
+    const progressText = isBaby
+      ? `${totalSolved} / ${totalTasks}`
+      : `⭐ ${totalStars} / ${totalMax}`;
 
     return `
       <div class="quest-map">
@@ -65,7 +76,7 @@ export class GroupMap {
             <div class="quest-map-bar">
               <div class="quest-map-bar-fill" style="width: ${percent}%"></div>
             </div>
-            <div class="quest-map-count">⭐ ${totalStars} / ${totalMax}</div>
+            <div class="quest-map-count">${progressText}</div>
           </div>
         </div>
 
@@ -84,6 +95,14 @@ export class GroupMap {
               status = '🚧'; cls = 'locked soon'; sub = 'Скоро';
             } else if (!unlocked) {
               status = '🔒'; cls = 'locked'; sub = 'Сначала закрой предыдущую';
+            } else if (isBaby) {
+              if (complete) {
+                status = '✅'; cls = 'solved'; sub = 'Пройдено';
+              } else if (stats.solved > 0) {
+                status = '▶️'; cls = 'active'; sub = `${stats.solved}/${stats.total}`;
+              } else {
+                status = '▶️'; cls = 'active'; sub = `${stats.total} уроков`;
+              }
             } else if (perfect) {
               status = '🏆'; cls = 'solved perfect'; sub = `${stats.solved}/${stats.total} · ${stats.stars}/${stats.maxStars} ⭐`;
             } else if (complete) {

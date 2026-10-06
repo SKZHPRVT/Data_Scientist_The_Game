@@ -1,0 +1,7 @@
+{
+  "id": "what_is_ds",
+  "title": "Кто такой Data Scientist",
+  "icon": "🧑‍🔬",
+  "description": "Чем занимается",
+  "tasks": ["task1.json", "task2.json"]
+}

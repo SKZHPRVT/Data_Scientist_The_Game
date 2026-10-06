@@ -1,0 +1,7 @@
+{
+  "id": "first_table",
+  "title": "Первая таблица",
+  "icon": "📋",
+  "description": "Как выглядят данные",
+  "tasks": ["task1.json", "task2.json"]
+}

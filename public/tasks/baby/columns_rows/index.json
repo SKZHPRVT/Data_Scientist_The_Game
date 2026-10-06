@@ -1,0 +1,7 @@
+{
+  "id": "columns_rows",
+  "title": "Колонки и строки",
+  "icon": "📊",
+  "description": "Из чего состоит таблица",
+  "tasks": ["task1.json", "task2.json"]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "baby_fs_2",
+  "world": "baby",
+  "level": 0,
+  "title": "Первая команда",
+  "question": "Как в pandas загрузить CSV-файл sales.csv в переменную df?",
+  "options": [
+    { "id": "A", "code": "df = pd.read_csv('sales.csv')", "correct": true, "explain": "read_csv читает CSV-файл и кладёт его в переменную df (сокращение от DataFrame — таблица). Поздравляем, ты только что сделал первый шаг." },
+    { "id": "B", "code": "df = open('sales.csv')", "correct": false, "explain": "open открывает файл, но не читает CSV как таблицу." },
+    { "id": "C", "code": "df = load('sales.csv')", "correct": false, "explain": "Такой функции нет. В pandas — read_csv." },
+    { "id": "D", "code": "df = import('sales.csv')", "correct": false, "explain": "import используется для модулей, не для файлов." }
+  ],
+  "hint": "pd.read_csv('имя_файла')"
+}

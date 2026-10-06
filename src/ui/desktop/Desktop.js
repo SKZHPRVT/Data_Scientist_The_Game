@@ -15,12 +15,13 @@ import { SeniorFinale } from '../rewards/SeniorFinale.js';
 import { storage } from '../../core/storage.js';
 import {
   progress, rewards,
-  isJuniorComplete, isMiddleComplete, isSeniorComplete,
+  isBabyComplete, isJuniorComplete, isMiddleComplete, isSeniorComplete,
 } from '../../core/progress.js';
 import { CHAPTER_REWARDS } from '../../core/rewards.js';
 import { DEV_UNLOCK_ALL } from '../../core/dev.js';
 
 const CHEAT_HINTS = {
+  // BABY — нет
   // JUNIOR
   basics: 'Найдёшь первое знамение, если вспомнишь про фильтрацию. Код: FILTER',
   cleaning: 'Ты чистюля. И слово подходящее. Код: CLEAN',
@@ -50,6 +51,7 @@ export class Desktop {
     this.windows = new WindowManager(root);
     this.startMenu = null;
     this.taskbar = null;
+    this.babyDone = false;
     this.juniorDone = false;
     this.middleDone = false;
     this.seniorDone = false;
@@ -68,6 +70,7 @@ export class Desktop {
   }
 
   async render() {
+    this.babyDone = DEV_UNLOCK_ALL ? true : await isBabyComplete();
     this.juniorDone = DEV_UNLOCK_ALL ? true : await isJuniorComplete();
     this.middleDone = DEV_UNLOCK_ALL ? true : await isMiddleComplete();
     this.seniorDone = DEV_UNLOCK_ALL ? true : await isSeniorComplete();
@@ -93,11 +96,15 @@ export class Desktop {
     this.taskbar.render();
 
     if (!DEV_UNLOCK_ALL) {
-      if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
-        setTimeout(() => this._showJuniorFinale(), 800);
-      } else if (this.seniorDone && !rewards.isUnlocked('senior_finale_shown')) {
+      // Приоритеты финалов
+      if (this.seniorDone && !rewards.isUnlocked('senior_finale_shown')) {
         setTimeout(() => this._showSeniorFinale(), 800);
+      } else if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
+        setTimeout(() => this._showJuniorFinale(), 800);
+      } else if (this.babyDone && !rewards.isUnlocked('baby_complete_shown')) {
+        setTimeout(() => this._showBabyComplete(), 800);
       }
+
       setTimeout(() => {
         const solved = progress.getSolved();
         if (solved.length === 0) {
@@ -111,6 +118,7 @@ export class Desktop {
   renderIcons() {
     const icons = document.getElementById('icons');
     const items = [
+      { icon: '🍼', label: 'BABY', action: () => this.openGroupMap('baby') },
       { icon: '🎯', label: 'JUNIOR', action: () => this.openGroupMap('junior') },
       { icon: '🚀', label: 'MIDDLE', action: () => this.openWorldGate('middle') },
       { icon: '👑', label: 'SENIOR', action: () => this.openWorldGate('senior') },
@@ -156,26 +164,48 @@ export class Desktop {
       this.openGroupMap(worldId);
       return;
     }
-    if (worldId === 'middle' && this.juniorDone) {
+    // MIDDLE
+    if (worldId === 'middle') {
+      if (!this.juniorDone) {
+        // Junior не пройден — показываем gate
+        const text = this._getGateText(worldId);
+        this.windows.create({
+          id: 'worldgate-' + worldId,
+          title: '⚡ ' + worldId.toUpperCase() + '.gate',
+          content: `<div class="terminal"></div>`,
+          onMount: (body) => {
+            const termEl = body.querySelector('.terminal');
+            this._runGateScript(termEl, text);
+          },
+          width: 540,
+          height: 440,
+        });
+        return;
+      }
+      // Junior пройден — открываем карту
       this.openGroupMap('middle');
       return;
     }
-    if (worldId === 'senior' && this.middleDone) {
+    // SENIOR
+    if (worldId === 'senior') {
+      if (!this.middleDone) {
+        const text = this._getGateText(worldId);
+        this.windows.create({
+          id: 'worldgate-' + worldId,
+          title: '⚡ ' + worldId.toUpperCase() + '.gate',
+          content: `<div class="terminal"></div>`,
+          onMount: (body) => {
+            const termEl = body.querySelector('.terminal');
+            this._runGateScript(termEl, text);
+          },
+          width: 540,
+          height: 440,
+        });
+        return;
+      }
       this.openGroupMap('senior');
       return;
     }
-    const text = this._getGateText(worldId);
-    this.windows.create({
-      id: 'worldgate-' + worldId,
-      title: '⚡ ' + worldId.toUpperCase() + '.gate',
-      content: `<div class="terminal"></div>`,
-      onMount: (body) => {
-        const termEl = body.querySelector('.terminal');
-        this._runGateScript(termEl, text);
-      },
-      width: 540,
-      height: 440,
-    });
   }
 
   _getGateText(worldId) {
@@ -462,8 +492,8 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
-    // Приз за идеальную папку
-    if (chapterComplete && chapterPerfect) {
+    // Приз за идеальную папку (только не для baby)
+    if (chapterComplete && chapterPerfect && worldId !== 'baby') {
       const chId = chapterId.split('/').pop();
       const reward = CHAPTER_REWARDS[chId];
       if (reward && !rewards.isUnlocked('chapter_' + chId)) {
@@ -478,8 +508,8 @@ export class Desktop {
       }
     }
 
-    // Намёк на чит-код
-    if (chapterComplete && !chapterPerfect) {
+    // Намёк на чит-код (только не для baby)
+    if (chapterComplete && !chapterPerfect && worldId !== 'baby') {
       const chId = chapterId.split('/').pop();
       const hint = CHEAT_HINTS[chId];
       if (hint) {
@@ -510,7 +540,15 @@ export class Desktop {
       }
 
       if (!DEV_UNLOCK_ALL) {
-        if (worldId === 'junior') {
+        if (worldId === 'baby') {
+          const done = await isBabyComplete();
+          if (done) {
+            this.babyDone = true;
+            if (!rewards.isUnlocked('baby_complete_shown')) {
+              setTimeout(() => this._showBabyComplete(), 2000);
+            }
+          }
+        } else if (worldId === 'junior') {
           const done = await isJuniorComplete();
           if (done) {
             this.juniorDone = true;
@@ -538,6 +576,62 @@ export class Desktop {
     }
   }
 
+  _showBabyComplete() {
+    rewards.unlock('baby_complete_shown');
+    this.babyDone = true;
+
+    this.windows.create({
+      id: 'baby-complete',
+      title: '🍼 Baby Scientist пройден',
+      content: `
+        <div style="font-family: var(--font-mono); color: var(--fg); text-align: center; padding: 20px; display: flex; flex-direction: column; align-items: center;">
+          <div style="font-size: 64px; margin-bottom: 8px;">🍼</div>
+          <div style="font-size: 22px; font-weight: 800; color: var(--accent); letter-spacing: 2px; margin-bottom: 16px;">
+            ПЕРВЫЙ ШАГ СДЕЛАН
+          </div>
+
+          <div style="width: 100%; padding: 16px; background: rgba(0, 255, 65, 0.05); border-radius: 8px; border-left: 3px solid var(--accent); text-align: left; font-size: 13px; line-height: 1.7;">
+            <p>Ты понял:</p>
+            <p style="margin-top: 8px;">📦 Что такое данные</p>
+            <p>📋 Что такое таблица</p>
+            <p>📊 Что такое колонки и строки</p>
+            <p>🧑‍🔬 Кто такой Data Scientist</p>
+            <p>🐍 Что такое pandas</p>
+            <p style="margin-top: 12px; color: var(--accent); font-weight: 700;">
+              Теперь ты готов к серьёзной игре.
+            </p>
+          </div>
+
+          <div style="font-size: 40px; margin: 20px 0 4px;">🎯</div>
+          <div style="font-size: 14px; font-weight: 800; color: var(--warn); letter-spacing: 2px; margin-bottom: 20px;">
+            ОТКРЫТ JUNIOR
+          </div>
+
+          <button class="task-btn task-btn-next" id="baby-go-junior" style="width: 100%;">
+            → Перейти в JUNIOR
+          </button>
+          <button class="task-btn" id="baby-stay" style="width: 100%; margin-top: 8px;">
+            Остаться в BABY
+          </button>
+        </div>
+      `,
+      width: 500,
+      height: 620,
+      onMount: (body) => {
+        if (window.__audio) {
+          try { window.__audio.success(); } catch (e) {}
+        }
+        body.querySelector('#baby-go-junior').onclick = () => {
+          this.windows.close('baby-complete');
+          this.openGroupMap('junior');
+        };
+        body.querySelector('#baby-stay').onclick = () => {
+          this.windows.close('baby-complete');
+        };
+      },
+    });
+  }
+
   _showJuniorFinale() {
     rewards.unlock('junior_finale_shown');
     this.juniorDone = true;
@@ -561,7 +655,6 @@ export class Desktop {
     rewards.unlock('senior_finale_shown');
     this.seniorDone = true;
 
-    // Открываем титульные ачивки
     const ach = new Achievements();
     ach.unlock('MASTER_SIGNAL');
     ach.unlock('DIVIDE_ET_IMPERA');
@@ -627,7 +720,10 @@ export class Desktop {
       { type: 'warn', text: '─── ЧТО ЭТО ЗА ИГРА ───' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Это симулятор карьеры Data Scientist.' },
-      { type: 'info', text: 'Три мира: JUNIOR → MIDDLE → SENIOR.' },
+      { type: 'info', text: 'Четыре мира: BABY → JUNIOR → MIDDLE → SENIOR.' },
+      { type: 'info', text: '' },
+      { type: 'info', text: 'Если ты никогда не работал с данными —' },
+      { type: 'info', text: 'начни с BABY SCIENTIST (🍼).' },
       { type: 'info', text: '' },
       { type: 'warn', text: '─── КАК ИГРАТЬ ───' },
       { type: 'info', text: '' },
@@ -650,12 +746,13 @@ export class Desktop {
       { type: 'info', text: '' },
       { type: 'warn', text: '─── ЧТО ДАЛЬШЕ ───' },
       { type: 'info', text: '' },
+      { type: 'info', text: 'Пройдёшь baby — откроется JUNIOR.' },
       { type: 'info', text: 'Пройдёшь junior — откроется MIDDLE.' },
       { type: 'info', text: 'Пройдёшь middle — откроется SENIOR.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '─── НАЧНЁМ ───' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Открой карту JUNIOR.' },
+      { type: 'info', text: 'Открой карту BABY или JUNIOR.' },
       { type: 'info', text: 'Первый квест — прочитать CSV.' },
       { type: 'info', text: '' },
       { type: 'info', text: 'Удачи. Она тебе понадобится.' },
@@ -673,10 +770,16 @@ export class Desktop {
           const btn = document.createElement('div');
           btn.className = 'terminal-line';
           btn.style.marginTop = '16px';
-          btn.innerHTML = `<button class="taskbar-btn active" id="start-btn" style="pointer-events:auto;">[ НАЧАТЬ → ]</button>`;
+          btn.innerHTML = `
+            <button class="taskbar-btn active" id="start-baby" style="pointer-events:auto;">[ 🍼 BABY ]</button>
+            <button class="taskbar-btn" id="start-junior" style="pointer-events:auto; margin-left: 8px;">[ 🎯 JUNIOR ]</button>
+          `;
           el.appendChild(btn);
           el.scrollTop = el.scrollHeight;
-          btn.querySelector('#start-btn').onclick = () => {
+          btn.querySelector('#start-baby').onclick = () => {
+            this.openGroupMap('baby');
+          };
+          btn.querySelector('#start-junior').onclick = () => {
             this.openGroupMap('junior');
           };
         });

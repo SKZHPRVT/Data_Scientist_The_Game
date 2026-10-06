@@ -1,0 +1,13 @@
+{
+  "id": "baby",
+  "title": "BABY SCIENTIST",
+  "icon": "🍼",
+  "description": "Самый первый шаг. Для тех, кто никогда не работал с данными.",
+  "chapters": [
+    { "id": "what_is_data", "title": "Что такое данные", "icon": "📦", "description": "Разбираемся, с чем вообще работаем", "unlockAfter": null },
+    { "id": "first_table", "title": "Первая таблица", "icon": "📋", "description": "Как выглядят данные", "unlockAfter": "what_is_data" },
+    { "id": "columns_rows", "title": "Колонки и строки", "icon": "📊", "description": "Из чего состоит таблица", "unlockAfter": "first_table" },
+    { "id": "what_is_ds", "title": "Кто такой Data Scientist", "icon": "🧑‍🔬", "description": "Чем занимается", "unlockAfter": "columns_rows" },
+    { "id": "first_step", "title": "Первый шаг в pandas", "icon": "🐍", "description": "Пробуем код", "unlockAfter": "what_is_ds" }
+  ]
+}

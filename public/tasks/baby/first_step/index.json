@@ -1,0 +1,7 @@
+{
+  "id": "first_step",
+  "title": "Первый шаг в pandas",
+  "icon": "🐍",
+  "description": "Пробуем код",
+  "tasks": ["task1.json", "task2.json"]
+}

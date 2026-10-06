@@ -1,0 +1,7 @@
+{
+  "id": "what_is_data",
+  "title": "Что такое данные",
+  "icon": "📦",
+  "description": "Разбираемся, с чем вообще работаем",
+  "tasks": ["task1.json", "task2.json"]
+}

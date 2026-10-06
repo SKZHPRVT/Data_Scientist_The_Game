@@ -1,0 +1,14 @@
+{
+  "id": "baby_fs_1",
+  "world": "baby",
+  "level": 0,
+  "title": "Что такое pandas?",
+  "question": "Ты слышал про pandas. Что это?",
+  "options": [
+    { "id": "A", "code": "Библиотека Python для работы с таблицами", "correct": true, "explain": "Pandas — это инструмент. Ты пишешь pd.read_csv('sales.csv') — и таблица загружается в память. Дальше с ней работаешь кодом." },
+    { "id": "B", "code": "Это животное", "correct": false, "explain": "Панда — животное. Pandas — библиотека в Python (название от 'panel data')." },
+    { "id": "C", "code": "Это язык программирования", "correct": false, "explain": "Язык — Python. Pandas — библиотека для Python." },
+    { "id": "D", "code": "Это база данных", "correct": false, "explain": "База данных (SQL) — хранит. Pandas — обрабатывает данные в памяти." }
+  ],
+  "hint": "Pandas — библиотека для таблиц в Python"
+}
