@@ -1,0 +1,14 @@
+{
+  "id": "pipelines_2_leakage",
+  "world": "middle",
+  "level": 2,
+  "title": "Утечка данных",
+  "question": "Ты заскейлил весь датасет через StandardScaler.fit_transform(X), потом разделил на train/test. Что не так?",
+  "options": [
+    { "id": "A", "code": "Утечка данных — scaler видел test", "correct": true, "explain": "Scaler посчитал mean/std на всём датасете, включая test. Это утечка: модель видела статистику теста. Правильно — fit только на train, transform на test." },
+    { "id": "B", "code": "Ничего, всё правильно", "correct": false, "explain": "Это классическая ошибка — утечка данных через препроцессинг." },
+    { "id": "C", "code": "Надо было использовать MinMaxScaler", "correct": false, "explain": "Тип scaler не важен. Проблема в порядке операций: fit должен быть только на train." },
+    { "id": "D", "code": "Scaler не работает с train/test", "correct": false, "explain": "Scaler работает, но его нужно fit-ить только на train, а transform — на обоих." }
+  ],
+  "hint": "Правильный порядок: train_test_split → fit на train → transform на test"
+}

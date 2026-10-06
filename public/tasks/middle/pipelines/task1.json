@@ -1,0 +1,14 @@
+{
+  "id": "pipelines_1_what",
+  "world": "middle",
+  "level": 2,
+  "title": "Что такое Pipeline",
+  "question": "Зачем в sklearn используют Pipeline?",
+  "options": [
+    { "id": "A", "code": "pipeline = Pipeline([('scaler', StandardScaler()), ('model', LogisticRegression())])", "correct": true, "explain": "Pipeline объединяет шаги препроцессинга и модель в один объект. Это защищает от утечки данных и упрощает код." },
+    { "id": "B", "code": "pipeline = [StandardScaler(), LogisticRegression()]", "correct": false, "explain": "Список — это не Pipeline. Нужен класс Pipeline из sklearn.pipeline." },
+    { "id": "C", "code": "pipeline = StandardScaler() + LogisticRegression()", "correct": false, "explain": "Нельзя сложить объекты через +. Это не сработает." },
+    { "id": "D", "code": "pipeline = model.fit(X, y)", "correct": false, "explain": "Это просто обучение модели, без препроцессинга и без Pipeline." }
+  ],
+  "hint": "Pipeline — это когда хочешь одним объектом и масштабировать, и обучать"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "pipelines_4_gridsearch",
+  "world": "middle",
+  "level": 3,
+  "title": "Тюнинг внутри Pipeline",
+  "question": "Как в GridSearchCV указать параметр scaler__with_mean?",
+  "options": [
+    { "id": "A", "code": "param_grid = {'scaler__with_mean': [True, False]}", "correct": true, "explain": "Двойное подчёркивание разделяет имя шага в Pipeline и его параметр: имя_шага__параметр." },
+    { "id": "B", "code": "param_grid = {'with_mean': [True, False]}", "correct": false, "explain": "Без префикса имени шага sklearn не поймёт, к какому шагу Pipeline относится параметр." },
+    { "id": "C", "code": "param_grid = {'scaler.with_mean': [True, False]}", "correct": false, "explain": "Точка не используется — нужны два подчёркивания." },
+    { "id": "D", "code": "param_grid = {'scaler-with_mean': [True, False]}", "correct": false, "explain": "Дефис не используется — только двойное подчёркивание." }
+  ],
+  "hint": "Двойное подчёркивание разделяет шаг и параметр"
+}

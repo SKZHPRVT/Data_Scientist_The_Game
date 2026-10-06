@@ -1,0 +1,14 @@
+{
+  "id": "pipelines_3_column",
+  "world": "middle",
+  "level": 2,
+  "title": "Разные колонки — разная обработка",
+  "question": "В датасете числовые и категориальные колонки. Чем обработать их по-разному в одном Pipeline?",
+  "options": [
+    { "id": "A", "code": "ColumnTransformer([('num', StandardScaler(), num_cols), ('cat', OneHotEncoder(), cat_cols)])", "correct": true, "explain": "ColumnTransformer применяет разные трансформеры к разным колонкам. Это стандартный способ в реальных проектах." },
+    { "id": "B", "code": "StandardScaler().fit(num_cols) + OneHotEncoder().fit(cat_cols)", "correct": false, "explain": "Нельзя сложить трансформеры через +. Нужен ColumnTransformer." },
+    { "id": "C", "code": "Обработать только числовые, категориальные удалить", "correct": false, "explain": "Удаление категориальных — потеря информации. Их надо закодировать." },
+    { "id": "D", "code": "Применить один StandardScaler ко всем колонкам", "correct": false, "explain": "Scaler не работает с текстом. Для категориальных нужен OneHotEncoder или аналог." }
+  ],
+  "hint": "ColumnTransformer — чтобы разные колонки шли через разные шаги"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "pipelines_5_save",
+  "world": "middle",
+  "level": 3,
+  "title": "Сохрани Pipeline",
+  "question": "Ты обучил Pipeline. Как сохранить его, чтобы потом загрузить и использовать на проде?",
+  "options": [
+    { "id": "A", "code": "joblib.dump(pipeline, 'model.pkl')", "correct": true, "explain": "joblib — стандарт для сохранения sklearn-моделей. Сохраняет и Pipeline, и все шаги, и параметры." },
+    { "id": "B", "code": "pipeline.to_json('model.json')", "correct": false, "explain": "У Pipeline нет метода to_json. Для sklearn нужен joblib или pickle." },
+    { "id": "C", "code": "open('model.pkl', 'w').write(pipeline)", "correct": false, "explain": "Нельзя записать объект в файл как строку. Нужна сериализация." },
+    { "id": "D", "code": "print(pipeline)", "correct": false, "explain": "print выведет описание, но не сохранит модель." }
+  ],
+  "hint": "sklearn рекомендует joblib для сериализации"
+}
