@@ -83,6 +83,8 @@ export const progress = {
     localStorage.removeItem('achievements_v1');
     localStorage.removeItem('sv_cheats');
     localStorage.removeItem('wallpaper');
+    localStorage.removeItem('wallpapers_unlocked_v1');
+    localStorage.removeItem('perfect_chapters_v1');
   },
 };
 

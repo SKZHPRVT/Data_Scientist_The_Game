@@ -3,7 +3,7 @@ import { StartMenu } from './StartMenu.js';
 import { WindowManager } from './WindowManager.js';
 import { Terminal } from '../terminal/Terminal.js';
 import { Explorer } from '../explorer/Explorer.js';
-import { Settings, applyWallpaper } from '../settings/Settings.js';
+import { Settings } from '../settings/Settings.js';
 import { Achievements } from '../achievements/Achievements.js';
 import { Progress } from '../settings/Progress.js';
 import { TaskView } from '../task/TaskView.js';
@@ -19,6 +19,16 @@ import {
   progress, rewards,
   isBabyComplete, isJuniorComplete, isMiddleComplete, isSeniorComplete,
 } from '../../core/progress.js';
+import {
+  applyWallpaper,
+  markBabyComplete,
+  markJuniorComplete,
+  markMiddleComplete,
+  markSeniorComplete,
+  markGameComplete,
+  markPerfectChapter,
+  refreshWallpapers,
+} from '../../core/wallpapers.js';
 import { CHAPTER_REWARDS } from '../../core/rewards.js';
 import { isDevUnlockAll } from '../../core/dev.js';
 
@@ -88,6 +98,14 @@ export class Desktop {
     this.juniorDone = isDevUnlockAll() ? true : await isJuniorComplete();
     this.middleDone = isDevUnlockAll() ? true : await isMiddleComplete();
     this.seniorDone = isDevUnlockAll() ? true : await isSeniorComplete();
+
+    // Проверяем разблокировку обоев
+    refreshWallpapers();
+
+    // Если все 4 мира пройдены — открываем matrix
+    if (this.babyDone && this.juniorDone && this.middleDone && this.seniorDone) {
+      markGameComplete();
+    }
 
     this.root.innerHTML = `
       <div class="desktop" id="desktop">
@@ -267,9 +285,6 @@ export class Desktop {
     return [{ type: 'info', text: 'Доступ запрещён.' }];
   }
 
-  // ============================================
-  // GATE SCRIPT — с возможностью отмены и "показать всё"
-  // ============================================
   _runGateScript(el, lines, onDone) {
     if (!el) return;
 
@@ -277,37 +292,28 @@ export class Desktop {
       aborted: false,
       skipped: false,
       lineIdx: 0,
-      currentDiv: null,
       currentFullText: '',
       currentCharIdx: 0,
       timers: [],
-      onDone,
-      el,
-      lines,
     };
 
-    // Функция очистки всех таймеров
     const clearAllTimers = () => {
       state.timers.forEach((t) => clearTimeout(t));
       state.timers = [];
     };
 
-    // Блокируем — если родитель закрывается
     state.abort = () => {
       state.aborted = true;
       clearAllTimers();
     };
 
-    // Сохраняем в el для доступа извне
     el.__gateState = state;
 
-    // Клик по терминалу — показать всё
     const skipHandler = () => {
-      if (state.aborted) return;
+      if (state.aborted || state.skipped) return;
       state.skipped = true;
       clearAllTimers();
 
-      // Отрисовываем все строки разом
       el.innerHTML = '';
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -323,14 +329,12 @@ export class Desktop {
         el.appendChild(div);
       }
 
-      // Курсор
       const cursor = document.createElement('div');
       cursor.className = 'terminal-line';
       cursor.innerHTML = `<span class="terminal-prompt">$ </span><span class="gate-cursor">▊</span>`;
       el.appendChild(cursor);
       el.scrollTop = el.scrollHeight;
 
-      // Убираем обработчик
       el.removeEventListener('click', skipHandler);
       el.removeEventListener('touchstart', skipHandler);
 
@@ -365,7 +369,6 @@ export class Desktop {
       div.className = 'terminal-line ' + cls;
       el.appendChild(div);
 
-      state.currentDiv = div;
       state.currentFullText = prefix + line.text;
       state.currentCharIdx = 0;
 
@@ -410,19 +413,6 @@ export class Desktop {
     state.timers.push(t);
   }
 
-  // Обёртка: закрыть окно + прервать печать
-  _safeCloseWindow(id) {
-    const win = this.windows.windows.get(id);
-    if (!win) return;
-    // Найти все .terminal с активным gateState и прервать
-    win.querySelectorAll('.terminal').forEach((el) => {
-      if (el.__gateState && el.__gateState.abort) {
-        el.__gateState.abort();
-      }
-    });
-    this.windows.close(id);
-  }
-
   async openGroupMap(worldId) {
     this._closeAllMapWindows();
     await new Promise((r) => setTimeout(r, 60));
@@ -441,15 +431,6 @@ export class Desktop {
 
     win._questMap = map;
     win._worldId = worldId;
-
-    // Перехватываем закрытие — прерываем печать
-    const closeBtn = win.querySelector('.close');
-    const origClose = closeBtn.onclick;
-    closeBtn.onclick = (e) => {
-      if (win._questMap && win._questMap.abortTyping) win._questMap.abortTyping();
-      if (origClose) origClose(e);
-      else this.windows.close('groupmap');
-    };
 
     try {
       await map.load();
@@ -495,14 +476,6 @@ export class Desktop {
 
     win._questMap = map;
     win._chapterId = chapterId;
-
-    const closeBtn = win.querySelector('.close');
-    const origClose = closeBtn.onclick;
-    closeBtn.onclick = (e) => {
-      if (win._questMap && win._questMap.abortTyping) win._questMap.abortTyping();
-      if (origClose) origClose(e);
-      else this.windows.close('questmap');
-    };
 
     try {
       await map.load();
@@ -620,8 +593,11 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
+    // Идеальная папка — markPerfectChapter
     if (chapterComplete && chapterPerfect && worldId !== 'baby') {
       const chId = chapterId.split('/').pop();
+      markPerfectChapter(chId);
+
       const reward = CHAPTER_REWARDS[chId];
       if (reward && !rewards.isUnlocked('chapter_' + chId)) {
         rewards.unlock('chapter_' + chId);
@@ -629,7 +605,6 @@ export class Desktop {
           const ach = new Achievements();
           ach.unlock(reward.achievement);
         }
-        // Применяем обои, если игрок хочет — попап покажет кнопку
         setTimeout(() => {
           showRewardPopup(reward, (wpId) => applyWallpaper(wpId));
         }, 500);
@@ -666,6 +641,7 @@ export class Desktop {
           const done = await isBabyComplete();
           if (done) {
             this.babyDone = true;
+            markBabyComplete();
             if (!rewards.isUnlocked('baby_complete_shown')) {
               setTimeout(() => this._showBabyComplete(), 2000);
             }
@@ -674,6 +650,7 @@ export class Desktop {
           const done = await isJuniorComplete();
           if (done) {
             this.juniorDone = true;
+            markJuniorComplete();
             if (!rewards.isUnlocked('junior_finale_shown')) {
               setTimeout(() => this._showJuniorFinale(), 2000);
             } else {
@@ -684,6 +661,7 @@ export class Desktop {
           const done = await isMiddleComplete();
           if (done) {
             this.middleDone = true;
+            markMiddleComplete();
             if (!rewards.isUnlocked('middle_finale_shown')) {
               setTimeout(() => this._showMiddleFinale(), 2000);
             } else {
@@ -694,10 +672,17 @@ export class Desktop {
           const done = await isSeniorComplete();
           if (done) {
             this.seniorDone = true;
+            markSeniorComplete();
             if (!rewards.isUnlocked('senior_finale_shown')) {
               setTimeout(() => this._showSeniorFinale(), 2000);
             }
           }
+        }
+
+        // Проверяем все 4 мира
+        const allDone = this.babyDone && this.juniorDone && this.middleDone && this.seniorDone;
+        if (allDone) {
+          markGameComplete();
         }
       }
     } else if (nextFile) {
@@ -727,7 +712,10 @@ export class Desktop {
             <p>📊 Что такое колонки и строки</p>
             <p>🧑‍🔬 Кто такой Data Scientist</p>
             <p>🐍 Что такое pandas</p>
-            <p style="margin-top: 12px; color: var(--accent); font-weight: 700;">
+            <p style="margin-top: 12px; color: var(--warn); font-weight: 700;">
+              🔓 Открыты обои «Лес»
+            </p>
+            <p style="color: var(--accent); font-weight: 700;">
               Теперь ты готов к серьёзной игре.
             </p>
           </div>
@@ -808,6 +796,11 @@ export class Desktop {
     ach.unlock('MASTER_SIGNAL');
     ach.unlock('DIVIDE_ET_IMPERA');
 
+    // Если все 4 мира пройдены — открываем матрицу
+    if (this.babyDone && this.juniorDone && this.middleDone && this.seniorDone) {
+      markGameComplete();
+    }
+
     const finale = new SeniorFinale({
       onClose: () => {},
     });
@@ -881,9 +874,10 @@ export class Desktop {
       { type: 'info', text: '2 ошибки — 2 звезды.' },
       { type: 'info', text: '3+ ошибки — 1 звезда.' },
       { type: 'info', text: '' },
-      { type: 'ok', text: '🔒 ПОСЛЕДОВАТЕЛЬНОСТЬ' },
-      { type: 'info', text: 'Квесты открываются по очереди.' },
-      { type: 'info', text: 'Папки тоже.' },
+      { type: 'ok', text: '🎨 ОБОИ' },
+      { type: 'info', text: 'Обои открываются за прогресс.' },
+      { type: 'info', text: 'Пройди мир — откроется новый фон.' },
+      { type: 'info', text: 'Пройди всю игру — откроется Матрица.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
       { type: 'info', text: 'В каждой папке спрятан чит-код.' },
@@ -935,7 +929,6 @@ export class Desktop {
       height: 620,
     });
 
-    // Перехватываем закрытие — прерываем печать
     const closeBtn = win.querySelector('.close');
     const origClose = closeBtn.onclick;
     closeBtn.onclick = (e) => {
