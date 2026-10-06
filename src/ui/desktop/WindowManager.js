@@ -20,8 +20,7 @@ export class WindowManager {
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => {
         this._safeCache = null;
-        clearTimeout(this._vvTimer);
-        this._vvTimer = setTimeout(() => this._refitAll(), 150);
+        // НЕ вызываем _refitAll при клавиатуре — окна прыгают
       });
     }
   }
@@ -139,7 +138,12 @@ export class WindowManager {
     if (!win || !win.parentNode) return;
 
     const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    // Берём МАКСИМУМ из innerHeight и visualViewport.height —
+    // чтобы клавиатура НЕ заставляла окна сжиматься
+    const vh = Math.max(
+      window.innerHeight,
+      window.visualViewport?.height || 0
+    );
     const taskbarH = 44;
     const safe = this._getSafeArea();
     const padding = 8;
@@ -150,7 +154,7 @@ export class WindowManager {
     const currentW = win.offsetWidth;
     const currentH = win.offsetHeight;
 
-    // Сжимаем — но НЕ растягиваем обратно (запоминаем "желаемый" размер в dataset)
+    // Желаемый размер — из dataset или текущий
     const desiredW = parseFloat(win.dataset.desiredW || currentW);
     const desiredH = parseFloat(win.dataset.desiredH || currentH);
 
@@ -170,7 +174,11 @@ export class WindowManager {
     if (!win || !win.parentNode) return;
 
     const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    // МАКСИМУМ из innerHeight и visualViewport.height — клавиатура НЕ сдвигает окна
+    const vh = Math.max(
+      window.innerHeight,
+      window.visualViewport?.height || 0
+    );
     const safe = this._getSafeArea();
     const padding = 8;
 
