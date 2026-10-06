@@ -1,12 +1,16 @@
-// UI Лаборатории моделей
-// Открывает окно со списком семейств и квестов
+// Фасад лаборатории моделей — открывает окна в стиле миров
+import { ModelsGroupMap } from '../ui/models/ModelsGroupMap.js';
+import { ModelsQuestMap } from '../ui/models/ModelsQuestMap.js';
+import { TaskView } from '../ui/task/TaskView.js';
+import { progress } from '../core/progress.js';
 
 export class ModelsLab {
-  constructor(windows) {
-    this.windows = windows;
+  constructor(desktop) {
+    this.desktop = desktop;
+    this.windows = desktop.windows;
   }
 
-  render() {
+  async render() {
     const lab = window.__models;
     if (!lab) {
       this.windows.create({
@@ -19,183 +23,110 @@ export class ModelsLab {
       return;
     }
 
-    const progress = lab.getProgress();
+    const map = new ModelsGroupMap({
+      onOpenChapter: (familyId) => this._openFamily(familyId),
+    });
 
-    const html = `
-      <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.6;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <strong>📦 ЛАБОРАТОРИЯ МОДЕЛЕЙ</strong>
-          <span class="terminal-success">${progress.unlocked} / ${progress.total}</span>
-        </div>
-        <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px;">
-          <div style="height: 100%; width: ${(progress.unlocked / progress.total) * 100}%; background: var(--accent); transition: width 0.3s;"></div>
-        </div>
-        <div id="families-list">
-          ${lab.index.families.map((f) => {
-            const unlockedCount = f.models.filter((m) => lab.isUnlocked(m.name)).length;
-            return `
-              <div class="family-item" data-family="${f.id}"
-                   style="padding: 10px; border-left: 3px solid var(--fg-dim); margin-bottom: 8px; cursor: pointer;">
-                <div style="display: flex; justify-content: space-between;">
-                  <span>${f.icon} <strong>${f.name}</strong></span>
-                  <span class="terminal-success">${unlockedCount} / ${f.count}</span>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `;
+    await map.load();
 
     this.windows.create({
       id: 'models-lab',
       title: '📦 Лаборатория моделей',
-      content: html,
+      content: map.render(),
+      onMount: (body) => map.mount(body),
       width: 600,
-      height: 500,
-      onMount: (body) => {
-        body.querySelectorAll('.family-item').forEach((el) => {
-          el.onclick = () => this.openFamily(el.dataset.family);
-        });
-      },
+      height: 620,
     });
   }
 
-  openFamily(familyId) {
+  async _openFamily(familyId) {
     const lab = window.__models;
     const familyData = lab.families[familyId];
     const familyIndex = lab.index.families.find((f) => f.id === familyId);
 
     if (!familyData) {
-      this.windows.create({
-        id: 'family-' + familyId,
-        title: '📦 ' + familyId,
-        content: '<div style="color: var(--error); padding: 20px;">Семейство не загружено.</div>',
-        width: 600,
-        height: 400,
-      });
+      console.warn('[ModelsLab] Семейство не загружено:', familyId);
       return;
     }
 
-    const quests = familyData.quests || [];
+    // Добавляем имя семейства и иконку
+    familyData.family = `${familyIndex.icon} ${familyIndex.name}`;
 
-    const html = `
-      <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.6;">
-        <div style="margin-bottom: 12px;">
-          <strong>${familyIndex.icon} ${familyIndex.name}</strong>
-        </div>
-        <div id="quests-list">
-          ${quests.map((q) => {
-            const unlocked = lab.isUnlocked(q.unlocks);
-            return `
-              <div class="quest-item" data-quest="${q.id}"
-                   style="padding: 10px; border-left: 3px solid ${unlocked ? 'var(--accent)' : 'var(--fg-dim)'};
-                          margin-bottom: 8px; cursor: pointer; opacity: ${unlocked ? 0.7 : 1};">
-                <div style="display: flex; justify-content: space-between;">
-                  <span>${unlocked ? '✅' : '🔒'} <strong>${q.title}</strong></span>
-                  <span class="terminal-warn">+${q.xp} XP</span>
-                </div>
-                <div style="color: var(--fg-dim); font-size: 11px; margin-top: 4px;">${q.unlocks}</div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `;
+    const map = new ModelsQuestMap(familyId, familyData, {
+      onOpenTask: (task) => this._openTask(task, familyId),
+    });
 
     this.windows.create({
-      id: 'family-' + familyId,
+      id: 'models-family-' + familyId,
       title: familyIndex.icon + ' ' + familyIndex.name,
-      content: html,
+      content: map.render(),
+      onMount: (body) => map.mount(body),
       width: 600,
-      height: 500,
-      onMount: (body) => {
-        body.querySelectorAll('.quest-item').forEach((el) => {
-          el.onclick = () => this.openQuest(familyId, el.dataset.quest);
-        });
-      },
+      height: 620,
     });
   }
 
-  openQuest(familyId, questId) {
-    const lab = window.__models;
-    const quest = lab.getQuest(familyId, questId);
-    if (!quest) return;
+  _openTask(task, familyId) {
+    this._closeAllTaskWindows();
 
-    const html = `
-      <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.6;">
-        <div style="color: var(--fg-dim); margin-bottom: 8px;">Сценарий:</div>
-        <div style="padding: 12px; background: rgba(0,255,65,0.05); border-left: 3px solid var(--accent); margin-bottom: 16px;">
-          ${quest.story}
-        </div>
-
-        <div style="margin-bottom: 12px;"><strong>${quest.question}</strong></div>
-
-        <div id="options-list">
-          ${quest.options.map((o) => `
-            <div class="opt-item" data-opt="${o.id}"
-                 style="padding: 10px; border: 1px solid var(--fg-dim); border-radius: 4px;
-                        margin-bottom: 8px; cursor: pointer;">
-              ${o.text}
-            </div>
-          `).join('')}
-        </div>
-
-        <div id="result" style="margin-top: 16px;"></div>
-      </div>
-    `;
+    const view = new TaskView(task, {
+      onSolved: (taskId, stars) => this._onTaskSolved(task, familyId),
+    });
 
     this.windows.create({
-      id: 'quest-' + questId,
-      title: '📦 ' + quest.title,
-      content: html,
-      width: 600,
-      height: 500,
+      id: 'task-' + task.id.replace(/\//g, '-'),
+      title: '📦 ' + (task.title || task.id),
+      content: view.render(),
       onMount: (body) => {
-        body.querySelectorAll('.opt-item').forEach((el) => {
-          el.onclick = () => this.answer(quest, el.dataset.opt, body);
-        });
+        // Показываем сценарий сверху, если есть
+        if (task._story) {
+          const storyEl = document.createElement('div');
+          storyEl.style.cssText = 'padding: 12px; margin: 0 0 12px 0; background: rgba(0,255,65,0.05); border-left: 3px solid var(--accent); font-family: var(--font-mono); font-size: 12px; line-height: 1.5;';
+          storyEl.textContent = task._story;
+          body.querySelector('.task-view')?.prepend(storyEl);
+        }
+        view.mount(body);
       },
+      width: 540,
+      height: 700,
     });
   }
 
-  answer(quest, optId, body) {
-    const opt = quest.options.find((o) => o.id === optId);
-    if (!opt) return;
+  _closeAllTaskWindows() {
+    this.windows.windows.forEach((_, id) => {
+      if (id.startsWith('task-')) this.windows.close(id);
+    });
+  }
 
-    body.querySelectorAll('.opt-item').forEach((el) => {
-      el.style.pointerEvents = 'none';
-      if (el.dataset.opt === optId) {
-        el.style.borderColor = opt.correct ? 'var(--accent)' : 'var(--error)';
-        el.style.background = opt.correct ? 'rgba(0,255,65,0.1)' : 'rgba(255,51,51,0.1)';
-      } else if (opt.correct === false) {
-        const correctOpt = quest.options.find((o) => o.correct);
-        if (correctOpt && el.dataset.opt === correctOpt.id) {
-          el.style.borderColor = 'var(--accent)';
-          el.style.background = 'rgba(0,255,65,0.05)';
-        }
-      }
+  async _onTaskSolved(task, familyId) {
+    // Обновляем карту семейства
+    this._closeAllTaskWindows();
+    await this._refreshFamilyMap(familyId);
+  }
+
+  async _refreshFamilyMap(familyId) {
+    // Закрываем старую карту семейства и открываем новую
+    const windowId = 'models-family-' + familyId;
+    if (this.windows.windows.has(windowId)) {
+      this.windows.close(windowId);
+    }
+
+    const lab = window.__models;
+    const familyData = lab.families[familyId];
+    const familyIndex = lab.index.families.find((f) => f.id === familyId);
+    familyData.family = `${familyIndex.icon} ${familyIndex.name}`;
+
+    const map = new ModelsQuestMap(familyId, familyData, {
+      onOpenTask: (task) => this._openTask(task, familyId),
     });
 
-    const result = body.querySelector('#result');
-    if (opt.correct) {
-      window.__models.unlock(quest.unlocks);
-      result.innerHTML = `
-        <div class="terminal-success" style="margin-bottom: 8px;">✅ Верно! +${quest.xp} XP</div>
-        <div style="color: var(--fg); margin-bottom: 8px;">${opt.why}</div>
-        <div style="color: var(--fg-dim); font-size: 11px; padding: 8px; border-left: 2px solid var(--fg-dim);">
-          ${quest.explanation}
-        </div>
-        <div style="margin-top: 12px;" class="terminal-success">🔓 Разблокировано: ${quest.unlocks}</div>
-      `;
-    } else {
-      result.innerHTML = `
-        <div class="terminal-error" style="margin-bottom: 8px;">❌ Неверно</div>
-        <div style="color: var(--fg); margin-bottom: 8px;">${opt.why}</div>
-        <div style="color: var(--fg-dim); font-size: 11px;">
-          Правильный ответ выделен зелёным. Попробуй ещё раз или закрой окно.
-        </div>
-      `;
-    }
+    this.windows.create({
+      id: windowId,
+      title: familyIndex.icon + ' ' + familyIndex.name,
+      content: map.render(),
+      onMount: (body) => map.mount(body),
+      width: 600,
+      height: 620,
+    });
   }
 }

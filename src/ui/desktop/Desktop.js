@@ -509,7 +509,7 @@ export class Desktop {
   // ТЕРМИНАЛ — с destroy() при закрытии
   // ============================================
   openModelsLab() {
-    const lab = new ModelsLab(this.windows);
+    const lab = new ModelsLab(this);
     lab.render();
   }
 
