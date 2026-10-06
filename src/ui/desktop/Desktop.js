@@ -503,9 +503,12 @@ export class Desktop {
     } catch (e) {}
   }
 
+  // ============================================
+  // ТЕРМИНАЛ — с destroy() при закрытии
+  // ============================================
   openTerminal() {
     const term = new Terminal();
-    this.windows.create({
+    const win = this.windows.create({
       id: 'terminal',
       title: '⌨️ Терминал',
       content: term.render(),
@@ -513,11 +516,25 @@ export class Desktop {
       width: 640,
       height: 420,
     });
+
+    // Сохраняем ссылку
+    win._term = term;
+
+    // Перехватываем закрытие — уничтожаем терминал
+    const closeBtn = win.querySelector('.close');
+    if (closeBtn) {
+      const origClose = closeBtn.onclick;
+      closeBtn.onclick = (e) => {
+        if (win._term && win._term.destroy) {
+          try { win._term.destroy(); } catch (err) {}
+          win._term = null;
+        }
+        if (origClose) origClose(e);
+        else this.windows.close('terminal');
+      };
+    }
   }
 
-  // ============================================
-  // EXPLORER (Файлы) — асинхронная подгрузка
-  // ============================================
   async openExplorer(path) {
     const explorer = new Explorer(path, {
       onOpenFile: (file) => this.openFile(file),

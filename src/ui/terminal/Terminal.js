@@ -9,7 +9,12 @@ export class Terminal {
     this.el = null;
     this._keyboardUnsub = null;
     this._wasAtBottom = true;
-    this._savedRect = null;  // { top, height } до открытия клавиатуры
+    this._savedRect = null;
+    this._win = null;
+    this._checkInterval = null;
+    this._checkResizeHandler = null;
+    this._vvResizeHandler = null;
+    this._vvScrollHandler = null;
   }
 
   render() {
@@ -18,6 +23,8 @@ export class Terminal {
 
   mount(body) {
     this.el = body.querySelector('#terminal-body');
+    this._win = body.closest('.window');
+
     this._print('Data Scientist | The Game · Терминал v1.0');
     this._print('Введи help для списка команд.', 'terminal-success');
     this._print('');
@@ -32,84 +39,144 @@ export class Terminal {
       this._wasAtBottom = dist < 30;
     });
 
+    // === МЕХАНИЗМ 1: KeyboardHandler от main.js ===
     if (window.__keyboard) {
       this._keyboardUnsub = window.__keyboard.onKeyboardChange((isOpen, offset) => {
         document.body.classList.toggle('keyboard-open', isOpen);
 
-        const win = body.closest('.window');
-        if (!win) return;
-
         if (isOpen) {
-          // Сохраняем оригинальную позицию и высоту ТОЛЬКО один раз
-          if (!this._savedRect) {
-            const rect = win.getBoundingClientRect();
-            this._savedRect = {
-              top: rect.top,
-              height: rect.height,
-              left: win.style.left,
-              width: win.style.width,
-            };
-          }
-
-          // Растягиваем окно вверх — низ прижимается к клавиатуре
-          const vh = window.innerHeight;
-          const taskbarH = 44;
-          const keyboardTop = vh - offset;
-
-          // Верхняя граница = 8px от safe-area или сохранённый top, что меньше
-          const safeTop = 52;
-          const newTop = Math.max(safeTop + 8, this._savedRect.top - 100);
-          const newHeight = keyboardTop - newTop - 4;
-
-          if (newHeight > 100) {
-            win.style.top = newTop + 'px';
-            win.style.height = newHeight + 'px';
-          }
+          this._saveRect();
+          this._stretchUp(offset);
         } else {
-          // Восстанавливаем точь-в-точь
-          if (this._savedRect) {
-            win.style.top = this._savedRect.top + 'px';
-            win.style.height = this._savedRect.height + 'px';
-            if (this._savedRect.left) win.style.left = this._savedRect.left;
-            if (this._savedRect.width) win.style.width = this._savedRect.width;
-            this._savedRect = null;
-          }
+          this._restore();
         }
 
-        // Прокрутка вниз — несколько раз с задержкой
-        const scrollToBottom = () => {
-          if (this.el && this._wasAtBottom) {
-            this.el.scrollTop = this.el.scrollHeight;
-          }
-        };
-        setTimeout(scrollToBottom, 50);
-        setTimeout(scrollToBottom, 150);
-        setTimeout(scrollToBottom, 300);
-        setTimeout(scrollToBottom, 500);
+        this._scrollToBottomSoon();
       });
     }
 
-    // На случай если клавиатура закрыта через системную кнопку
+    // === МЕХАНИЗМ 2: Прямой слушатель на visualViewport ===
     if (window.visualViewport) {
-      const resizeHandler = () => {
-        const vh = window.visualViewport.height;
-        const fullH = window.innerHeight;
-        // Если viewport вернулся к полному — значит клавиатура закрыта
-        if (Math.abs(vh - fullH) < 50 && this._savedRect) {
-          const win = body.closest('.window');
-          if (win) {
-            win.style.top = this._savedRect.top + 'px';
-            win.style.height = this._savedRect.height + 'px';
-            this._savedRect = null;
-          }
-        }
+      this._vvResizeHandler = () => {
+        this._checkViewport();
       };
-      window.visualViewport.addEventListener('resize', resizeHandler);
+      this._vvScrollHandler = () => {
+        this._checkViewport();
+      };
+      window.visualViewport.addEventListener('resize', this._vvResizeHandler);
+      window.visualViewport.addEventListener('scroll', this._vvScrollHandler);
     }
+
+    // === МЕХАНИЗМ 3: window.resize ===
+    this._checkResizeHandler = () => {
+      this._checkViewport();
+    };
+    window.addEventListener('resize', this._checkResizeHandler);
+    window.addEventListener('orientationchange', this._checkResizeHandler);
+
+    // === МЕХАНИЗМ 4: Периодическая проверка (каждые 300мс) ===
+    // Если клавиатура закрылась, а событие не сработало — восстановим
+    this._checkInterval = setInterval(() => {
+      this._checkViewport();
+    }, 300);
+  }
+
+  _saveRect() {
+    if (!this._win) return;
+    if (this._savedRect) return; // уже сохранено
+    const rect = this._win.getBoundingClientRect();
+    this._savedRect = {
+      top: rect.top,
+      height: rect.height,
+      left: this._win.style.left,
+      width: this._win.style.width,
+    };
+  }
+
+  _stretchUp(offset) {
+    if (!this._win) return;
+    const vh = window.innerHeight;
+    const keyboardTop = vh - offset;
+    const safeTop = 52;
+    const newTop = Math.max(safeTop + 8, (this._savedRect?.top || 60) - 100);
+    const newHeight = keyboardTop - newTop - 4;
+
+    if (newHeight > 100) {
+      this._win.style.top = newTop + 'px';
+      this._win.style.height = newHeight + 'px';
+    }
+  }
+
+  _restore() {
+    if (!this._win || !this._savedRect) return;
+    this._win.style.top = this._savedRect.top + 'px';
+    this._win.style.height = this._savedRect.height + 'px';
+    if (this._savedRect.left) this._win.style.left = this._savedRect.left;
+    if (this._savedRect.width) this._win.style.width = this._savedRect.width;
+    this._savedRect = null;
+  }
+
+  // Проверяем: клавиатура открыта или нет
+  _checkViewport() {
+    if (!this._win) return;
+
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const fullHeight = window.innerHeight;
+    const vvHeight = vv.height;
+    const diff = fullHeight - vvHeight;
+
+    // Клавиатура считается закрытой, если разница меньше 100px
+    const keyboardOpen = diff > 150;
+
+    if (keyboardOpen) {
+      // Клавиатура открыта — растягиваем (если ещё не растянули)
+      if (!this._savedRect) {
+        this._saveRect();
+      }
+      this._stretchUp(diff);
+    } else {
+      // Клавиатура закрыта — восстанавливаем (если растянуто)
+      if (this._savedRect) {
+        this._restore();
+        this._scrollToBottomSoon();
+      }
+    }
+  }
+
+  _scrollToBottomSoon() {
+    const scroll = () => {
+      if (this.el && this._wasAtBottom) {
+        this.el.scrollTop = this.el.scrollHeight;
+      }
+    };
+    setTimeout(scroll, 50);
+    setTimeout(scroll, 200);
+    setTimeout(scroll, 400);
   }
 
   destroy() {
     if (this._keyboardUnsub) this._keyboardUnsub();
+
+    if (this._checkInterval) {
+      clearInterval(this._checkInterval);
+      this._checkInterval = null;
+    }
+
+    if (window.visualViewport) {
+      if (this._vvResizeHandler) {
+        window.visualViewport.removeEventListener('resize', this._vvResizeHandler);
+      }
+      if (this._vvScrollHandler) {
+        window.visualViewport.removeEventListener('scroll', this._vvScrollHandler);
+      }
+    }
+
+    if (this._checkResizeHandler) {
+      window.removeEventListener('resize', this._checkResizeHandler);
+      window.removeEventListener('orientationchange', this._checkResizeHandler);
+    }
   }
 
   _print(text, cls = '') {
@@ -136,12 +203,7 @@ export class Terminal {
     input.focus();
 
     input.addEventListener('focus', () => {
-      setTimeout(() => {
-        if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
-      }, 300);
-      setTimeout(() => {
-        if (this.el && this._wasAtBottom) this.el.scrollTop = this.el.scrollHeight;
-      }, 600);
+      this._scrollToBottomSoon();
     });
 
     input.addEventListener('keydown', (e) => {
@@ -187,41 +249,27 @@ export class Terminal {
     const args = parts.slice(1);
 
     try {
-      // === HELP ===
       if (name === 'help') {
         this._print('═══════════════════════════════', 'terminal-success');
         this._print('  ФАЙЛОВАЯ СИСТЕМА', 'terminal-success');
         this._print('═══════════════════════════════', 'terminal-success');
-        this._print('  ls              — что в текущей папке');
-        this._print('  ls <path>       — что в папке');
-        this._print('  cd <path>       — перейти');
-        this._print('  pwd             — где я');
-        this._print('  cat <file>      — прочитать файл');
-        this._print('  tree            — всё дерево');
+        this._print('  ls, cd, pwd, cat <file>, tree');
         this._print('');
         this._print('═══════════════════════════════', 'terminal-success');
         this._print('  ИГРА', 'terminal-success');
         this._print('═══════════════════════════════', 'terminal-success');
-        this._print('  quests          — список квестов текущей папки');
-        this._print('  world           — карта миров');
-        this._print('  stats           — прогресс');
-        this._print('  achievements    — ачивки');
+        this._print('  quests, world, stats, achievements');
         this._print('');
         this._print('═══════════════════════════════', 'terminal-success');
         this._print('  ПАСХАЛКИ', 'terminal-success');
         this._print('═══════════════════════════════', 'terminal-success');
-        this._print('  whoami          — кто ты');
-        this._print('  matrix          — красная или синяя');
-        this._print('  galton          — о случайности');
-        this._print('  import this     — Zen of Python');
-        this._print('  sudo            — попробуй');
-        this._print('  42              — ответ');
+        this._print('  whoami, matrix, galton, sudo, 42');
+        this._print('  import this');
         this._print('');
         this._print('Python: pd.read_csv(\'sales.csv\').head()');
         return;
       }
 
-      // === ФАЙЛОВАЯ СИСТЕМА ===
       if (name === 'ls') {
         const path = args[0] || window.__fs.getCwd();
         try {
@@ -268,7 +316,7 @@ export class Terminal {
           const lines = content.split('\n');
           if (lines.length > 50) {
             this._print(lines.slice(0, 50).join('\n'));
-            this._print(`... ещё ${lines.length - 50} строк (файл целиком — через Файлы)`, 'terminal-warn');
+            this._print(`... ещё ${lines.length - 50} строк`, 'terminal-warn');
           } else {
             this._print(content);
           }
@@ -288,7 +336,6 @@ export class Terminal {
         return;
       }
 
-      // === ИГРОВЫЕ КОМАНДЫ ===
       if (name === 'quests') {
         const cwd = window.__fs.getCwd();
         this._print(`Квесты в ${cwd}:`, 'terminal-success');
@@ -308,8 +355,6 @@ export class Terminal {
             const status = solved ? '✅ ' + '⭐'.repeat(stars) : '▶️ доступно';
             this._print(`  ${i + 1}. ${t.name}  ${status}`);
           });
-          this._print('');
-          this._print('Открой через Файлы или карту мира.', 'terminal-success');
         } catch (e) {
           this._print('[ERROR] ' + e.message, 'terminal-error');
         }
@@ -318,10 +363,10 @@ export class Terminal {
 
       if (name === 'world') {
         this._print('МИРЫ:', 'terminal-success');
-        this._print('  🍼 BABY SCIENTIST   — если ты новичок');
-        this._print('  🎯 JUNIOR            — основы pandas');
-        this._print('  🚀 MIDDLE            — пайплайны, модели');
-        this._print('  👑 SENIOR            — инциденты, архитектура');
+        this._print('  🍼 BABY SCIENTIST');
+        this._print('  🎯 JUNIOR');
+        this._print('  🚀 MIDDLE');
+        this._print('  👑 SENIOR');
         return;
       }
 
@@ -332,9 +377,6 @@ export class Terminal {
         let totalStars = 0;
         solved.forEach((id) => { totalStars += progress.getStars(id); });
         this._print(`  Звёзд всего: ⭐ ${totalStars}`);
-        this._print(`  Максимум: ${solved.length * 4}`);
-        const percent = solved.length > 0 ? Math.round(totalStars / (solved.length * 4) * 100) : 0;
-        this._print(`  Качество: ${percent}%`);
         return;
       }
 
@@ -345,7 +387,6 @@ export class Terminal {
         return;
       }
 
-      // === ПАСХАЛКИ ===
       if (name === 'whoami') {
         const solved = progress.getSolved().length;
         if (solved === 0) this._print('Никто. Пока.', 'terminal-warn');
@@ -367,8 +408,6 @@ export class Terminal {
 
       if (name === 'galton') {
         this._print('Случайность — не хаос. Это распределение.', 'terminal-success');
-        this._print('Открой иконку GALTON на рабочем столе.');
-        this._print('Увидишь нормальное распределение в действии.');
         return;
       }
 
@@ -389,25 +428,15 @@ export class Terminal {
         this._print('Beautiful is better than ugly.');
         this._print('Explicit is better than implicit.');
         this._print('Simple is better than complex.');
-        this._print('Complex is better than complicated.');
-        this._print('Readability counts.');
         this._print('...');
-        return;
-      }
-
-      if (name === 'import' && args[0] === 'antigravity') {
-        this._print('🪁 Открываю xkcd.com/353...', 'terminal-success');
-        this._print('(но у нас тут мини-апп, так что просто представь)', 'terminal-warn');
         return;
       }
 
       if (name === 'pip') {
         this._print('ERROR: Ты в игре, а не в питоне.', 'terminal-error');
-        this._print('Попробуй настоящий pandas-синтаксис: pd.read_csv(...)', 'terminal-warn');
         return;
       }
 
-      // === PYTHON-ВЫРАЖЕНИЕ ===
       const result = evaluate(cmd, { df: window.__df });
       if (result && result.toJSON) {
         const json = result.toJSON();
@@ -420,7 +449,7 @@ export class Terminal {
       }
     } catch (e) {
       this._print('[ERROR] ' + e.message, 'terminal-error');
-      this._print('Введи help для списка команд.', 'terminal-warn');
+      this._print('Введи help.', 'terminal-warn');
     }
   }
 
