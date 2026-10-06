@@ -12,6 +12,7 @@ import { GroupMap } from '../quest/GroupMap.js';
 import { GaltonBoard } from '../galton/GaltonBoard.js';
 import { showRewardPopup } from '../rewards/RewardPopup.js';
 import { JuniorFinale } from '../rewards/JuniorFinale.js';
+import { MiddleFinale } from '../rewards/MiddleFinale.js';
 import { SeniorFinale } from '../rewards/SeniorFinale.js';
 import { storage } from '../../core/storage.js';
 import {
@@ -68,12 +69,9 @@ export class Desktop {
     this.render();
   }
 
-  // ============================================
-  // ЗАКРЫТИЕ ВСЕХ КАРТ И ЗАДАЧ
-  // ============================================
   _closeAllMapWindows() {
     this.windows.windows.forEach((_, id) => {
-      if (id.startsWith('questmap-') || id.startsWith('groupmap-') || id === 'questmap' || id === 'groupmap') {
+      if (id.startsWith('questmap') || id.startsWith('groupmap')) {
         this.windows.close(id);
       }
     });
@@ -114,6 +112,8 @@ export class Desktop {
     if (!isDevUnlockAll()) {
       if (this.seniorDone && !rewards.isUnlocked('senior_finale_shown')) {
         setTimeout(() => this._showSeniorFinale(), 800);
+      } else if (this.middleDone && !rewards.isUnlocked('middle_finale_shown')) {
+        setTimeout(() => this._showMiddleFinale(), 800);
       } else if (this.juniorDone && !rewards.isUnlocked('junior_finale_shown')) {
         setTimeout(() => this._showJuniorFinale(), 800);
       } else if (this.babyDone && !rewards.isUnlocked('baby_complete_shown')) {
@@ -192,11 +192,7 @@ export class Desktop {
     });
   }
 
-  // ============================================
-  // GATE MIDDLE/SENIOR
-  // ============================================
   async openWorldGate(worldId) {
-    // Обновляем флаги перед проверкой
     this.juniorDone = isDevUnlockAll() ? true : await isJuniorComplete();
     this.middleDone = isDevUnlockAll() ? true : await isMiddleComplete();
     this.seniorDone = isDevUnlockAll() ? true : await isSeniorComplete();
@@ -206,7 +202,6 @@ export class Desktop {
       return;
     }
 
-    // MIDDLE — если junior пройден
     if (worldId === 'middle') {
       if (this.juniorDone) {
         this.openGroupMap('middle');
@@ -216,7 +211,6 @@ export class Desktop {
       return;
     }
 
-    // SENIOR — если middle пройден
     if (worldId === 'senior') {
       if (this.middleDone) {
         this.openGroupMap('senior');
@@ -273,22 +267,94 @@ export class Desktop {
     return [{ type: 'info', text: 'Доступ запрещён.' }];
   }
 
+  // ============================================
+  // GATE SCRIPT — с возможностью отмены и "показать всё"
+  // ============================================
   _runGateScript(el, lines, onDone) {
     if (!el) return;
-    let lineIdx = 0;
+
+    const state = {
+      aborted: false,
+      skipped: false,
+      lineIdx: 0,
+      currentDiv: null,
+      currentFullText: '',
+      currentCharIdx: 0,
+      timers: [],
+      onDone,
+      el,
+      lines,
+    };
+
+    // Функция очистки всех таймеров
+    const clearAllTimers = () => {
+      state.timers.forEach((t) => clearTimeout(t));
+      state.timers = [];
+    };
+
+    // Блокируем — если родитель закрывается
+    state.abort = () => {
+      state.aborted = true;
+      clearAllTimers();
+    };
+
+    // Сохраняем в el для доступа извне
+    el.__gateState = state;
+
+    // Клик по терминалу — показать всё
+    const skipHandler = () => {
+      if (state.aborted) return;
+      state.skipped = true;
+      clearAllTimers();
+
+      // Отрисовываем все строки разом
+      el.innerHTML = '';
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const div = document.createElement('div');
+        let cls = '';
+        let prefix = '';
+        if (line.type === 'cmd') { cls = ''; prefix = '$ '; }
+        else if (line.type === 'ok') { cls = 'terminal-success'; }
+        else if (line.type === 'err') { cls = 'terminal-error'; }
+        else if (line.type === 'warn') { cls = 'terminal-warn'; }
+        div.className = 'terminal-line ' + cls;
+        div.textContent = prefix + line.text;
+        el.appendChild(div);
+      }
+
+      // Курсор
+      const cursor = document.createElement('div');
+      cursor.className = 'terminal-line';
+      cursor.innerHTML = `<span class="terminal-prompt">$ </span><span class="gate-cursor">▊</span>`;
+      el.appendChild(cursor);
+      el.scrollTop = el.scrollHeight;
+
+      // Убираем обработчик
+      el.removeEventListener('click', skipHandler);
+      el.removeEventListener('touchstart', skipHandler);
+
+      if (onDone) onDone();
+    };
+
+    el.addEventListener('click', skipHandler);
+    el.addEventListener('touchstart', skipHandler, { passive: true });
 
     const printLine = () => {
-      if (lineIdx >= lines.length) {
+      if (state.aborted) return;
+      if (state.lineIdx >= lines.length) {
         const cursor = document.createElement('div');
         cursor.className = 'terminal-line';
         cursor.innerHTML = `<span class="terminal-prompt">$ </span><span class="gate-cursor">▊</span>`;
         el.appendChild(cursor);
         el.scrollTop = el.scrollHeight;
+        el.removeEventListener('click', skipHandler);
+        el.removeEventListener('touchstart', skipHandler);
         if (onDone) onDone();
         return;
       }
 
-      const line = lines[lineIdx];
+      const line = lines[state.lineIdx];
       const div = document.createElement('div');
       let cls = '';
       let prefix = '';
@@ -299,50 +365,65 @@ export class Desktop {
       div.className = 'terminal-line ' + cls;
       el.appendChild(div);
 
-      const fullText = prefix + line.text;
-      let charIdx = 0;
+      state.currentDiv = div;
+      state.currentFullText = prefix + line.text;
+      state.currentCharIdx = 0;
 
-      if (fullText.length === 0) {
-        lineIdx++;
-        setTimeout(printLine, 40);
+      if (state.currentFullText.length === 0) {
+        state.lineIdx++;
+        const t = setTimeout(printLine, 40);
+        state.timers.push(t);
         return;
       }
 
       const typeChar = () => {
-        if (charIdx >= fullText.length) {
-          lineIdx++;
+        if (state.aborted) return;
+        if (state.currentCharIdx >= state.currentFullText.length) {
+          state.lineIdx++;
           let delay = 150;
           if (line.type === 'err') delay = 300;
           if (line.type === 'cmd') delay = 400;
           if (line.type === 'warn') delay = 250;
           if (line.text === '') delay = 40;
-          setTimeout(printLine, delay);
+          const t = setTimeout(printLine, delay);
+          state.timers.push(t);
           return;
         }
 
-        div.textContent = fullText.slice(0, charIdx + 1);
+        div.textContent = state.currentFullText.slice(0, state.currentCharIdx + 1);
         el.scrollTop = el.scrollHeight;
 
-        if (window.__audio && charIdx % 2 === 0) {
+        if (window.__audio && state.currentCharIdx % 2 === 0 && !state.skipped) {
           try { window.__audio.key('normal'); } catch (e) {}
         }
 
-        charIdx++;
+        state.currentCharIdx++;
         const charDelay = 15 + Math.random() * 15;
-        setTimeout(typeChar, charDelay);
+        const t = setTimeout(typeChar, charDelay);
+        state.timers.push(t);
       };
 
       typeChar();
     };
 
-    setTimeout(printLine, 300);
+    const t = setTimeout(printLine, 300);
+    state.timers.push(t);
   }
 
-  // ============================================
-  // КАРТА МИРА — ОДНО ОКНО
-  // ============================================
+  // Обёртка: закрыть окно + прервать печать
+  _safeCloseWindow(id) {
+    const win = this.windows.windows.get(id);
+    if (!win) return;
+    // Найти все .terminal с активным gateState и прервать
+    win.querySelectorAll('.terminal').forEach((el) => {
+      if (el.__gateState && el.__gateState.abort) {
+        el.__gateState.abort();
+      }
+    });
+    this.windows.close(id);
+  }
+
   async openGroupMap(worldId) {
-    // Закрываем все карты
     this._closeAllMapWindows();
     await new Promise((r) => setTimeout(r, 60));
 
@@ -360,6 +441,15 @@ export class Desktop {
 
     win._questMap = map;
     win._worldId = worldId;
+
+    // Перехватываем закрытие — прерываем печать
+    const closeBtn = win.querySelector('.close');
+    const origClose = closeBtn.onclick;
+    closeBtn.onclick = (e) => {
+      if (win._questMap && win._questMap.abortTyping) win._questMap.abortTyping();
+      if (origClose) origClose(e);
+      else this.windows.close('groupmap');
+    };
 
     try {
       await map.load();
@@ -387,11 +477,7 @@ export class Desktop {
     } catch (e) {}
   }
 
-  // ============================================
-  // КАРТА ГЛАВЫ — ОДНО ОКНО
-  // ============================================
   async openQuestMap(chapterId) {
-    // Закрываем карту мира и другие карты глав
     this._closeAllMapWindows();
     await new Promise((r) => setTimeout(r, 60));
 
@@ -409,6 +495,14 @@ export class Desktop {
 
     win._questMap = map;
     win._chapterId = chapterId;
+
+    const closeBtn = win.querySelector('.close');
+    const origClose = closeBtn.onclick;
+    closeBtn.onclick = (e) => {
+      if (win._questMap && win._questMap.abortTyping) win._questMap.abortTyping();
+      if (origClose) origClose(e);
+      else this.windows.close('questmap');
+    };
 
     try {
       await map.load();
@@ -503,10 +597,7 @@ export class Desktop {
     const chapterId = parts.slice(0, -1).join('/');
     const currentFile = parts[parts.length - 1];
 
-    // Закрываем задачу
     this._closeAllTaskWindows();
-
-    // Обновляем карту главы (если открыта)
     await this.refreshQuestMap(chapterId);
 
     let tasks = [];
@@ -529,7 +620,6 @@ export class Desktop {
       ? tasks[currentIdx + 1]
       : null;
 
-    // Призы
     if (chapterComplete && chapterPerfect && worldId !== 'baby') {
       const chId = chapterId.split('/').pop();
       const reward = CHAPTER_REWARDS[chId];
@@ -539,13 +629,13 @@ export class Desktop {
           const ach = new Achievements();
           ach.unlock(reward.achievement);
         }
+        // Применяем обои, если игрок хочет — попап покажет кнопку
         setTimeout(() => {
           showRewardPopup(reward, (wpId) => applyWallpaper(wpId));
         }, 500);
       }
     }
 
-    // Намёк
     if (chapterComplete && !chapterPerfect && worldId !== 'baby') {
       const chId = chapterId.split('/').pop();
       const hint = CHEAT_HINTS[chId];
@@ -569,10 +659,8 @@ export class Desktop {
     }
 
     if (chapterComplete) {
-      // Глава пройдена — обновляем карту мира
       await this.refreshGroupMap(worldId);
 
-      // Обновляем флаги
       if (!isDevUnlockAll()) {
         if (worldId === 'baby') {
           const done = await isBabyComplete();
@@ -596,7 +684,11 @@ export class Desktop {
           const done = await isMiddleComplete();
           if (done) {
             this.middleDone = true;
-            setTimeout(() => this.renderIcons(), 500);
+            if (!rewards.isUnlocked('middle_finale_shown')) {
+              setTimeout(() => this._showMiddleFinale(), 2000);
+            } else {
+              setTimeout(() => this.renderIcons(), 500);
+            }
           }
         } else if (worldId === 'senior') {
           const done = await isSeniorComplete();
@@ -609,11 +701,9 @@ export class Desktop {
         }
       }
     } else if (nextFile) {
-      // Следующая задача
       const nextPath = '/' + chapterId + '/' + nextFile;
       setTimeout(() => this.openTaskByPath(nextPath), 250);
     } else {
-      // Fallback
       setTimeout(() => this.openQuestMap(chapterId), 300);
     }
   }
@@ -682,6 +772,27 @@ export class Desktop {
     this.windows.create({
       id: 'junior-finale',
       title: '🎉 Junior завершён',
+      content: finale.render(),
+      onMount: (body) => finale.mount(body),
+      width: 500,
+      height: 620,
+    });
+  }
+
+  _showMiddleFinale() {
+    rewards.unlock('middle_finale_shown');
+    this.middleDone = true;
+    const finale = new MiddleFinale({
+      onClose: (target) => {
+        this.windows.close('middle-finale');
+        if (target === 'senior') {
+          this.openGroupMap('senior');
+        }
+      },
+    });
+    this.windows.create({
+      id: 'middle-finale',
+      title: '🚀 Middle завершён',
       content: finale.render(),
       onMount: (body) => finale.mount(body),
       width: 500,
@@ -773,7 +884,6 @@ export class Desktop {
       { type: 'ok', text: '🔒 ПОСЛЕДОВАТЕЛЬНОСТЬ' },
       { type: 'info', text: 'Квесты открываются по очереди.' },
       { type: 'info', text: 'Папки тоже.' },
-      { type: 'info', text: 'Нельзя прыгнуть в middle, не пройдя junior.' },
       { type: 'info', text: '' },
       { type: 'ok', text: '🗝 ЧИТ-КОДЫ' },
       { type: 'info', text: 'В каждой папке спрятан чит-код.' },
@@ -791,11 +901,12 @@ export class Desktop {
       { type: 'info', text: '' },
       { type: 'ok', text: '─── НАЧНЁМ ───' },
       { type: 'info', text: '' },
-      { type: 'info', text: 'Удачи. Она тебе понадобится.' },
+      { type: 'info', text: 'Кликни по терминалу, чтобы пропустить печать.' },
+      { type: 'info', text: 'Удачи.' },
       { type: 'info', text: '' },
     ];
 
-    this.windows.create({
+    const win = this.windows.create({
       id: 'gamepy',
       title: '🐍 game.py',
       content: `<div class="terminal"></div>`,
@@ -823,6 +934,18 @@ export class Desktop {
       width: 620,
       height: 620,
     });
+
+    // Перехватываем закрытие — прерываем печать
+    const closeBtn = win.querySelector('.close');
+    const origClose = closeBtn.onclick;
+    closeBtn.onclick = (e) => {
+      const termEl = win.querySelector('.terminal');
+      if (termEl && termEl.__gateState && termEl.__gateState.abort) {
+        termEl.__gateState.abort();
+      }
+      if (origClose) origClose(e);
+      else this.windows.close('gamepy');
+    };
   }
 
   openProgress() {
@@ -867,6 +990,8 @@ export class Desktop {
   _handleCheatAction(action) {
     if (action === 'show_senior_finale') {
       this._showSeniorFinale();
+    } else if (action === 'show_middle_finale') {
+      this._showMiddleFinale();
     } else if (action === 'show_junior_finale') {
       this._showJuniorFinale();
     } else if (action === 'show_middle_map') {

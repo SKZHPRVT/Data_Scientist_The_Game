@@ -776,3 +776,22 @@ body.keyboard-open .taskbar { transform: translateY(100%); }
   -webkit-touch-callout: none !important;
   -webkit-tap-highlight-color: transparent !important;
 }
+
+/* ===== MATRIX WALLPAPER ===== */
+#matrix-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+.desktop-icons {
+  z-index: 10;
+}
+
+.window, .taskbar, .start-menu {
+  z-index: 100 !important;
+}

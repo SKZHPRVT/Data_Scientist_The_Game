@@ -77,12 +77,12 @@ export const progress = {
       .forEach((k) => localStorage.removeItem(k));
   },
 
-  // Полезно для отладки
   resetAll() {
     this.reset();
     localStorage.removeItem('rewards_v1');
     localStorage.removeItem('achievements_v1');
     localStorage.removeItem('sv_cheats');
+    localStorage.removeItem('wallpaper');
   },
 };
 
