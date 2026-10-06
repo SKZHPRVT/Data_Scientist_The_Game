@@ -1,0 +1,34 @@
+{
+  "id": "plots_hist_when",
+  "world": "plots",
+  "level": 1,
+  "title": "Что показывает гистограмма?",
+  "question": "У тебя есть список времён коммитов. Что покажет гистограмма?",
+  "options": [
+    {
+      "id": "A",
+      "code": "Как значения распределены (сколько попало в каждый интервал)",
+      "correct": true,
+      "explain": "Histogram — распределение: сколько значений попали в каждый bin."
+    },
+    {
+      "id": "B",
+      "code": "Среднее значение",
+      "correct": false,
+      "explain": "Среднее — это одно число, histogram показывает больше."
+    },
+    {
+      "id": "C",
+      "code": "Какая категория самая частая",
+      "correct": false,
+      "explain": "Это bar chart, а не histogram."
+    },
+    {
+      "id": "D",
+      "code": "Связь между двумя переменными",
+      "correct": false,
+      "explain": "Связь — это scatter, не histogram."
+    }
+  ],
+  "hint": "Histogram = распределение"
+}

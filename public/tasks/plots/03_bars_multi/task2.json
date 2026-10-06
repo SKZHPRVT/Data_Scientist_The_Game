@@ -1,0 +1,34 @@
+{
+  "id": "plots_multi_avg",
+  "world": "plots",
+  "level": 1,
+  "title": "Среднее по группам",
+  "question": "Как посчитать среднее число коммитов для каждой группы (будни/выходные)?",
+  "options": [
+    {
+      "id": "A",
+      "code": "df.groupby(['is_weekend', 'hour']).mean()",
+      "correct": true,
+      "explain": "groupby по двум колонкам + mean — среднее в каждой группе."
+    },
+    {
+      "id": "B",
+      "code": "df.mean(['is_weekend', 'hour'])",
+      "correct": false,
+      "explain": "mean не принимает колонки."
+    },
+    {
+      "id": "C",
+      "code": "df.avg('is_weekend')",
+      "correct": false,
+      "explain": "avg() не существует."
+    },
+    {
+      "id": "D",
+      "code": "df.group('is_weekend').mean()",
+      "correct": false,
+      "explain": "group() не существует (нужно groupby)."
+    }
+  ],
+  "hint": "groupby([...]).mean()"
+}

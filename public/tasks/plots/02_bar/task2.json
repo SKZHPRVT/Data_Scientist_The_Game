@@ -1,0 +1,34 @@
+{
+  "id": "plots_bar_kind",
+  "world": "plots",
+  "level": 1,
+  "title": "Как задать bar?",
+  "question": "Как нарисовать именно столбчатую диаграмму, а не линию?",
+  "options": [
+    {
+      "id": "A",
+      "code": "df.plot(kind='bar')",
+      "correct": true,
+      "explain": "kind='bar' переключает тип графика."
+    },
+    {
+      "id": "B",
+      "code": "df.plot(type='bar')",
+      "correct": false,
+      "explain": "Параметр называется kind, не type."
+    },
+    {
+      "id": "C",
+      "code": "df.plot.bar()",
+      "correct": true,
+      "explain": "Тоже работает — df.plot.bar() эквивалентно."
+    },
+    {
+      "id": "D",
+      "code": "df.bar()",
+      "correct": false,
+      "explain": "bar() — не метод DataFrame."
+    }
+  ],
+  "hint": "kind='bar' или .plot.bar()"
+}

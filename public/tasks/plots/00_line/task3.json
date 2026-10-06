@@ -1,0 +1,34 @@
+{
+  "id": "plots_line_groupby",
+  "world": "plots",
+  "level": 1,
+  "title": "Посчитай просмотры",
+  "question": "Как посчитать просмотры по дням перед построением графика?",
+  "options": [
+    {
+      "id": "A",
+      "code": "df.groupby('date').count()",
+      "correct": true,
+      "explain": "groupby по дате + count — получаем число просмотров за каждый день."
+    },
+    {
+      "id": "B",
+      "code": "df.sum('date')",
+      "correct": false,
+      "explain": "sum() суммирует числа, а не группирует по дате."
+    },
+    {
+      "id": "C",
+      "code": "df['date'].count()",
+      "correct": false,
+      "explain": "Вернёт одно число — общее количество, без разбивки по дням."
+    },
+    {
+      "id": "D",
+      "code": "df.counter('date')",
+      "correct": false,
+      "explain": "counter() не существует."
+    }
+  ],
+  "hint": "groupby('date').count() → по дням"
+}

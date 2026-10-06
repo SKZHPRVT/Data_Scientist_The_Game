@@ -1,0 +1,34 @@
+{
+  "id": "plots_seaborn_why",
+  "world": "plots",
+  "level": 1,
+  "title": "Зачем Seaborn?",
+  "question": "Чем Seaborn отличается от Matplotlib?",
+  "options": [
+    {
+      "id": "A",
+      "code": "Красивее и проще для статистических графиков",
+      "correct": true,
+      "explain": "Seaborn — обёртка над matplotlib с красивыми дефолтами и удобным API."
+    },
+    {
+      "id": "B",
+      "code": "Быстрее работает",
+      "correct": false,
+      "explain": "Скорость примерно та же — разница в удобстве и стиле."
+    },
+    {
+      "id": "C",
+      "code": "Работает только с pandas",
+      "correct": false,
+      "explain": "Seaborn понимает pandas, но не только его."
+    },
+    {
+      "id": "D",
+      "code": "Делает интерактивные графики",
+      "correct": false,
+      "explain": "Это Plotly. Seaborn — статичные, но красивые."
+    }
+  ],
+  "hint": "Seaborn = matplotlib + красота + удобство"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "plots_fontsize",
+  "world": "plots",
+  "level": 1,
+  "title": "Размер шрифта",
+  "question": "Нужно установить размер шрифта 8. Как?",
+  "options": [
+    {
+      "id": "A",
+      "code": "df.plot(fontsize=8)",
+      "correct": true,
+      "explain": "fontsize — размер шрифта подписей."
+    },
+    {
+      "id": "B",
+      "code": "df.plot(size=8)",
+      "correct": false,
+      "explain": "size — не для шрифта."
+    },
+    {
+      "id": "C",
+      "code": "df.plot(font=8)",
+      "correct": false,
+      "explain": "font — не параметр."
+    },
+    {
+      "id": "D",
+      "code": "df.plot(text_size=8)",
+      "correct": false,
+      "explain": "text_size — не параметр pandas.plot."
+    }
+  ],
+  "hint": "fontsize=8"
+}

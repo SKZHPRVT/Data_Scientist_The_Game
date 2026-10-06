@@ -1,0 +1,34 @@
+{
+  "id": "plots_hist_bins",
+  "world": "plots",
+  "level": 1,
+  "title": "Количество столбцов",
+  "question": "По умолчанию histogram может быть слишком грубым. Как задать 50 интервалов?",
+  "options": [
+    {
+      "id": "A",
+      "code": "df.plot(kind='hist', bins=50)",
+      "correct": true,
+      "explain": "bins — количество интервалов (корзин) в histogram."
+    },
+    {
+      "id": "B",
+      "code": "df.plot(kind='hist', intervals=50)",
+      "correct": false,
+      "explain": "Параметр называется bins."
+    },
+    {
+      "id": "C",
+      "code": "df.plot(kind='hist', bars=50)",
+      "correct": false,
+      "explain": "Такого параметра нет."
+    },
+    {
+      "id": "D",
+      "code": "df.plot(kind='hist', count=50)",
+      "correct": false,
+      "explain": "count — не параметр."
+    }
+  ],
+  "hint": "bins=50 — 50 корзин"
+}

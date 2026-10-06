@@ -1,0 +1,34 @@
+{
+  "id": "plots_bar_periods",
+  "world": "plots",
+  "level": 1,
+  "title": "Периоды суток",
+  "question": "Нужно разбить сутки на 4 периода: ночь, утро, день, вечер. Как?",
+  "options": [
+    {
+      "id": "A",
+      "code": "pd.cut(hours, bins=[0,4,10,17,24], labels=['night','morning','afternoon','evening'])",
+      "correct": true,
+      "explain": "pd.cut разбивает числа на интервалы с метками."
+    },
+    {
+      "id": "B",
+      "code": "hours.split(4)",
+      "correct": false,
+      "explain": "split — для строк, не для чисел."
+    },
+    {
+      "id": "C",
+      "code": "pd.group(hours, 4)",
+      "correct": false,
+      "explain": "pd.group не существует."
+    },
+    {
+      "id": "D",
+      "code": "hours.periods()",
+      "correct": false,
+      "explain": "Такого метода нет."
+    }
+  ],
+  "hint": "pd.cut — разбить на интервалы"
+}

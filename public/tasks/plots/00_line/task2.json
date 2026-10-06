@@ -1,0 +1,34 @@
+{
+  "id": "plots_line_method",
+  "world": "plots",
+  "level": 1,
+  "title": "Как нарисовать линию?",
+  "question": "У тебя есть DataFrame с данными. Какой метод рисует линейный график?",
+  "options": [
+    {
+      "id": "A",
+      "code": "df.plot()",
+      "correct": true,
+      "explain": ".plot() по умолчанию рисует line chart. Просто и быстро."
+    },
+    {
+      "id": "B",
+      "code": "df.draw()",
+      "correct": false,
+      "explain": "draw() — не метод pandas (есть в matplotlib)."
+    },
+    {
+      "id": "C",
+      "code": "df.chart()",
+      "correct": false,
+      "explain": "chart() не существует."
+    },
+    {
+      "id": "D",
+      "code": "df.show()",
+      "correct": false,
+      "explain": "show() — метод matplotlib, не pandas."
+    }
+  ],
+  "hint": ".plot() — базовый метод"
+}

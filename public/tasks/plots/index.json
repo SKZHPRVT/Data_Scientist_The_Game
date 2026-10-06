@@ -1,0 +1,78 @@
+{
+  "id": "plots",
+  "title": "PLOTS",
+  "icon": "📈",
+  "description": "Визуализация данных: Matplotlib, Seaborn, Plotly.",
+  "chapters": [
+    {
+      "id": "00_line",
+      "title": "Линия",
+      "icon": "📈",
+      "description": "Первый график — line chart",
+      "unlockAfter": null
+    },
+    {
+      "id": "01_styles",
+      "title": "Стили",
+      "icon": "🎨",
+      "description": "Цвета, размеры, заголовки",
+      "unlockAfter": "00_line"
+    },
+    {
+      "id": "02_bar",
+      "title": "Бары",
+      "icon": "📊",
+      "description": "Bar chart для категорий",
+      "unlockAfter": "01_styles"
+    },
+    {
+      "id": "03_bars_multi",
+      "title": "Множественные бары",
+      "icon": "📚",
+      "description": "Weekdays vs weekends",
+      "unlockAfter": "02_bar"
+    },
+    {
+      "id": "04_hist",
+      "title": "Гистограмма",
+      "icon": "🔔",
+      "description": "Распределение значений",
+      "unlockAfter": "03_bars_multi"
+    },
+    {
+      "id": "05_boxplot",
+      "title": "Ящик с усами",
+      "icon": "📦",
+      "description": "Медиана, квартили, выбросы",
+      "unlockAfter": "04_hist"
+    },
+    {
+      "id": "06_scatter",
+      "title": "Рассеяние",
+      "icon": "✨",
+      "description": "Scatter matrix для связей",
+      "unlockAfter": "05_boxplot"
+    },
+    {
+      "id": "07_heatmap",
+      "title": "Тепловая карта",
+      "icon": "🔥",
+      "description": "Паттерны по дням и часам",
+      "unlockAfter": "06_scatter"
+    },
+    {
+      "id": "08_seaborn",
+      "title": "Seaborn",
+      "icon": "🎭",
+      "description": "Красивые графики легко",
+      "unlockAfter": "07_heatmap"
+    },
+    {
+      "id": "09_plotly",
+      "title": "Plotly",
+      "icon": "⚡",
+      "description": "Интерактивные графики",
+      "unlockAfter": "08_seaborn"
+    }
+  ]
+}

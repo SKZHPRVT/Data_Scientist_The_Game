@@ -1,0 +1,34 @@
+{
+  "id": "plots_seaborn_import",
+  "world": "plots",
+  "level": 1,
+  "title": "Импорт",
+  "question": "Как импортируют Seaborn по стандарту?",
+  "options": [
+    {
+      "id": "A",
+      "code": "import seaborn as sns",
+      "correct": true,
+      "explain": "sns — стандартный alias для seaborn."
+    },
+    {
+      "id": "B",
+      "code": "import seaborn as sb",
+      "correct": false,
+      "explain": "Используют sns, не sb."
+    },
+    {
+      "id": "C",
+      "code": "import seaborn as sea",
+      "correct": false,
+      "explain": "Не sea — sns."
+    },
+    {
+      "id": "D",
+      "code": "from seaborn import *",
+      "correct": false,
+      "explain": "Плохая практика, используют sns."
+    }
+  ],
+  "hint": "import seaborn as sns"
+}

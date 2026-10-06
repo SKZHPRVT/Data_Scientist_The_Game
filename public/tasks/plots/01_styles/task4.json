@@ -1,0 +1,34 @@
+{
+  "id": "plots_rotation",
+  "world": "plots",
+  "level": 1,
+  "title": "Поворот подписей",
+  "question": "Даты на оси X налезают друг на друга. Как повернуть их на 90 градусов?",
+  "options": [
+    {
+      "id": "A",
+      "code": "df.plot(rot=90)",
+      "correct": true,
+      "explain": "rot=90 — поворот подписей по X."
+    },
+    {
+      "id": "B",
+      "code": "df.plot(rotation=90)",
+      "correct": false,
+      "explain": "Параметр называется rot, не rotation."
+    },
+    {
+      "id": "C",
+      "code": "df.plot(angle=90)",
+      "correct": false,
+      "explain": "angle — не параметр."
+    },
+    {
+      "id": "D",
+      "code": "df.plot(xticks_rotate=90)",
+      "correct": false,
+      "explain": "Такого параметра нет."
+    }
+  ],
+  "hint": "rot=90 — поворот подписей X"
+}

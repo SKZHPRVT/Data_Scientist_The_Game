@@ -1,0 +1,34 @@
+{
+  "id": "plots_heat_when",
+  "world": "plots",
+  "level": 1,
+  "title": "Когда heatmap?",
+  "question": "Хочешь увидеть паттерны коммитов по дням недели × часам. Что используешь?",
+  "options": [
+    {
+      "id": "A",
+      "code": "Heatmap",
+      "correct": true,
+      "explain": "Heatmap — цвет = значение. Идеально для матрицы день×час."
+    },
+    {
+      "id": "B",
+      "code": "Line chart",
+      "correct": false,
+      "explain": "Линия не покажет паттерн по двум измерениям одновременно."
+    },
+    {
+      "id": "C",
+      "code": "Scatter plot",
+      "correct": false,
+      "explain": "Scatter — для связей между числами, не для матриц."
+    },
+    {
+      "id": "D",
+      "code": "Boxplot",
+      "correct": false,
+      "explain": "Boxplot — распределение, не паттерны по времени."
+    }
+  ],
+  "hint": "Heatmap — для матриц (день × час)"
+}

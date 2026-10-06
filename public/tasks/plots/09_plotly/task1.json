@@ -1,0 +1,34 @@
+{
+  "id": "plots_plotly_why",
+  "world": "plots",
+  "level": 1,
+  "title": "Зачем Plotly?",
+  "question": "Что главное в Plotly по сравнению с Matplotlib/Seaborn?",
+  "options": [
+    {
+      "id": "A",
+      "code": "Интерактивные графики (зум, наведение, анимации)",
+      "correct": true,
+      "explain": "Plotly даёт интерактив: клик, зум, тултипы, анимации."
+    },
+    {
+      "id": "B",
+      "code": "Красивее статичных картинок",
+      "correct": false,
+      "explain": "Seaborn тоже красивый. Plotly — про интерактив."
+    },
+    {
+      "id": "C",
+      "code": "Работает быстрее",
+      "correct": false,
+      "explain": "Plotly может быть медленнее из-за интерактива."
+    },
+    {
+      "id": "D",
+      "code": "Больше типов графиков",
+      "correct": false,
+      "explain": "Типов примерно столько же, разница в интерактиве."
+    }
+  ],
+  "hint": "Plotly = интерактив"
+}

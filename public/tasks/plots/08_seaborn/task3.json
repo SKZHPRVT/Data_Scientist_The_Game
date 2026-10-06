@@ -1,0 +1,34 @@
+{
+  "id": "plots_seaborn_lineplot",
+  "world": "plots",
+  "level": 1,
+  "title": "Линия в Seaborn",
+  "question": "Как нарисовать линейный график в Seaborn?",
+  "options": [
+    {
+      "id": "A",
+      "code": "sns.lineplot(data=df, x='date', y='commits')",
+      "correct": true,
+      "explain": "lineplot — основная функция для линий."
+    },
+    {
+      "id": "B",
+      "code": "sns.plot(data=df)",
+      "correct": false,
+      "explain": "sns.plot не существует."
+    },
+    {
+      "id": "C",
+      "code": "sns.line(data=df)",
+      "correct": false,
+      "explain": "Функция называется lineplot."
+    },
+    {
+      "id": "D",
+      "code": "sns.draw_line(df)",
+      "correct": false,
+      "explain": "Такой функции нет."
+    }
+  ],
+  "hint": "sns.lineplot(data=df, x=..., y=...)"
+}

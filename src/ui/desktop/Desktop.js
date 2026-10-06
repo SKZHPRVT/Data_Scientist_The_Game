@@ -157,6 +157,7 @@ export class Desktop {
       { icon: '🚀', label: 'MIDDLE', action: () => this.openWorldGate('middle') },
       { icon: '👑', label: 'SENIOR', action: () => this.openWorldGate('senior') },
       { icon: '📚', label: 'PYTHON', action: () => this.openGroupMap('python') },
+      { icon: '📈', label: 'PLOTS', action: () => this.openGroupMap('plots') },
       { icon: '📁', label: 'SANDBOX', action: () => this.openSandbox() },
       { icon: '📦', label: 'MODELS', action: () => this.openModelsLab() },
       { icon: '🎲', label: 'GALTON', action: () => this.openGalton() },

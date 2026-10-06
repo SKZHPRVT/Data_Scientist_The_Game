@@ -1,0 +1,34 @@
+{
+  "id": "plots_scatter_when",
+  "world": "plots",
+  "level": 1,
+  "title": "Когда scatter?",
+  "question": "Хочешь проверить, есть ли связь между просмотрами и числом коммитов. Что используешь?",
+  "options": [
+    {
+      "id": "A",
+      "code": "Scatter plot",
+      "correct": true,
+      "explain": "Scatter показывает связь между двумя переменными. Точки = наблюдения."
+    },
+    {
+      "id": "B",
+      "code": "Line chart",
+      "correct": false,
+      "explain": "Линия — для времени, не для сравнения двух переменных."
+    },
+    {
+      "id": "C",
+      "code": "Bar chart",
+      "correct": false,
+      "explain": "Bar — для категорий, не для связей."
+    },
+    {
+      "id": "D",
+      "code": "Histogram",
+      "correct": false,
+      "explain": "Histogram — для одной переменной, не для связи двух."
+    }
+  ],
+  "hint": "Scatter — связь двух переменных"
+}

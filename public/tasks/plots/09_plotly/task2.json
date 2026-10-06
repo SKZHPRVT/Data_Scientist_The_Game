@@ -1,0 +1,34 @@
+{
+  "id": "plots_plotly_import",
+  "world": "plots",
+  "level": 1,
+  "title": "Импорт Plotly",
+  "question": "Как импортируют Plotly для графиков?",
+  "options": [
+    {
+      "id": "A",
+      "code": "import plotly.graph_objects as go",
+      "correct": true,
+      "explain": "go — стандартный alias для graph_objects."
+    },
+    {
+      "id": "B",
+      "code": "import plotly as plt",
+      "correct": false,
+      "explain": "plt обычно для matplotlib."
+    },
+    {
+      "id": "C",
+      "code": "import plotly as py",
+      "correct": false,
+      "explain": "Не py — либо go, либо express."
+    },
+    {
+      "id": "D",
+      "code": "from plotly import *",
+      "correct": false,
+      "explain": "Плохая практика, используют go или px."
+    }
+  ],
+  "hint": "import plotly.graph_objects as go"
+}

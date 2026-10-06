@@ -1,0 +1,34 @@
+{
+  "id": "plots_title",
+  "world": "plots",
+  "level": 1,
+  "title": "Заголовок",
+  "question": "Как добавить заголовок 'Views per Day' к графику?",
+  "options": [
+    {
+      "id": "A",
+      "code": "df.plot(title='Views per Day')",
+      "correct": true,
+      "explain": "Параметр title задаёт заголовок."
+    },
+    {
+      "id": "B",
+      "code": "df.plot(name='Views per Day')",
+      "correct": false,
+      "explain": "name — не для заголовка."
+    },
+    {
+      "id": "C",
+      "code": "df.plot(header='Views per Day')",
+      "correct": false,
+      "explain": "header — не параметр графика."
+    },
+    {
+      "id": "D",
+      "code": "df.plot().title('Views per Day')",
+      "correct": false,
+      "explain": "Такая цепочка не работает."
+    }
+  ],
+  "hint": "title='...' — заголовок"
+}

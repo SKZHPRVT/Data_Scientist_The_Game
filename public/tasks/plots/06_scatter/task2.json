@@ -1,0 +1,34 @@
+{
+  "id": "plots_scatter_corr",
+  "world": "plots",
+  "level": 1,
+  "title": "Корреляция",
+  "question": "Что показывает scatter matrix?",
+  "options": [
+    {
+      "id": "A",
+      "code": "Попарные связи между всеми переменными сразу",
+      "correct": true,
+      "explain": "Scatter matrix = сетка scatter-графиков для каждой пары переменных."
+    },
+    {
+      "id": "B",
+      "code": "Итоговое среднее",
+      "correct": false,
+      "explain": "Не среднее — целую сетку связей."
+    },
+    {
+      "id": "C",
+      "code": "Только одну переменную",
+      "correct": false,
+      "explain": "Для одной переменной достаточно histogram."
+    },
+    {
+      "id": "D",
+      "code": "Точный коэффициент корреляции",
+      "correct": false,
+      "explain": "Коэффициент — число, scatter matrix показывает визуально."
+    }
+  ],
+  "hint": "Scatter matrix = сетка для пар переменных"
+}
