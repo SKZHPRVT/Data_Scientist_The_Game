@@ -488,9 +488,10 @@ export class Desktop {
       return;
     }
 
-    // Иначе — закрываем предыдущее и создаём новое
-    this._closeAllMapWindows();
-    await new Promise((r) => setTimeout(r, 60));
+    // Закрываем только предыдущий questmap (если был с другой главой).
+    // groupmap НЕ закрываем — пусть остаётся в фоне под questmap.
+    const oldQuestmap = this.windows.windows.get('questmap');
+    if (oldQuestmap) this.windows.close('questmap');
 
     const map = new QuestMap(chapterId, {
       onOpenTask: (path) => this.openTaskByPath(path),
