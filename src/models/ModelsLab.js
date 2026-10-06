@@ -23,8 +23,6 @@ export class ModelsLab {
       return;
     }
 
-    // Всегда пересоздаём карту лаборатории при клике на иконку —
-    // это правильно, потому что пользователь ОСОЗНАННО её открывает
     if (this.windows.windows.has('models-lab')) {
       this.windows.close('models-lab');
     }
@@ -108,18 +106,58 @@ export class ModelsLab {
   }
 
   async _onTaskSolved(task, familyId) {
-    // Закрываем только окно задачи
+    // Закрываем текущее окно задачи
     this._closeAllTaskWindows();
 
-    // Обновляем HTML карты семейства НА МЕСТЕ — без закрытия окна
+    // Обновляем карту семейства в фоне (чтобы прогресс в списке был свежим)
     this._refreshFamilyMapInPlace(familyId);
-
-    // Обновляем HTML карты лаборатории НА МЕСТЕ — если она открыта,
-    // но НЕ поднимаем её наверх и НЕ создаём заново
     this._refreshLabMapInPlace();
+
+    // Ищем следующий квест в семействе
+    const lab = window.__models;
+    const familyData = lab.families[familyId];
+    if (!familyData || !familyData.quests) return;
+
+    const currentQuestId = task.id.split('/').pop();
+    const currentIndex = familyData.quests.findIndex((q) => q.id === currentQuestId);
+
+    if (currentIndex === -1) return;
+
+    const nextIndex = currentIndex + 1;
+
+    // Если есть следующий — открываем сразу
+    if (nextIndex < familyData.quests.length) {
+      const nextQuest = familyData.quests[nextIndex];
+      const nextTask = this._adaptQuest(nextQuest, familyId);
+      // Небольшая задержка — чтобы окно задачи успело закрыться
+      setTimeout(() => this._openTask(nextTask, familyId), 100);
+    }
+    // Если это был последний — ничего, вернулись в семейство
   }
 
-  // === Обновление карты семейства БЕЗ пересоздания окна ===
+  // Адаптер квеста → TaskView (продублирован из ModelsQuestMap)
+  _adaptQuest(quest, familyId) {
+    const path = 'models/' + familyId + '/' + quest.id;
+    return {
+      id: path,
+      _path: path,
+      title: quest.title || quest.id,
+      world: 'models',
+      level: 1,
+      question: quest.question,
+      _story: quest.story,
+      options: (quest.options || []).map((o) => ({
+        id: o.id,
+        code: o.text,
+        correct: o.correct,
+        explain: o.why,
+      })),
+      _unlocks: quest.unlocks,
+      _xp: quest.xp,
+      _explanation: quest.explanation,
+    };
+  }
+
   _refreshFamilyMapInPlace(familyId) {
     const windowId = 'models-family-' + familyId;
     const win = this.windows.windows.get(windowId);
@@ -136,20 +174,17 @@ export class ModelsLab {
       onOpenTask: (task) => this._openTask(task, familyId),
     });
 
-    // Ищем контейнер .window-body внутри окна
     const body = win.querySelector('.window-body');
     if (!body) return;
 
-    // Заменяем содержимое
     body.innerHTML = map.render();
     map.mount(body);
   }
 
-  // === Обновление карты лаборатории БЕЗ пересоздания окна ===
   async _refreshLabMapInPlace() {
     const windowId = 'models-lab';
     const win = this.windows.windows.get(windowId);
-    if (!win) return; // лаборатория закрыта — не трогаем
+    if (!win) return;
 
     const map = new ModelsGroupMap({
       onOpenChapter: (familyId) => this._openFamily(familyId),
@@ -160,7 +195,6 @@ export class ModelsLab {
     const body = win.querySelector('.window-body');
     if (!body) return;
 
-    // Заменяем содержимое, НЕ трогая позицию окна и НЕ поднимая его в фокус
     body.innerHTML = map.render();
     map.mount(body);
   }
