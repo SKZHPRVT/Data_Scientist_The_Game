@@ -1,0 +1,18 @@
+{
+  "id": "task6_groupby",
+  "world": "junior",
+  "level": 2,
+  "title": "Выручка по городам",
+  "dataset": "sales.csv",
+  "question": "Сгруппируй по city и посчитай сумму revenue.",
+  "checkMode": "exact",
+  "validation": "r => r && r.rows && r.rows.length === 3 && r.columns.includes('city') && r.columns.includes('revenue')",
+  "commands": ["read_csv", "groupby", "sum"],
+  "hint": "df.groupby('city').sum()",
+  "explanationRight": "groupby разбивает данные по значению колонки, sum() складывает числовые поля внутри каждой группы.",
+  "explanationWrong": {
+    "value_counts": "value_counts считает количество, а не сумму.",
+    "mean": "mean даёт среднее, а не сумму."
+  },
+  "explanationWrongDefault": "Нужно: read_csv(...).groupby('city').sum()"
+}

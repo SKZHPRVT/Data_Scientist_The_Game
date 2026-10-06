@@ -1,0 +1,18 @@
+{
+  "id": "task3_columns",
+  "world": "junior",
+  "level": 1,
+  "title": "Названия колонок",
+  "dataset": "sales.csv",
+  "question": "Получи список названий колонок.",
+  "checkMode": "exact",
+  "validation": "r => Array.isArray(r) && r.length === 3 && r.includes('city')",
+  "commands": ["read_csv", "columns"],
+  "hint": "columns — это свойство, без скобок.",
+  "explanationRight": ".columns возвращает список всех колонок: ['city', 'month', 'revenue'].",
+  "explanationWrong": {
+    "head": "head показывает строки, а не названия колонок.",
+    "info": "info() содержит колонки, но это не список."
+  },
+  "explanationWrongDefault": "columns — свойство DataFrame, без скобок. Проверь синтаксис."
+}

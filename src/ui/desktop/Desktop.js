@@ -41,10 +41,14 @@ export class Desktop {
     });
     this.taskbar.render();
 
+    // === game.py только при первом запуске ===
     setTimeout(() => {
-      window.__skipNextOpenSound = true;
-      this.runGamePy();
-    }, 300);
+      const solved = JSON.parse(localStorage.getItem('tasks_solved') || '[]');
+      if (solved.length === 0) {
+        window.__skipNextOpenSound = true;
+        this.runGamePy();
+      }
+    }, 400);
   }
 
   renderIcons() {
@@ -135,37 +139,79 @@ export class Desktop {
   }
 
   openTask(task) {
+    // Закрываем предыдущую задачу в той же папке
+    const dir = task._path.substring(0, task._path.lastIndexOf('/'));
+    this.windows.windows.forEach((_, id) => {
+      if (id.startsWith('task-')) this.windows.close(id);
+    });
+
     const view = new TaskView(task, {
-      onSolved: (id, stars) => {
-        this._openNextTask(task._path, stars);
-      },
+      onSolved: () => this._openNextTask(task._path),
     });
     this.windows.create({
       id: 'task-' + task.id,
       title: '📄 ' + (task.title || task.id),
       content: view.render(),
       onMount: (body) => view.mount(body),
-      width: 520,
-      height: 640,
+      width: 540,
+      height: 660,
     });
   }
 
-  _openNextTask(currentPath, stars) {
+  _openNextTask(currentPath) {
     const dir = currentPath.substring(0, currentPath.lastIndexOf('/'));
     try {
-      const items = window.__fs.ls(dir).filter((i) => i.type === 'file' && i.name.endsWith('.json'));
+      const items = window.__fs.ls(dir)
+        .filter((i) => i.type === 'file' && i.name.endsWith('.json'))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
       const current = currentPath.substring(currentPath.lastIndexOf('/') + 1);
       const idx = items.findIndex((i) => i.name === current);
 
       if (idx >= 0 && idx < items.length - 1) {
+        // Следующая задача
         const next = dir + '/' + items[idx + 1].name;
-        this.openTaskByPath(next);
+        setTimeout(() => this.openTaskByPath(next), 200);
       } else {
-        this.openExplorer(dir);
+        // Все задачи в папке решены — поздравление
+        this._showFolderComplete(dir);
       }
     } catch (e) {
       console.error(e);
     }
+  }
+
+  _showFolderComplete(dir) {
+    const folder = dir.split('/').filter(Boolean).pop() || 'папка';
+    this.windows.create({
+      id: 'complete-' + folder,
+      title: '🎉 Папка закрыта',
+      content: `
+        <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--fg);">
+          <p class="terminal-success">✅ Ты закрыл папку <strong>${folder}/</strong></p>
+          <p style="margin-top: 16px;">Ты разобрался с базовыми командами:</p>
+          <p>• read_csv — загрузка данных</p>
+          <p>• shape — размер датасета</p>
+          <p>• head — первые строки</p>
+          <p>• info — типы и пропуски</p>
+          <p>• columns — список колонок</p>
+          <p style="margin-top: 16px;">Дальше: <code>cleaning/</code> — чистка данных.</p>
+          <p style="margin-top: 16px;">
+            <button class="task-btn task-btn-next" id="next-folder" style="width: 100%;">
+              → Открыть cleaning/
+            </button>
+          </p>
+        </div>
+      `,
+      width: 480,
+      height: 380,
+      onMount: (body) => {
+        body.querySelector('#next-folder')?.addEventListener('click', () => {
+          const parent = dir.substring(0, dir.lastIndexOf('/'));
+          this.openExplorer(parent || '/junior');
+        });
+      },
+    });
   }
 
   openReadme() {

@@ -1,0 +1,18 @@
+{
+  "id": "task2_head",
+  "world": "junior",
+  "level": 1,
+  "title": "Первые строки",
+  "dataset": "sales.csv",
+  "question": "Покажи первые 3 строки датасета.",
+  "checkMode": "exact",
+  "validation": "r => r && r.rows && r.rows.length === 3",
+  "commands": ["read_csv", "head"],
+  "hint": "head(n) возвращает первые n строк.",
+  "explanationRight": "head(3) возвращает первые 3 строки. По умолчанию head() — 5.",
+  "explanationWrong": {
+    "shape": "shape возвращает размер, а не строки.",
+    "info": "info() — это сводка, а не сами строки."
+  },
+  "explanationWrongDefault": "Передай в head число 3, или проверь, что read_csv вернул данные."
+}

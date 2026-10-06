@@ -1,0 +1,18 @@
+{
+  "id": "task5_value_counts",
+  "world": "junior",
+  "level": 2,
+  "title": "Города в датасете",
+  "dataset": "sales.csv",
+  "question": "Посчитай, сколько раз встречается каждый город в колонке city.",
+  "checkMode": "exact",
+  "validation": "r => r && r.rows && r.columns.includes('value')",
+  "commands": ["read_csv", "value_counts"],
+  "hint": "df['city'].value_counts()",
+  "explanationRight": "value_counts() считает частоту каждой уникальной категории в колонке.",
+  "explanationWrong": {
+    "groupby": "groupby тоже умеет, но для простого подсчёта value_counts проще.",
+    "head": "head показывает первые строки, а не частоты."
+  },
+  "explanationWrongDefault": "Нужно обратиться к df['city'], потом вызвать .value_counts()"
+}

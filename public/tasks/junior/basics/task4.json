@@ -1,0 +1,18 @@
+{
+  "id": "task4_info",
+  "world": "junior",
+  "level": 1,
+  "title": "Сводка о датасете",
+  "dataset": "sales.csv",
+  "question": "Получи краткую сводку о датасете (типы, пропуски).",
+  "checkMode": "exact",
+  "validation": "r => r && typeof r === 'object' && (r.rows !== undefined || r.columns !== undefined)",
+  "commands": ["read_csv", "info"],
+  "hint": "info() возвращает объект со строками, колонками, dtypes.",
+  "explanationRight": "info() даёт быстрый обзор: сколько строк, типы колонок, где пропуски.",
+  "explanationWrong": {
+    "shape": "shape возвращает только размер, без типов и пропусков.",
+    "head": "head показывает строки, но не сводку."
+  },
+  "explanationWrongDefault": "Вызови info() после read_csv."
+}

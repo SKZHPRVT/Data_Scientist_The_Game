@@ -7,8 +7,13 @@
   "question": "Прочитай sales.csv и верни shape (размер датасета).",
   "checkMode": "exact",
   "expectedShape": [9, 3],
-  "time": 60,
   "commands": ["read_csv", "shape"],
-  "stars": { "1": 60, "2": 40, "3": 20 },
-  "explanation": "pd.read_csv() читает CSV в DataFrame. .shape возвращает [строки, колонки]."
+  "hint": "Сначала read_csv('sales.csv'), потом .shape",
+  "explanationRight": "read_csv загружает CSV в DataFrame, .shape возвращает [строки, колонки]. Самый прямой путь.",
+  "explanationWrong": {
+    "head": "head() показывает первые 5 строк, но не размер.",
+    "info": "info() выводит типы и пропуски, но не shape.",
+    "columns": "columns даёт только список колонок, без количества строк."
+  },
+  "explanationWrongDefault": "Проверь, что ты сначала прочитал CSV, а потом вызвал .shape без скобок."
 }

@@ -9,12 +9,17 @@ export class TaskView {
     this.el = null;
     this.attempts = 0;
     this.startTime = Date.now();
-    this.showHint = false;
   }
 
   render() {
     const t = this.task;
-    const commands = (t.commands || []).map((id) => COMMANDS[id]).filter(Boolean);
+
+    // Все команды мира junior (или те, что разрешены в задаче)
+    const availableCommands = t.commands
+      ? t.commands.map((id) => COMMANDS[id]).filter(Boolean)
+      : Object.entries(COMMANDS)
+          .filter(([_, c]) => c.world === 'junior')
+          .map(([id, c]) => ({ ...c, id }));
 
     return `
       <div class="task-view">
@@ -36,9 +41,9 @@ export class TaskView {
           <div class="task-commands">
             <div class="task-commands-label">Доступные команды (тапни, чтобы вставить):</div>
             <div class="task-commands-list">
-              ${commands.map((c) => {
-                const short = c.signature.match(/[a-z_]+\(/i)?.[0]?.replace('(', '') || c.signature;
-                return `<button class="task-cmd" data-cmd="${short}">${c.signature}</button>`;
+              ${availableCommands.map((c) => {
+                const short = (c.signature || '').match(/[a-z_]+\(/i)?.[0]?.replace('(', '') || c.signature;
+                return `<button class="task-cmd" data-cmd="${short}">${c.signature || c.id}</button>`;
               }).join('')}
             </div>
           </div>
@@ -93,26 +98,26 @@ export class TaskView {
       }
     });
 
-    // Тап по команде — вставляет
     body.querySelectorAll('.task-cmd').forEach((btn) => {
       btn.onclick = () => {
         const cmd = btn.dataset.cmd;
-        // Если поле не пустое и не заканчивается на '.' — ставим точку
-        if (input.value && !input.value.endsWith('.') && !input.value.endsWith('(')) {
-          input.value += '.';
+        const val = input.value;
+        // Умная вставка
+        if (!val || val.endsWith('(')) {
+          input.value = val + cmd;
+        } else if (val.endsWith(')')) {
+          input.value = val + '.' + cmd;
+        } else {
+          input.value = val + cmd;
         }
-        input.value += cmd + '()';
-        // Курсор внутрь скобок
-        const pos = input.value.length - 1;
         input.focus();
-        input.setSelectionRange(pos, pos);
+        input.setSelectionRange(input.value.length, input.value.length);
         if (window.__audio) window.__audio.click('normal');
       };
     });
 
     body.querySelector('#task-hint').onclick = () => {
-      this.showHint = true;
-      const hint = this.task.explanation || 'Прочитай задачу внимательно.';
+      const hint = this.task.hint || this.task.explanation || 'Внимательно прочитай вопрос.';
       result.innerHTML = `<div class="task-result-hint">💡 ${hint}</div>`;
       if (window.__audio) window.__audio.notify();
     };
@@ -148,17 +153,25 @@ export class TaskView {
       } else if (task.expected !== undefined) {
         expected = task.expected;
         ok = this._compare(userResult, expected);
+      } else if (task.validation) {
+        // validation — функция-строка: например "r => r[0]===9 && r[1]===3"
+        try {
+          const validator = eval(task.validation);
+          ok = validator(userResult);
+          expected = task.expectedShape || task.expected || 'как в задаче';
+        } catch (e) { ok = false; }
       } else {
         ok = true;
       }
 
       if (ok) this._onSuccess(resultEl, userResult, elapsed);
-      else this._onFail(resultEl, userResult, expected);
+      else this._onFail(resultEl, userResult, expected, code);
     } catch (e) {
       resultEl.innerHTML = `
         <div class="task-result-error">
           <div>❌ Ошибка выполнения</div>
           <div class="task-result-detail">${e.message}</div>
+          <div class="task-result-hint">Проверь синтаксис. Помощь: <code>read_csv('sales.csv').shape</code></div>
         </div>
       `;
       if (window.__audio) window.__audio.error();
@@ -182,12 +195,19 @@ export class TaskView {
     const stars = elapsed < 20 ? 3 : elapsed < 40 ? 2 : 1;
     const starsStr = '⭐'.repeat(stars);
 
+    // Объяснение успеха — кастомное или дефолт
+    const right = this.task.explanationRight
+      || this.task.explanation
+      || 'Верно. Ты применил подходящую команду.';
+
     resultEl.innerHTML = `
       <div class="task-result-success">
         <div>✅ Верно!</div>
         <div class="task-result-detail">Результат: ${this._fmt(userResult)}</div>
         <div class="task-result-stars">${starsStr} · ${elapsed} сек</div>
-        ${this.task.explanation ? `<div class="task-result-expl">💡 ${this.task.explanation}</div>` : ''}
+        <div class="task-result-expl">
+          <strong>Почему правильно:</strong> ${right}
+        </div>
         <button class="task-btn task-btn-next" id="task-next">Следующая задача →</button>
       </div>
     `;
@@ -203,13 +223,33 @@ export class TaskView {
     }
   }
 
-  _onFail(resultEl, userResult, expected) {
+  _onFail(resultEl, userResult, expected, code) {
+    // Ищем объяснение для конкретной команды/выражения
+    const wrongMap = this.task.explanationWrong || {};
+    let why = '';
+
+    // Пробуем найти по названию команды, которую ввёл игрок
+    for (const [key, text] of Object.entries(wrongMap)) {
+      if (code.includes(key)) {
+        why = text;
+        break;
+      }
+    }
+
+    if (!why) {
+      why = this.task.explanationWrongDefault
+        || 'Результат не совпал с ожидаемым. Проверь, что команда делает и какие данные возвращает.';
+    }
+
     resultEl.innerHTML = `
       <div class="task-result-error">
         <div>❌ Не то</div>
         <div class="task-result-detail">
           Твой результат: ${this._fmt(userResult)}<br>
           ${expected !== null ? `Ожидалось: ${this._fmt(expected)}` : ''}
+        </div>
+        <div class="task-result-expl">
+          <strong>Почему неправильно:</strong> ${why}
         </div>
         <div class="task-result-hint">Попытка ${this.attempts}. Попробуй ещё раз или нажми «Подсказка».</div>
       </div>
