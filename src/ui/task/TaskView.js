@@ -31,7 +31,7 @@ export class TaskView {
 
           <div class="task-options">
             ${(t.options || []).map((opt) => `
-              <button class="task-option" data-id="${opt.id}">
+              <button class="task-option" data-id="${opt.id}" type="button">
                 <div class="task-option-code">${this._esc(opt.code)}</div>
               </button>
             `).join('')}
@@ -65,12 +65,25 @@ export class TaskView {
     const result = body.querySelector('#task-result');
 
     body.querySelectorAll('.task-option').forEach((btn) => {
-      btn.onclick = () => this._onPick(btn, result);
+      // Запрещаем long-press и context menu
+      btn.addEventListener('contextmenu', (e) => e.preventDefault());
+      btn.addEventListener('touchstart', (e) => {
+        // Не даём выделять текст
+        e.stopPropagation();
+      }, { passive: true });
+
+      // Только click — срабатывает после тапа
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this._onPick(btn, result);
+      });
     });
   }
 
   _onPick(btn, resultEl) {
     if (this.answered) return;
+    if (btn.disabled) return;
 
     const optId = btn.dataset.id;
     const opt = (this.task.options || []).find((o) => o.id === optId);
@@ -92,7 +105,6 @@ export class TaskView {
     let stars = 3;
     if (this.wrongTries > 0) stars = Math.max(1, 3 - this.wrongTries);
     if (elapsed > 60) stars = Math.max(1, stars - 1);
-    const starsStr = '⭐'.repeat(stars);
 
     btn.classList.add('correct');
     this.el.querySelectorAll('.task-option').forEach((b) => {
@@ -102,29 +114,32 @@ export class TaskView {
 
     progress.markSolved(this.task.id);
     progress.setStars(this.task.id, stars);
+    console.log('[TaskView] solved:', this.task.id, 'stars:', stars, 'solved list:', progress.getSolved());
 
     resultEl.innerHTML = `
       <div class="task-result-success">
         <div class="task-result-title">✅ Верно!</div>
-        <div class="task-result-stars">${starsStr} · ${elapsed} сек</div>
+        <div class="task-result-stars">${'⭐'.repeat(stars)} · ${elapsed} сек</div>
         <div class="task-result-expl">${opt.explain}</div>
-        <button class="task-btn task-btn-next" id="task-next">Следующий квест →</button>
+        <button class="task-btn task-btn-next" id="task-next" type="button">Следующий квест →</button>
       </div>
     `;
-
     if (window.__audio) window.__audio.success();
 
-    resultEl.querySelector('#task-next').onclick = () => {
+    setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
+
+    resultEl.querySelector('#task-next').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('[TaskView] next clicked');
       if (this.onSolved) this.onSolved(this.task.id, stars);
-    };
+    });
   }
 
   _onWrong(btn, opt, resultEl) {
     btn.classList.add('wrong');
     btn.disabled = true;
-
     if (window.__audio) window.__audio.error();
-
     resultEl.innerHTML = `
       <div class="task-result-error">
         <div class="task-result-title">❌ Не то</div>
@@ -133,5 +148,6 @@ export class TaskView {
         <div class="task-result-hint">Попробуй другой вариант.</div>
       </div>
     `;
+    setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
   }
 }

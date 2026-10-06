@@ -93,12 +93,18 @@ export class Desktop {
   }
 
   async openQuestMap(chapterId) {
+    // Закрываем старую карту, чтобы пересоздать с обновлённым прогрессом
+    const oldId = 'questmap-' + chapterId;
+    if (this.windows.windows.has(oldId)) {
+      this.windows.close(oldId);
+    }
+
     const map = new QuestMap(chapterId, {
       onOpenTask: (path) => this.openTaskByPath(path),
     });
 
     const win = this.windows.create({
-      id: 'questmap-' + chapterId,
+      id: oldId,
       title: '🗺 ' + chapterId.split('/').pop(),
       content: `<div style="font-family: var(--font-mono); color: var(--fg-dim);">Загрузка...</div>`,
       width: 520,
@@ -169,7 +175,6 @@ export class Desktop {
       this.openTask(task);
     } catch (e) {
       console.error('[openTask] fail', path, e);
-      // Показываем ошибку
       this.windows.create({
         id: 'task-error',
         title: '⚠ Ошибка задачи',
@@ -184,7 +189,7 @@ export class Desktop {
   }
 
   openTask(task) {
-    // Закрываем старые задачи и карту — не нужны
+    // Закрываем старые задачи и карту
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-') || id.startsWith('questmap-')) {
         this.windows.close(id);
@@ -205,16 +210,16 @@ export class Desktop {
   }
 
   _openNextTask(currentPath) {
-    // currentPath = /junior/basics/task1.json → chapter = junior/basics
     const parts = currentPath.split('/').filter(Boolean);
     const chapterId = parts.slice(0, -1).join('/');
 
+    // Закрываем окна задач
     this.windows.windows.forEach((_, id) => {
       if (id.startsWith('task-')) this.windows.close(id);
     });
 
-    // Открываем карту заново — она покажет обновлённый прогресс
-    setTimeout(() => this.openQuestMap(chapterId), 200);
+    // Открываем карту заново — она пересоздастся с обновлённым прогрессом
+    setTimeout(() => this.openQuestMap(chapterId), 400);
   }
 
   openReadme() {

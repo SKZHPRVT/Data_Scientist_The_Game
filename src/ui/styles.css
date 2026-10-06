@@ -1074,3 +1074,92 @@ body.keyboard-open .taskbar {
 .task-result-code { background: rgba(255, 255, 255, 0.05); padding: 6px 10px; border-radius: 4px; font-family: var(--font-mono); font-size: 12px; margin: 6px 0; word-break: break-word; }
 .task-result-expl { font-size: 12px; line-height: 1.5; padding-top: 6px; border-top: 1px solid rgba(0, 255, 65, 0.2); margin-top: 6px; }
 .task-result-success .task-result-expl { border-top: none; padding-top: 0; margin-top: 4px; }
+
+/* === Запрет выделения и long-press меню === */
+.task-option,
+.task-option *,
+.task-btn,
+.task-btn *,
+.task-cmd,
+.task-cmd *,
+.quest-item,
+.quest-item *,
+.window-title,
+.window-title *,
+.start-item,
+.start-item *,
+.desktop-icon,
+.desktop-icon *,
+.taskbar-btn,
+.taskbar-btn * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Никаких выделений вообще */
+* {
+  -webkit-touch-callout: none;
+}
+
+/* Только input'ы и текст в терминале/задании можно выделять */
+.task-question,
+.task-dataset-preview,
+.task-result-expl,
+.terminal,
+.terminal *,
+input,
+textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Окно задачи не должно скроллиться при pointer-down */
+.task-option {
+  touch-action: manipulation;
+  -webkit-user-drag: none;
+  pointer-events: auto;
+}
+
+.window-body {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* === Запрет выделения и long-press меню === */
+.task-option, .task-option *,
+.task-btn, .task-btn *,
+.task-cmd, .task-cmd *,
+.quest-item, .quest-item *,
+.window-title, .window-title *,
+.start-item, .start-item *,
+.desktop-icon, .desktop-icon *,
+.taskbar-btn, .taskbar-btn * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+* {
+  -webkit-touch-callout: none;
+}
+
+.task-question, .task-dataset-preview, .task-result-expl,
+.terminal, .terminal *, input, textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+.task-option {
+  touch-action: manipulation;
+  -webkit-user-drag: none;
+}
+
+.window-body {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
