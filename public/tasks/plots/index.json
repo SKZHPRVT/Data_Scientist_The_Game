@@ -2,90 +2,90 @@
   "id": "plots",
   "title": "PLOTS",
   "icon": "📈",
-  "description": "Визуализация данных: Matplotlib, Seaborn, Plotly.",
+  "description": "Data visualization: Matplotlib, Seaborn, Plotly",
   "chapters": [
     {
       "id": "00_line",
-      "title": "Линия",
+      "title": "Line",
       "icon": "📈",
-      "description": "Первый график — line chart",
+      "description": "first chart — line plot",
       "unlockAfter": null
     },
     {
       "id": "01_styles",
-      "title": "Стили",
+      "title": "Styles",
       "icon": "🎨",
-      "description": "Цвета, размеры, заголовки",
+      "description": "colors, sizes, titles",
       "unlockAfter": "00_line"
     },
     {
       "id": "02_bar",
-      "title": "Бары",
+      "title": "Bar",
       "icon": "📊",
-      "description": "Bar chart для категорий",
+      "description": "bar chart for categories",
       "unlockAfter": "01_styles"
     },
     {
       "id": "03_bars_multi",
-      "title": "Множественные бары",
+      "title": "Multi-Bar",
       "icon": "📚",
-      "description": "Weekdays vs weekends",
+      "description": "weekdays vs weekends",
       "unlockAfter": "02_bar"
     },
     {
       "id": "04_hist",
-      "title": "Гистограмма",
+      "title": "Histogram",
       "icon": "🔔",
-      "description": "Распределение значений",
+      "description": "value distribution",
       "unlockAfter": "03_bars_multi"
     },
     {
       "id": "05_boxplot",
-      "title": "Ящик с усами",
+      "title": "Boxplot",
       "icon": "📦",
-      "description": "Медиана, квартили, выбросы",
+      "description": "median, quartiles, outliers",
       "unlockAfter": "04_hist"
     },
     {
       "id": "06_scatter",
-      "title": "Рассеяние",
+      "title": "Scatter",
       "icon": "✨",
-      "description": "Scatter matrix для связей",
+      "description": "scatter matrix for relations",
       "unlockAfter": "05_boxplot"
     },
     {
       "id": "07_heatmap",
-      "title": "Тепловая карта",
+      "title": "Heatmap",
       "icon": "🔥",
-      "description": "Паттерны по дням и часам",
+      "description": "patterns by days and hours",
       "unlockAfter": "06_scatter"
     },
     {
       "id": "08_seaborn",
       "title": "Seaborn",
       "icon": "🎭",
-      "description": "Красивые графики легко",
+      "description": "pretty charts easily",
       "unlockAfter": "07_heatmap"
     },
     {
       "id": "09_plotly",
       "title": "Plotly",
       "icon": "⚡",
-      "description": "Интерактивные графики",
+      "description": "interactive charts",
       "unlockAfter": "08_seaborn"
     },
     {
       "id": "10_read",
-      "title": "Чтение графиков",
+      "title": "Read Charts",
       "icon": "👁",
-      "description": "Смотри на график и делай выводы",
+      "description": "look at the chart, make a conclusion",
       "unlockAfter": "09_plotly"
     },
     {
       "id": "11_code",
-      "title": "Код для графиков",
+      "title": "Code",
       "icon": "💻",
-      "description": "Напиши код сам — проверка по паттернам",
+      "description": "write code yourself — pattern checks",
       "unlockAfter": "10_read"
     }
   ]
