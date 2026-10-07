@@ -46,6 +46,35 @@ const ACHIEVEMENTS = [
   { id: 'VISION_PIE', title: 'Круговой', titleEn: 'Pie master', icon: '🥧', desc: 'Все задачи pie на 4⭐.', descEn: 'All pie tasks at 4⭐.', code: 'VISION_PIE' },
   { id: 'VISION_HEAT', title: 'Тепловик', titleEn: 'Heatmaster', icon: '🔥', desc: 'Все задачи heatmap на 4⭐.', descEn: 'All heatmap tasks at 4⭐.', code: 'VISION_HEAT' },
 
+  // === PYTHON ===
+  { id: 'PY_FIRST',      title: 'Pythonista',          titleEn: 'Pythonista',          icon: '🐍', desc: 'Начал путь в PYTHON.', descEn: 'Started PYTHON path.', code: 'PY_FIRST' },
+  { id: 'PY_IO',         title: 'Первый вывод',        titleEn: 'First output',        icon: '💬', desc: 'Прошёл главу Ввод-вывод.', descEn: 'Completed I/O chapter.', code: 'PY_IO' },
+  { id: 'PY_NUMBERS',    title: 'Числодробитель',      titleEn: 'Number crusher',      icon: '🔢', desc: 'Прошёл главу Числа.', descEn: 'Completed Numbers chapter.', code: 'PY_NUMBERS' },
+  { id: 'PY_STRINGS',    title: 'Строковед',           titleEn: 'Stringologist',       icon: '📝', desc: 'Прошёл главу Строки.', descEn: 'Completed Strings chapter.', code: 'PY_STRINGS' },
+  { id: 'PY_COLLECTIONS',title: 'Коллекционер',        titleEn: 'Collector',           icon: '📦', desc: 'Прошёл главу Коллекции.', descEn: 'Completed Collections chapter.', code: 'PY_COLLECTIONS' },
+  { id: 'PY_ITERATION',  title: 'Итератор',            titleEn: 'Iterator',            icon: '🔁', desc: 'Прошёл главу Итерация.', descEn: 'Completed Iteration chapter.', code: 'PY_ITERATION' },
+  { id: 'PY_FUNCTIONS',  title: 'Функционал',          titleEn: 'Functional',          icon: '⚙️', desc: 'Прошёл главу Функции.', descEn: 'Completed Functions chapter.', code: 'PY_FUNCTIONS' },
+  { id: 'PY_TYPES',      title: 'Типовед',             titleEn: 'Type master',         icon: '🏷️', desc: 'Прошёл главу Типы.', descEn: 'Completed Types chapter.', code: 'PY_TYPES' },
+  { id: 'PY_ATTRIBUTES', title: 'Атрибутчик',          titleEn: 'Attr master',         icon: '🔧', desc: 'Прошёл главу Атрибуты.', descEn: 'Completed Attributes chapter.', code: 'PY_ATTRIBUTES' },
+  { id: 'PY_META',       title: 'Метамаг',             titleEn: 'Metamage',            icon: '👁', desc: 'Прошёл главу Мета.', descEn: 'Completed Meta chapter.', code: 'PY_META' },
+  { id: 'PY_MISC',       title: 'Разнообразный',       titleEn: 'Misc master',         icon: '🎲', desc: 'Прошёл главу Разное.', descEn: 'Completed Misc chapter.', code: 'PY_MISC' },
+  { id: 'PY_MASTER',     title: 'Python Master',       titleEn: 'Python Master',       icon: '🐍', desc: 'Прошёл все главы PYTHON.', descEn: 'Completed all PYTHON chapters.', code: 'PY_MASTER', platinum: true },
+
+  // === PLOTS ===
+  { id: 'PL_LINE',       title: 'Лайнер',              titleEn: 'Liner',               icon: '📈', desc: 'Прошёл главу Line.', descEn: 'Completed Line chapter.', code: 'PL_LINE' },
+  { id: 'PL_STYLES',     title: 'Стилист',             titleEn: 'Stylist',             icon: '🎨', desc: 'Прошёл главу Styles.', descEn: 'Completed Styles chapter.', code: 'PL_STYLES' },
+  { id: 'PL_BAR',        title: 'Барон',               titleEn: 'Baron',               icon: '📊', desc: 'Прошёл главу Bar.', descEn: 'Completed Bar chapter.', code: 'PL_BAR' },
+  { id: 'PL_MULTIBAR',   title: 'Мульти-барон',        titleEn: 'Multi-Baron',         icon: '📚', desc: 'Прошёл главу Multi-Bar.', descEn: 'Completed Multi-Bar chapter.', code: 'PL_MULTIBAR' },
+  { id: 'PL_HIST',       title: 'Гистограммист',       titleEn: 'Histogrammer',        icon: '🔔', desc: 'Прошёл главу Histogram.', descEn: 'Completed Histogram chapter.', code: 'PL_HIST' },
+  { id: 'PL_BOX',        title: 'Ящичник',             titleEn: 'Boxplotter',          icon: '📦', desc: 'Прошёл главу Boxplot.', descEn: 'Completed Boxplot chapter.', code: 'PL_BOX' },
+  { id: 'PL_SCATTER',    title: 'Скаттерщик',          titleEn: 'Scatterer',           icon: '✨', desc: 'Прошёл главу Scatter.', descEn: 'Completed Scatter chapter.', code: 'PL_SCATTER' },
+  { id: 'PL_HEAT',       title: 'Тепловик',            titleEn: 'Heatmaster',          icon: '🔥', desc: 'Прошёл главу Heatmap.', descEn: 'Completed Heatmap chapter.', code: 'PL_HEAT' },
+  { id: 'PL_SEABORN',    title: 'Сиборонист',          titleEn: 'Seabornist',          icon: '🎭', desc: 'Прошёл главу Seaborn.', descEn: 'Completed Seaborn chapter.', code: 'PL_SEABORN' },
+  { id: 'PL_PLOTLY',     title: 'Плотлист',            titleEn: 'Plotlyst',            icon: '⚡', desc: 'Прошёл главу Plotly.', descEn: 'Completed Plotly chapter.', code: 'PL_PLOTLY' },
+  { id: 'PL_READ',       title: 'Графикочёт',          titleEn: 'Chart reader',        icon: '👁', desc: 'Прошёл главу Read Charts.', descEn: 'Completed Read Charts chapter.', code: 'PL_READ' },
+  { id: 'PL_CODE',       title: 'Кодер',               titleEn: 'Coder',               icon: '💻', desc: 'Прошёл главу Code.', descEn: 'Completed Code chapter.', code: 'PL_CODE' },
+  { id: 'PL_MASTER',     title: 'Plots Master',        titleEn: 'Plots Master',        icon: '📈', desc: 'Прошёл все главы PLOTS.', descEn: 'Completed all PLOTS chapters.', code: 'PL_MASTER', platinum: true },
+
   { id: 'ILLUMINATI', title: 'Тот, кто читает описания', titleEn: 'One who reads descriptions', icon: '👁', desc: 'Нашёл то, чего не должно было быть.', descEn: 'Found what should not be there.', code: 'ILLUMINATI', secret: true },
   { id: 'DIVIDE_ET_IMPERA', title: 'Divide et Impera', titleEn: 'Divide et Impera', icon: '🏆', desc: 'Ты разделил, выстроил, связал.', descEn: 'You divided, built, connected.', code: 'DIVIDE-ET-IMPERA', platinum: true },
 ];

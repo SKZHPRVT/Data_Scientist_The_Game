@@ -866,6 +866,16 @@ export class Desktop {
     } else if (nextFile) {
       const nextPath = '/' + chapterId + '/' + nextFile;
       setTimeout(() => this.openTaskByPath(nextPath), 250);
+
+    // Проверка ачивок PYTHON и PLOTS
+    try {
+      const { checkAndNotifyPython } = await import('../../vision/PythonAchievements.js');
+      const { checkAndNotifyPlots } = await import('../../vision/PlotsAchievements.js');
+      await checkAndNotifyPython();
+      await checkAndNotifyPlots();
+    } catch (e) {
+      console.warn('[Ach python/plots]', e.message);
+    }
     } else {
       setTimeout(() => this.openQuestMap(chapterId), 300);
     }
