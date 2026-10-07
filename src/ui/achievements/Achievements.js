@@ -32,6 +32,20 @@ const ACHIEVEMENTS = [
   { id: 'FORESTER', title: 'Лесоруб', titleEn: 'Forester', icon: '🌳', desc: 'Открыл все деревья и ансамбли.', descEn: 'Unlocked all trees and ensembles.', code: 'FORESTER' },
   { id: 'CLUSTERER', title: 'Кластеризатор', titleEn: 'Clusterer', icon: '🔵', desc: 'Открыл все модели кластеризации.', descEn: 'Unlocked all clustering models.', code: 'CLUSTERER' },
   { id: 'NEUROMANCER', title: 'Нейромант', titleEn: 'Neuromancer', icon: '🧠', desc: 'Открыл все нейросетевые модели.', descEn: 'Unlocked all neural models.', code: 'NEUROMANCER' },
+  // === VISION ===
+  { id: 'VISION_FIRST', title: 'Первый график', titleEn: 'First chart', icon: '🎯', desc: 'Решил первую задачу в тренажёре VISION.', descEn: 'Solved first VISION task.', code: 'VISION_FIRST' },
+  { id: 'VISION_10', title: 'Видящий', titleEn: 'Seer', icon: '📊', desc: '10 задач в VISION.', descEn: '10 VISION tasks.', code: 'VISION_10' },
+  { id: 'VISION_50', title: 'Провидец', titleEn: 'Prophet', icon: '👁', desc: '50 задач в VISION.', descEn: '50 VISION tasks.', code: 'VISION_50' },
+  { id: 'VISION_100', title: 'Ясновидящий', titleEn: 'Clairvoyant', icon: '🔮', desc: '100 задач в VISION.', descEn: '100 VISION tasks.', code: 'VISION_100' },
+  { id: 'VISION_500', title: 'Мастер визуализации', titleEn: 'Visualization master', icon: '🧙', desc: '500 задач в VISION. Ты видишь данные насквозь.', descEn: '500 VISION tasks.', code: 'VISION_500', platinum: true },
+  { id: 'VISION_LINE', title: 'Линейный маг', titleEn: 'Line mage', icon: '📈', desc: 'Все задачи line на 4⭐.', descEn: 'All line tasks at 4⭐.', code: 'VISION_LINE' },
+  { id: 'VISION_BAR', title: 'Баронет', titleEn: 'Baronet', icon: '📊', desc: 'Все задачи bar на 4⭐.', descEn: 'All bar tasks at 4⭐.', code: 'VISION_BAR' },
+  { id: 'VISION_SCATTER', title: 'Скаттерщик', titleEn: 'Scatterer', icon: '✨', desc: 'Все задачи scatter на 4⭐.', descEn: 'All scatter tasks at 4⭐.', code: 'VISION_SCATTER' },
+  { id: 'VISION_HIST', title: 'Гистограммщик', titleEn: 'Histogrammer', icon: '🔔', desc: 'Все задачи histogram на 4⭐.', descEn: 'All histogram tasks at 4⭐.', code: 'VISION_HIST' },
+  { id: 'VISION_BOX', title: 'Ящичник', titleEn: 'Boxplotter', icon: '📦', desc: 'Все задачи boxplot на 4⭐.', descEn: 'All boxplot tasks at 4⭐.', code: 'VISION_BOX' },
+  { id: 'VISION_PIE', title: 'Круговой', titleEn: 'Pie master', icon: '🥧', desc: 'Все задачи pie на 4⭐.', descEn: 'All pie tasks at 4⭐.', code: 'VISION_PIE' },
+  { id: 'VISION_HEAT', title: 'Тепловик', titleEn: 'Heatmaster', icon: '🔥', desc: 'Все задачи heatmap на 4⭐.', descEn: 'All heatmap tasks at 4⭐.', code: 'VISION_HEAT' },
+
   { id: 'ILLUMINATI', title: 'Тот, кто читает описания', titleEn: 'One who reads descriptions', icon: '👁', desc: 'Нашёл то, чего не должно было быть.', descEn: 'Found what should not be there.', code: 'ILLUMINATI', secret: true },
   { id: 'DIVIDE_ET_IMPERA', title: 'Divide et Impera', titleEn: 'Divide et Impera', icon: '🏆', desc: 'Ты разделил, выстроил, связал.', descEn: 'You divided, built, connected.', code: 'DIVIDE-ET-IMPERA', platinum: true },
 ];
