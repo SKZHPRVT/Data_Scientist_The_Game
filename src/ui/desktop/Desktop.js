@@ -8,6 +8,7 @@ import { Achievements } from '../achievements/Achievements.js';
 import { Progress } from '../settings/Progress.js';
 import { ModelsLab } from '../../models/ModelsLab.js';
 import { TaskView } from '../task/TaskView.js';
+import { ChartTaskView } from '../task/ChartTaskView.js';
 import { QuestMap } from '../quest/QuestMap.js';
 import { GroupMap } from '../quest/GroupMap.js';
 import { GaltonBoard } from '../galton/GaltonBoard.js';
@@ -704,17 +705,32 @@ export class Desktop {
 
   openTask(task) {
     this._closeAllTaskWindows();
-    const view = new TaskView(task, {
-      onSolved: () => this._onTaskSolved(task._path),
-    });
-    this.windows.create({
+    const isChart = task.type === 'chart';
+    const view = isChart
+      ? new ChartTaskView(task, { onSolved: () => this._onTaskSolved(task._path) })
+      : new TaskView(task, { onSolved: () => this._onTaskSolved(task._path) });
+
+    const win = this.windows.create({
       id: 'task-' + task.id,
-      title: '📄 ' + (task.title || task.id),
+      title: (isChart ? '📊 ' : '📄 ') + (task.title || task.id),
       content: view.render(),
       onMount: (body) => view.mount(body),
-      width: 540,
+      width: isChart ? 600 : 540,
       height: 700,
     });
+
+    // При закрытии — destroy() если есть
+    if (view.destroy) {
+      const closeBtn = win.querySelector('.close');
+      if (closeBtn) {
+        const origClose = closeBtn.onclick;
+        closeBtn.onclick = (e) => {
+          try { view.destroy(); } catch (err) {}
+          if (origClose) origClose(e);
+          else this.windows.close('task-' + task.id);
+        };
+      }
+    }
   }
 
   async _onTaskSolved(currentPath) {

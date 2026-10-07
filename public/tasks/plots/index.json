@@ -73,6 +73,13 @@
       "icon": "⚡",
       "description": "Интерактивные графики",
       "unlockAfter": "08_seaborn"
+    },
+    {
+      "id": "10_read",
+      "title": "Чтение графиков",
+      "icon": "👁",
+      "description": "Смотри на график и делай выводы",
+      "unlockAfter": "09_plotly"
     }
   ]
 }

@@ -1,0 +1,75 @@
+{
+  "id": "plots_read_crossing",
+  "world": "plots",
+  "level": 10,
+  "type": "chart",
+  "title": "Пересечение",
+  "chart": {
+    "type": "line",
+    "title": "iOS vs Android",
+    "data": {
+      "labels": [
+        "Янв",
+        "Фев",
+        "Мар",
+        "Апр",
+        "Май",
+        "Июн"
+      ],
+      "datasets": [
+        {
+          "label": "iOS",
+          "values": [
+            100,
+            110,
+            120,
+            130,
+            140,
+            150
+          ],
+          "color": "#00ccff"
+        },
+        {
+          "label": "Android",
+          "values": [
+            150,
+            140,
+            130,
+            120,
+            110,
+            100
+          ],
+          "color": "#ffaa00"
+        }
+      ]
+    }
+  },
+  "question": "Когда Android перестал быть популярнее iOS?",
+  "options": [
+    {
+      "id": "A",
+      "code": "В марте",
+      "correct": true,
+      "explain": "В марте обе линии на 130 — Android больше не выше iOS. С апреля iOS начинает опережать."
+    },
+    {
+      "id": "B",
+      "code": "В январе",
+      "correct": false,
+      "explain": "В январе Android ещё лидирует (150 vs 100)."
+    },
+    {
+      "id": "C",
+      "code": "В июне",
+      "correct": false,
+      "explain": "В июне iOS уже выше (150 vs 100) — это конец периода."
+    },
+    {
+      "id": "D",
+      "code": "Никогда",
+      "correct": false,
+      "explain": "Линии пересекаются в марте — момент смены лидера."
+    }
+  ],
+  "hint": "Ищи точку пересечения линий"
+}

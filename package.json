@@ -12,7 +12,8 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
-    "codemirror": "^6.0.1",
-    "@codemirror/lang-python": "^6.1.0"
+    "@codemirror/lang-python": "^6.1.0",
+    "chart.js": "^4.5.1",
+    "codemirror": "^6.0.1"
   }
 }

@@ -1,0 +1,58 @@
+{
+  "id": "plots_read_compare",
+  "world": "plots",
+  "level": 10,
+  "type": "chart",
+  "title": "Сравнение отделов",
+  "chart": {
+    "type": "bar",
+    "title": "Коммиты по отделам",
+    "data": {
+      "labels": [
+        "Backend",
+        "Frontend",
+        "Data",
+        "DevOps"
+      ],
+      "datasets": [
+        {
+          "label": "Коммиты",
+          "values": [
+            450,
+            320,
+            180,
+            240
+          ]
+        }
+      ]
+    }
+  },
+  "question": "Какой отдел сделал больше всего коммитов?",
+  "options": [
+    {
+      "id": "A",
+      "code": "Backend",
+      "correct": true,
+      "explain": "Backend — 450, самый высокий столбик."
+    },
+    {
+      "id": "B",
+      "code": "Frontend",
+      "correct": false,
+      "explain": "Frontend — 320, это второй по высоте."
+    },
+    {
+      "id": "C",
+      "code": "Data",
+      "correct": false,
+      "explain": "Data — 180, самый низкий."
+    },
+    {
+      "id": "D",
+      "code": "DevOps",
+      "correct": false,
+      "explain": "DevOps — 240, ниже среднего."
+    }
+  ],
+  "hint": "Ищи самый высокий столбик"
+}
