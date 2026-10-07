@@ -85,6 +85,12 @@ export class ChartVisionView {
       return;
     }
 
+    // Heatmap тоже вручную
+    if (cfg.type === 'heatmap') {
+      this._drawHeatmap(canvas, cfg);
+      return;
+    }
+
     const ctx = canvas.getContext('2d');
     const baseColor = '#00ff41';
 
@@ -264,6 +270,91 @@ export class ChartVisionView {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillText(d.label, cx, H - padding.bottom + 8);
+    }
+
+    // Заголовок
+    if (cfg.title) {
+      ctx.fillStyle = '#00ff41';
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(cfg.title, W / 2, 12);
+    }
+  }
+
+  _drawHeatmap(canvas, cfg) {
+    const ctx = canvas.getContext('2d');
+    const rows = cfg.data.rows || [];
+    const cols = cfg.data.labels || [];
+    const matrix = cfg.data.matrix || [];
+    if (!rows.length || !cols.length) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width;
+    const H = rect.height;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.scale(dpr, dpr);
+
+    const padding = { left: 70, right: 20, top: 40, bottom: 30 };
+    const plotW = W - padding.left - padding.right;
+    const plotH = H - padding.top - padding.bottom;
+
+    // Находим min/max
+    let minV = Infinity, maxV = -Infinity;
+    for (const row of matrix) {
+      for (const v of row) {
+        if (v < minV) minV = v;
+        if (v > maxV) maxV = v;
+      }
+    }
+    const range = maxV - minV || 1;
+
+    const cellW = plotW / cols.length;
+    const cellH = plotH / rows.length;
+
+    // Рисуем ячейки
+    for (let r = 0; r < rows.length; r++) {
+      for (let c = 0; c < cols.length; c++) {
+        const v = matrix[r][c];
+        const t = (v - minV) / range;   // 0..1
+        // Зелёный градиент: тёмный (0) → яркий (1)
+        const alpha = 0.15 + t * 0.85;
+        ctx.fillStyle = `rgba(0, 255, 65, ${alpha})`;
+        const x = padding.left + c * cellW;
+        const y = padding.top + r * cellH;
+        ctx.fillRect(x + 1, y + 1, cellW - 2, cellH - 2);
+
+        // Значение внутри ячейки
+        if (cellW > 30) {
+          ctx.fillStyle = t > 0.5 ? '#000' : '#00ff41';
+          ctx.font = '10px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(Math.round(v), x + cellW / 2, y + cellH / 2);
+        }
+      }
+    }
+
+    // Подписи строк (слева)
+    ctx.fillStyle = '#00ff41';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let r = 0; r < rows.length; r++) {
+      const y = padding.top + r * cellH + cellH / 2;
+      ctx.fillText(rows[r], padding.left - 6, y);
+    }
+
+    // Подписи столбцов (сверху)
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    for (let c = 0; c < cols.length; c++) {
+      const x = padding.left + c * cellW + cellW / 2;
+      ctx.fillText(cols[c], x, padding.top - 4);
     }
 
     // Заголовок

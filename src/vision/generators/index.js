@@ -13,6 +13,8 @@ import { boxplotMedian } from './boxplotMedian.js';
 import { boxplotOutlier } from './boxplotOutlier.js';
 import { pieProportion } from './pieProportion.js';
 import { pieChange } from './pieChange.js';
+import { heatmapPeak } from './heatmapPeak.js';
+import { heatmapPattern } from './heatmapPattern.js';
 
 export const GENERATORS = {
   line_trend: lineTrend,
@@ -30,6 +32,8 @@ export const GENERATORS = {
   boxplot_outlier: boxplotOutlier,
   pie_proportion: pieProportion,
   pie_change: pieChange,
+  heatmap_peak: heatmapPeak,
+  heatmap_pattern: heatmapPattern,
 };
 
 export const GENERATORS_BY_TYPE = {
@@ -39,7 +43,7 @@ export const GENERATORS_BY_TYPE = {
   histogram: [histShape, histCompare],
   boxplot: [boxplotMedian, boxplotOutlier],
   pie: [pieProportion, pieChange],
-  heatmap: [],
+  heatmap: [heatmapPeak, heatmapPattern],
 };
 
 export function getGenerator(id) {
