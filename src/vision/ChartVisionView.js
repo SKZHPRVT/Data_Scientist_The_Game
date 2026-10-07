@@ -5,10 +5,12 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 export class ChartVisionView {
-  constructor(task, { onNext, onBack } = {}) {
+  constructor(task, { onNext, onBack, sessionProgress, combo } = {}) {
     this.task = task;
     this.onNext = onNext;
     this.onBack = onBack;
+    this.sessionProgress = sessionProgress || null;
+    this.combo = combo || 0;
     this.el = null;
     this.answered = false;
     this.wrongTries = 0;
@@ -31,12 +33,30 @@ export class ChartVisionView {
 
   render() {
     const t2 = this.task;
+    const sp = this.sessionProgress;
+    const sessionBar = sp ? `
+      <div style="margin-bottom: 12px; padding: 8px 12px; background: rgba(0,255,65,0.05); border-left: 3px solid var(--accent); font-family: var(--font-mono); font-size: 11px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span>Задача ${sp.current + 1} / ${sp.max}</span>
+          <span>
+            ${this.combo >= 3 ? `<span style="color: var(--warn); font-weight: 700;">🔥 Комбо ×${this.combo}</span> · ` : ''}
+            ⭐ ${sp.stars} / ${sp.maxStars}
+          </span>
+        </div>
+        <div style="height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;">
+          <div style="height: 100%; width: ${(sp.current / sp.max) * 100}%; background: var(--accent); transition: width 0.3s;"></div>
+        </div>
+      </div>
+    ` : '';
+
     return `
       <div class="task-view">
         <div class="task-header">
           <div class="task-title">${t2.title || 'Чтение графика'}</div>
-          <div class="task-meta">read · генеративная</div>
+          <div class="task-meta">vision · генеративная</div>
         </div>
+
+        ${sessionBar}
 
         <div class="task-body">
           <div class="task-chart-wrapper" style="position: relative; height: 260px; margin-bottom: 16px; background: rgba(0,255,65,0.03); border: 1px solid var(--fg-dim); border-radius: 6px; padding: 12px;">

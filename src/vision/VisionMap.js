@@ -85,7 +85,16 @@ export class VisionMap {
 
         <div style="margin-top: 16px; padding: 12px; background: rgba(0,255,65,0.05); border-left: 3px solid var(--accent); font-family: var(--font-mono); font-size: 11px; line-height: 1.6;">
           <strong>💡 Как это работает</strong><br>
-          Каждая задача генерируется заново. Никогда не кончается. Решил одну — получил звёзды — открыл следующую. Можно переигрывать бесконечно.
+          Каждая задача генерируется заново. Сессия — 10 задач. Решил — получил звёзды — открыл следующую. Можно переигрывать бесконечно.
+        </div>
+
+        <div style="margin-top: 12px; padding: 12px; background: rgba(0,204,255,0.05); border-left: 3px solid #00ccff; font-family: var(--font-mono); font-size: 11px; line-height: 1.6;">
+          <strong>🏆 Вехи</strong><br>
+          🎯 Первый график      ${totalSolved >= 1 ? '✅' : '🔒 0/1'}<br>
+          📊 Видящий            ${totalSolved >= 10 ? '✅' : `🔒 ${totalSolved}/10`}<br>
+          👁 Провидец          ${totalSolved >= 50 ? '✅' : `🔒 ${totalSolved}/50`}<br>
+          🔮 Ясновидящий       ${totalSolved >= 100 ? '✅' : `🔒 ${totalSolved}/100`}<br>
+          🧙 Мастер            ${totalSolved >= 500 ? '✅' : `🔒 ${totalSolved}/500`}
         </div>
       </div>
     `;
