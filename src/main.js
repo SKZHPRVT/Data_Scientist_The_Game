@@ -48,11 +48,13 @@ function createLoader() {
         <div class="loading-line" id="load-line-1">0000</div>
         <div class="loading-line" id="load-line-2">000000000</div>
       </div>
-      <div class="loading-status" id="load-status">Инициализация...</div>
-      <div class="loading-progress">
-        <div class="loading-progress-bar" id="load-bar"></div>
+      <div class="loading-bottom">
+        <div class="loading-status" id="load-status">Инициализация...</div>
+        <div class="loading-progress">
+          <div class="loading-progress-bar" id="load-bar"></div>
+        </div>
+        <div class="loading-percent" id="load-percent">0%</div>
       </div>
-      <div class="loading-percent" id="load-percent">0%</div>
     </div>
   `;
   document.body.appendChild(el);
