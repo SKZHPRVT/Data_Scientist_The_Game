@@ -9,6 +9,7 @@ import { Progress } from '../settings/Progress.js';
 import { ModelsLab } from '../../models/ModelsLab.js';
 import { TaskView } from '../task/TaskView.js';
 import { ChartTaskView } from '../task/ChartTaskView.js';
+import { VisionLab } from '../../vision/VisionLab.js';
 import { QuestMap } from '../quest/QuestMap.js';
 import { GroupMap } from '../quest/GroupMap.js';
 import { GaltonBoard } from '../galton/GaltonBoard.js';
@@ -159,6 +160,7 @@ export class Desktop {
       { icon: '👑', label: 'SENIOR', action: () => this.openWorldGate('senior') },
       { icon: '📚', label: 'PYTHON', action: () => this.openGroupMap('python') },
       { icon: '📈', label: 'PLOTS', action: () => this.openGroupMap('plots') },
+      { icon: '📊', label: 'VISION', action: () => new VisionLab(this).render() },
       { icon: '📁', label: 'SANDBOX', action: () => this.openSandbox() },
       { icon: '📦', label: 'MODELS', action: () => this.openModelsLab() },
       { icon: '🎲', label: 'GALTON', action: () => this.openGalton() },
