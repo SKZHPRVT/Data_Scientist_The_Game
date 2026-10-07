@@ -1,0 +1,34 @@
+{
+  "id": "code_heatmap",
+  "world": "plots",
+  "level": 11,
+  "type": "code",
+  "title": "Heatmap",
+  "story": "Покажи корреляцию между колонками через тепловую карту.",
+  "question": "Напиши код: sns.heatmap(df.corr(), annot=True).",
+  "requirements": [
+    "sns.heatmap(",
+    "df.corr()",
+    "annot=True"
+  ],
+  "starterCode": "import seaborn as sns\nsns.heatmap(",
+  "checks": [
+    {
+      "type": "has",
+      "value": "sns.heatmap(",
+      "hint": "sns.heatmap("
+    },
+    {
+      "type": "has",
+      "value": ".corr()",
+      "hint": "df.corr()"
+    },
+    {
+      "type": "has",
+      "value": "annot=",
+      "hint": "annot=True"
+    }
+  ],
+  "hint": "sns.heatmap(df.corr(), annot=True)",
+  "explanation": "corr() считает корреляции, heatmap рисует матрицу."
+}

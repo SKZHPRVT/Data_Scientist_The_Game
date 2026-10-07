@@ -1,0 +1,34 @@
+{
+  "id": "code_bar_basic",
+  "world": "plots",
+  "level": 11,
+  "type": "code",
+  "title": "Столбчатая",
+  "story": "Есть df с колонками city и sales. Построй столбчатую диаграмму продаж по городам.",
+  "question": "Напиши код для bar chart.",
+  "requirements": [
+    "Использовать .plot()",
+    "Тип графика — bar (kind='bar' или .plot.bar())",
+    "Повернуть подписи X на 90°"
+  ],
+  "starterCode": "df.plot(",
+  "checks": [
+    {
+      "type": "has",
+      "value": ".plot(",
+      "hint": "Используй .plot()"
+    },
+    {
+      "type": "has_regex",
+      "value": "(kind\\s*=\\s*['\"]bar['\"]|\\.bar\\()",
+      "hint": "Укажи kind='bar' или .plot.bar()"
+    },
+    {
+      "type": "has",
+      "value": "rot=",
+      "hint": "Поверни подписи: rot=90"
+    }
+  ],
+  "hint": "df.plot(kind='bar', rot=90)",
+  "explanation": "kind='bar' переключает тип, rot=90 поворачивает подписи."
+}

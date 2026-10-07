@@ -1,0 +1,35 @@
+{
+  "id": "code_line_basic",
+  "world": "plots",
+  "level": 11,
+  "type": "code",
+  "title": "Первая линия",
+  "story": "У тебя есть DataFrame df с колонками date и views. Построй линейный график просмотров по датам.",
+  "dataset": "df (date, views)",
+  "question": "Напиши код для линейного графика 15×8 с заголовком 'Views per Day'.",
+  "requirements": [
+    "Использовать .plot()",
+    "Размер фигуры figsize=(15, 8)",
+    "Заголовок title='Views per Day'"
+  ],
+  "starterCode": "df.groupby('date')",
+  "checks": [
+    {
+      "type": "has",
+      "value": ".plot(",
+      "hint": "Используй .plot()"
+    },
+    {
+      "type": "has",
+      "value": "figsize=(15,8)",
+      "hint": "Добавь figsize=(15, 8)"
+    },
+    {
+      "type": "has",
+      "value": "title=",
+      "hint": "Добавь title='Views per Day'"
+    }
+  ],
+  "hint": "df.groupby('date').count().plot(figsize=(15,8), title='Views per Day')",
+  "explanation": "groupby по дате → count → plot. figsize задаёт размер, title — заголовок."
+}

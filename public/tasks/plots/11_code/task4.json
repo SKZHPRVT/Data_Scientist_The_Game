@@ -1,0 +1,33 @@
+{
+  "id": "code_scatter",
+  "world": "plots",
+  "level": 11,
+  "type": "code",
+  "title": "Scatter",
+  "story": "Есть df с колонками x и y. Построй scatter plot.",
+  "question": "Напиши код для scatter plot x vs y.",
+  "requirements": [
+    "Использовать .plot.scatter() или plot(kind='scatter')",
+    "x='x', y='y'"
+  ],
+  "starterCode": "df.plot.",
+  "checks": [
+    {
+      "type": "has_regex",
+      "value": "(scatter\\s*\\(|kind\\s*=\\s*['\"]scatter['\"])",
+      "hint": "Используй scatter"
+    },
+    {
+      "type": "has",
+      "value": "x=",
+      "hint": "Укажи x='x'"
+    },
+    {
+      "type": "has",
+      "value": "y=",
+      "hint": "Укажи y='y'"
+    }
+  ],
+  "hint": "df.plot.scatter(x='x', y='y')",
+  "explanation": "scatter(x, y) — точки на плоскости."
+}

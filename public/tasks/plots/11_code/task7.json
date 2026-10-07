@@ -1,0 +1,33 @@
+{
+  "id": "code_subplot",
+  "world": "plots",
+  "level": 11,
+  "type": "code",
+  "title": "Subplots",
+  "story": "Хочешь два графика рядом. Используй subplots.",
+  "question": "Напиши код для 1 строки × 2 столбцов subplots.",
+  "requirements": [
+    "Использовать plt.subplots(1, 2)",
+    "figsize больше обычного"
+  ],
+  "starterCode": "import matplotlib.pyplot as plt\nfig, axes = plt.subplots(",
+  "checks": [
+    {
+      "type": "has",
+      "value": "subplots(",
+      "hint": "Используй subplots"
+    },
+    {
+      "type": "has_regex",
+      "value": "subplots\\s*\\(\\s*1\\s*,\\s*2",
+      "hint": "subplots(1, 2)"
+    },
+    {
+      "type": "has",
+      "value": "figsize=",
+      "hint": "Добавь figsize"
+    }
+  ],
+  "hint": "fig, axes = plt.subplots(1, 2, figsize=(15, 5))",
+  "explanation": "subplots(rows, cols) возвращает fig и axes."
+}

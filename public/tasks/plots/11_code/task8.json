@@ -1,0 +1,39 @@
+{
+  "id": "code_seaborn",
+  "world": "plots",
+  "level": 11,
+  "type": "code",
+  "title": "Seaborn",
+  "story": "Попробуй Seaborn для красивых графиков.",
+  "question": "Напиши код: sns.lineplot с data=df, x='date', y='value'.",
+  "requirements": [
+    "Импорт import seaborn as sns",
+    "sns.lineplot(data=df, ...)",
+    "x='date', y='value'"
+  ],
+  "starterCode": "import seaborn as sns\nsns.",
+  "checks": [
+    {
+      "type": "has",
+      "value": "sns.lineplot(",
+      "hint": "sns.lineplot("
+    },
+    {
+      "type": "has",
+      "value": "data=",
+      "hint": "data=df"
+    },
+    {
+      "type": "has",
+      "value": "x=",
+      "hint": "x='date'"
+    },
+    {
+      "type": "has",
+      "value": "y=",
+      "hint": "y='value'"
+    }
+  ],
+  "hint": "sns.lineplot(data=df, x='date', y='value')",
+  "explanation": "Seaborn — обёртка над matplotlib с красивыми дефолтами."
+}

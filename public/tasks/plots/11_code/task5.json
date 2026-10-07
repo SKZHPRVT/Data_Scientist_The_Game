@@ -1,0 +1,34 @@
+{
+  "id": "code_groupby_plot",
+  "world": "plots",
+  "level": 11,
+  "type": "code",
+  "title": "Groupby + plot",
+  "story": "У тебя df с колонками category и value. Посчитай сумму value по категориям и построй bar chart.",
+  "question": "Напиши код: groupby('category') → sum → plot bar.",
+  "requirements": [
+    "Использовать .groupby('category')",
+    "Использовать .sum()",
+    "Использовать .plot(kind='bar')"
+  ],
+  "starterCode": "df.groupby(",
+  "checks": [
+    {
+      "type": "has",
+      "value": "groupby(",
+      "hint": "Начни с groupby"
+    },
+    {
+      "type": "has",
+      "value": ".sum()",
+      "hint": "Добавь .sum()"
+    },
+    {
+      "type": "has_regex",
+      "value": "(kind\\s*=\\s*['\"]bar['\"]|\\.bar\\()",
+      "hint": "Добавь bar"
+    }
+  ],
+  "hint": "df.groupby('category').sum().plot(kind='bar')",
+  "explanation": "groupby → агрегация → визуализация."
+}

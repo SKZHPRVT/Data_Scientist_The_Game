@@ -9,6 +9,7 @@ import { Progress } from '../settings/Progress.js';
 import { ModelsLab } from '../../models/ModelsLab.js';
 import { TaskView } from '../task/TaskView.js';
 import { ChartTaskView } from '../task/ChartTaskView.js';
+import { CodeView } from '../task/CodeView.js';
 import { VisionLab } from '../../vision/VisionLab.js';
 import { QuestMap } from '../quest/QuestMap.js';
 import { GroupMap } from '../quest/GroupMap.js';
@@ -708,17 +709,25 @@ export class Desktop {
   openTask(task) {
     this._closeAllTaskWindows();
     const isChart = task.type === 'chart';
-    const view = isChart
-      ? new ChartTaskView(task, { onSolved: () => this._onTaskSolved(task._path) })
-      : new TaskView(task, { onSolved: () => this._onTaskSolved(task._path) });
+    const isCode = task.type === 'code';
 
+    let view;
+    if (isChart) {
+      view = new ChartTaskView(task, { onSolved: () => this._onTaskSolved(task._path) });
+    } else if (isCode) {
+      view = new CodeView(task, { onSolved: () => this._onTaskSolved(task._path) });
+    } else {
+      view = new TaskView(task, { onSolved: () => this._onTaskSolved(task._path) });
+    }
+
+    const icon = isChart ? '📊 ' : isCode ? '💻 ' : '📄 ';
     const win = this.windows.create({
       id: 'task-' + task.id,
-      title: (isChart ? '📊 ' : '📄 ') + (task.title || task.id),
+      title: icon + (task.title || task.id),
       content: view.render(),
       onMount: (body) => view.mount(body),
-      width: isChart ? 600 : 540,
-      height: 700,
+      width: (isChart || isCode) ? 620 : 540,
+      height: 720,
     });
 
     // При закрытии — destroy() если есть

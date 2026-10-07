@@ -80,6 +80,13 @@
       "icon": "👁",
       "description": "Смотри на график и делай выводы",
       "unlockAfter": "09_plotly"
+    },
+    {
+      "id": "11_code",
+      "title": "Код для графиков",
+      "icon": "💻",
+      "description": "Напиши код сам — проверка по паттернам",
+      "unlockAfter": "10_read"
     }
   ]
 }

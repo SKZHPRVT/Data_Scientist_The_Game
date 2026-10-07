@@ -1,0 +1,34 @@
+{
+  "id": "code_save",
+  "world": "plots",
+  "level": 11,
+  "type": "code",
+  "title": "Сохрани график",
+  "story": "Построй график и сохрани его в PNG.",
+  "question": "Напиши код: plot → savefig('chart.png').",
+  "requirements": [
+    ".plot(",
+    ".savefig(",
+    "имя файла в кавычках"
+  ],
+  "starterCode": "df.plot(",
+  "checks": [
+    {
+      "type": "has",
+      "value": ".plot(",
+      "hint": "Начни с .plot()"
+    },
+    {
+      "type": "has",
+      "value": "savefig(",
+      "hint": "Добавь .savefig()"
+    },
+    {
+      "type": "has_regex",
+      "value": "savefig\\s*\\(\\s*['\"]",
+      "hint": "savefig('chart.png')"
+    }
+  ],
+  "hint": "df.plot().figure.savefig('chart.png')",
+  "explanation": "savefig сохраняет последний график в файл."
+}

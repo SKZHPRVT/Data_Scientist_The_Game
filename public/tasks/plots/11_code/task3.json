@@ -1,0 +1,34 @@
+{
+  "id": "code_hist",
+  "world": "plots",
+  "level": 11,
+  "type": "code",
+  "title": "Гистограмма",
+  "story": "Есть df с колонкой ages. Построй гистограмму распределения возрастов.",
+  "question": "Напиши код для histogram с 20 корзинами.",
+  "requirements": [
+    "Использовать .plot()",
+    "Тип histogram",
+    "20 бинов (bins=20)"
+  ],
+  "starterCode": "df['ages'].plot(",
+  "checks": [
+    {
+      "type": "has",
+      "value": ".plot(",
+      "hint": "Используй .plot()"
+    },
+    {
+      "type": "has_regex",
+      "value": "(kind\\s*=\\s*['\"]hist['\"]|\\.hist\\()",
+      "hint": "Укажи kind='hist'"
+    },
+    {
+      "type": "has",
+      "value": "bins=",
+      "hint": "Добавь bins=20"
+    }
+  ],
+  "hint": "df['ages'].plot(kind='hist', bins=20)",
+  "explanation": "kind='hist' — гистограмма, bins задаёт число интервалов."
+}
