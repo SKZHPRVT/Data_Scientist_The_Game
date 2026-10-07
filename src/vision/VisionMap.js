@@ -3,13 +3,13 @@ import { GENERATORS_BY_TYPE } from './generators/index.js';
 import { progress } from '../core/progress.js';
 
 const TYPE_META = {
-  line:      { icon: '📈', name: 'Линии',       desc: 'Тренды, пики, пересечения' },
-  bar:       { icon: '📊', name: 'Столбцы',     desc: 'Сравнение категорий' },
-  scatter:   { icon: '✨', name: 'Рассеяние',   desc: 'Корреляция, кластеры' },
-  histogram: { icon: '🔔', name: 'Гистограммы', desc: 'Распределения' },
-  boxplot:   { icon: '📦', name: 'Ящики',       desc: 'Медиана, квартили, выбросы' },
-  pie:       { icon: '🥧', name: 'Круги',       desc: 'Доли от целого' },
-  heatmap:   { icon: '🔥', name: 'Тепловые',    desc: 'Паттерны по двум осям' },
+  line:      { icon: '📈', name: 'Line',      desc: 'тренды, пики, пересечения' },
+  bar:       { icon: '📊', name: 'Bar',       desc: 'сравнение категорий' },
+  scatter:   { icon: '✨', name: 'Scatter',   desc: 'корреляция, кластеры' },
+  histogram: { icon: '🔔', name: 'Histogram', desc: 'распределения' },
+  boxplot:   { icon: '📦', name: 'Boxplot',   desc: 'медиана, IQR, выбросы' },
+  pie:       { icon: '🥧', name: 'Pie',       desc: 'доли от целого' },
+  heatmap:   { icon: '🔥', name: 'Heatmap',   desc: 'паттерны по двум осям' },
 };
 
 export class VisionMap {

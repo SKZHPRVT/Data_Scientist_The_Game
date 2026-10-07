@@ -7,13 +7,13 @@ import { GENERATORS_BY_TYPE } from './generators/index.js';
 import { checkAndNotifyVision } from './VisionAchievements.js';
 
 const TYPE_META = {
-  line:      { icon: '📈', name: 'Линии' },
-  bar:       { icon: '📊', name: 'Столбцы' },
-  scatter:   { icon: '✨', name: 'Рассеяние' },
-  histogram: { icon: '🔔', name: 'Гистограммы' },
-  boxplot:   { icon: '📦', name: 'Ящики' },
-  pie:       { icon: '🥧', name: 'Круги' },
-  heatmap:   { icon: '🔥', name: 'Тепловые' },
+  line:      { icon: '📈', name: 'Line' },
+  bar:       { icon: '📊', name: 'Bar' },
+  scatter:   { icon: '✨', name: 'Scatter' },
+  histogram: { icon: '🔔', name: 'Histogram' },
+  boxplot:   { icon: '📦', name: 'Boxplot' },
+  pie:       { icon: '🥧', name: 'Pie' },
+  heatmap:   { icon: '🔥', name: 'Heatmap' },
 };
 
 export class VisionLab {
