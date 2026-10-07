@@ -79,6 +79,12 @@ export class ChartVisionView {
     const cfg = this.task.chart;
     if (!cfg || !canvas) return;
 
+    // Boxplot рисуем вручную
+    if (cfg.type === 'boxplot') {
+      this._drawBoxplot(canvas, cfg);
+      return;
+    }
+
     const ctx = canvas.getContext('2d');
     const baseColor = '#00ff41';
 
@@ -137,6 +143,137 @@ export class ChartVisionView {
         },
       },
     });
+  }
+
+  _drawBoxplot(canvas, cfg) {
+    const ctx = canvas.getContext('2d');
+    const baseColor = '#00ff41';
+    const boxData = cfg.data.datasets[0]?.boxData || [];
+    if (!boxData.length) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width;
+    const H = rect.height;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.scale(dpr, dpr);
+
+    const padding = { left: 50, right: 20, top: 40, bottom: 40 };
+    const plotW = W - padding.left - padding.right;
+    const plotH = H - padding.top - padding.bottom;
+
+    // Находим min/max по всем данным
+    let globalMin = Infinity;
+    let globalMax = -Infinity;
+    for (const d of boxData) {
+      globalMin = Math.min(globalMin, d.min, ...(d.outliers || []));
+      globalMax = Math.max(globalMax, d.max, ...(d.outliers || []));
+    }
+    const range = globalMax - globalMin || 1;
+
+    const yScale = (v) => padding.top + plotH - ((v - globalMin) / range) * plotH;
+
+    // Оси
+    ctx.strokeStyle = 'rgba(0, 255, 65, 0.2)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = padding.top + (plotH / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(W - padding.right, y);
+      ctx.stroke();
+
+      // Подпись
+      const val = globalMax - (range / 4) * i;
+      ctx.fillStyle = '#00ff41';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(Math.round(val), padding.left - 6, y);
+    }
+
+    // Рисуем каждый box
+    const n = boxData.length;
+    const slotW = plotW / n;
+    const boxW = Math.min(slotW * 0.5, 50);
+
+    for (let i = 0; i < n; i++) {
+      const d = boxData[i];
+      const cx = padding.left + slotW * (i + 0.5);
+      const x1 = cx - boxW / 2;
+      const x2 = cx + boxW / 2;
+
+      const yMin = yScale(d.min);
+      const yQ1 = yScale(d.q1);
+      const yMedian = yScale(d.median);
+      const yQ3 = yScale(d.q3);
+      const yMax = yScale(d.max);
+
+      // Усы
+      ctx.strokeStyle = '#00ff41';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(cx, yMax);
+      ctx.lineTo(cx, yQ3);
+      ctx.moveTo(cx, yQ1);
+      ctx.lineTo(cx, yMin);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Горизонтальные линии усов
+      ctx.beginPath();
+      ctx.moveTo(x1 + 8, yMax);
+      ctx.lineTo(x2 - 8, yMax);
+      ctx.moveTo(x1 + 8, yMin);
+      ctx.lineTo(x2 - 8, yMin);
+      ctx.stroke();
+
+      // Ящик
+      ctx.fillStyle = 'rgba(0, 255, 65, 0.15)';
+      ctx.fillRect(x1, yQ3, boxW, yQ1 - yQ3);
+      ctx.strokeStyle = '#00ff41';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x1, yQ3, boxW, yQ1 - yQ3);
+
+      // Медиана
+      ctx.strokeStyle = '#00ff41';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x1, yMedian);
+      ctx.lineTo(x2, yMedian);
+      ctx.stroke();
+
+      // Выбросы
+      if (d.outliers) {
+        for (const o of d.outliers) {
+          const yo = yScale(o);
+          ctx.fillStyle = '#ff3333';
+          ctx.beginPath();
+          ctx.arc(cx, yo, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Подпись группы
+      ctx.fillStyle = '#00ff41';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(d.label, cx, H - padding.bottom + 8);
+    }
+
+    // Заголовок
+    if (cfg.title) {
+      ctx.fillStyle = '#00ff41';
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(cfg.title, W / 2, 12);
+    }
   }
 
   _onPick(btn, resultEl) {

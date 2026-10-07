@@ -9,6 +9,10 @@ import { scatterCorr } from './scatterCorr.js';
 import { scatterOutlier } from './scatterOutlier.js';
 import { histShape } from './histShape.js';
 import { histCompare } from './histCompare.js';
+import { boxplotMedian } from './boxplotMedian.js';
+import { boxplotOutlier } from './boxplotOutlier.js';
+import { pieProportion } from './pieProportion.js';
+import { pieChange } from './pieChange.js';
 
 export const GENERATORS = {
   line_trend: lineTrend,
@@ -22,6 +26,10 @@ export const GENERATORS = {
   scatter_outlier: scatterOutlier,
   hist_shape: histShape,
   hist_compare: histCompare,
+  boxplot_median: boxplotMedian,
+  boxplot_outlier: boxplotOutlier,
+  pie_proportion: pieProportion,
+  pie_change: pieChange,
 };
 
 export const GENERATORS_BY_TYPE = {
@@ -29,8 +37,8 @@ export const GENERATORS_BY_TYPE = {
   bar: [barCompare, barTop, barDistribution],
   scatter: [scatterCorr, scatterOutlier],
   histogram: [histShape, histCompare],
-  boxplot: [],
-  pie: [],
+  boxplot: [boxplotMedian, boxplotOutlier],
+  pie: [pieProportion, pieChange],
   heatmap: [],
 };
 
