@@ -873,6 +873,8 @@ export class Desktop {
       const { checkAndNotifyPlots } = await import('../../vision/PlotsAchievements.js');
       await checkAndNotifyPython();
       await checkAndNotifyPlots();
+      const { checkAndNotifyMeta } = await import('../../core/metaAchievements.js');
+      await checkAndNotifyMeta();
     } catch (e) {
       console.warn('[Ach python/plots]', e.message);
     }

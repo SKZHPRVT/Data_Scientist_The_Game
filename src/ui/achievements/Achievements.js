@@ -75,6 +75,12 @@ const ACHIEVEMENTS = [
   { id: 'PL_CODE',       title: 'Кодер',               titleEn: 'Coder',               icon: '💻', desc: 'Прошёл главу Code.', descEn: 'Completed Code chapter.', code: 'PL_CODE' },
   { id: 'PL_MASTER',     title: 'Plots Master',        titleEn: 'Plots Master',        icon: '📈', desc: 'Прошёл все главы PLOTS.', descEn: 'Completed all PLOTS chapters.', code: 'PL_MASTER', platinum: true },
 
+  // === META (для 72) ===
+  { id: 'CENTURION', title: 'Центурион', titleEn: 'Centurion', icon: '💯', desc: 'Собрал 100 звёзд всего.', descEn: 'Collected 100 stars total.', code: 'CENTURION' },
+  { id: 'STAR_LORD', title: 'Звёздный лорд', titleEn: 'Star lord', icon: '🌟', desc: 'Собрал 500 звёзд всего.', descEn: 'Collected 500 stars total.', code: 'STAR_LORD' },
+  { id: 'WORLD_DONE', title: 'Завершитель', titleEn: 'World finisher', icon: '🎓', desc: 'Прошёл любой мир на 100%.', descEn: 'Completed any world 100%.', code: 'WORLD_DONE' },
+  { id: 'ACH_HUNTER', title: 'Коллекционер ачивок', titleEn: 'Achievement hunter', icon: '🏆', desc: 'Открыл 50 других ачивок.', descEn: 'Unlocked 50 other achievements.', code: 'ACH_HUNTER', platinum: true },
+
   { id: 'ILLUMINATI', title: 'Тот, кто читает описания', titleEn: 'One who reads descriptions', icon: '👁', desc: 'Нашёл то, чего не должно было быть.', descEn: 'Found what should not be there.', code: 'ILLUMINATI', secret: true },
   { id: 'DIVIDE_ET_IMPERA', title: 'Divide et Impera', titleEn: 'Divide et Impera', icon: '🏆', desc: 'Ты разделил, выстроил, связал.', descEn: 'You divided, built, connected.', code: 'DIVIDE-ET-IMPERA', platinum: true },
 ];
